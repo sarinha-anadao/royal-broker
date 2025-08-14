@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Análise Técnica — Royal Broker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body class="analise">
+  <div class="ana-center">
+    <header class="ana-head">
+      <h1 class="section-title sparkle">Análise Técnica</h1>
+      <button class="btn-turq small" onclick="voltarPortal()">⬅ Voltar</button>
+    </header>
+
+    <div class="ana-controls">
+      <div class="control">
+        <label>Ativo</label>
+        <div class="select-with-logo">
+          <img id="anaLogo" src="img/petr4.png" alt="Logo" class="logo-mini big">
+          <select id="anaSymbol" class="rb-input input-royal-focus"></select>
+        </div>
+      </div>
+
+      <div class="control">
+        <label>Intervalo</label>
+        <select id="anaInterval" class="rb-input input-royal-focus">
+          <option value="10">10s</option>
+          <option value="60" selected>1m</option>
+          <option value="300">5m</option>
+          <option value="1800">30m</option>
+          <option value="3600">1h</option>
+          <option value="86400">1d</option>
+          <option value="604800">1w</option>
+        </select>
+      </div>
+
+      <div class="control">
+        <label>Tipo</label>
+        <select id="anaType" class="rb-input input-royal-focus">
+          <option value="line">Linha</option>
+          <option value="candle" selected>Candlestick</option>
+        </select>
+      </div>
+    </div>
+
+    <canvas id="kChart" width="900" height="380" class="rt-canvas" aria-label="Gráfico"></canvas>
+    <div class="hint">Passe o mouse para ver data/hora, abertura, máxima, mínima e fechamento.</div>
+
+    <div class="mini-wallet panel panel-royal-outline">
+      <h3 class="panel-title">Minha carteira</h3>
+      <table id="miniWallet" class="rb-table">
+        <thead><tr><th>Logo</th><th>Ativo</th><th>Qtd</th><th>Preço Médio</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="ana-actions">
+        <button class="btn-buy" id="btnBuy">Comprar</button>
+        <button class="btn-sell" id="btnSell">Vender</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

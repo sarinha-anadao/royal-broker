@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Royal Broker — Início</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body class="home">
+  <!-- TOPO -->
+  <header class="topbar">
+    <div class="brand" onclick="goTo('landing')">
+      <img src="img/royal-logo.png" alt="Royal Broker" class="brand-logo">
+      <div class="brand-stack">
+        <span class="brand-royal">ROYAL</span>
+        <span class="brand-broker">BROKER</span>
+      </div>
+    </div>
+
+    <nav class="main-nav">
+      <a class="navlink" href="#landing">Início</a>
+      <a class="navlink" href="#sec-mercados">Mercados</a>
+      <a class="navlink" href="#sec-produtos">Produtos</a>
+      <a class="navlink" href="#sec-suporte">Suporte</a>
+    </nav>
+
+    <div class="nav-cta">
+      <a class="btn-turq small expand" href="login.html" target="_blank" rel="noopener">Login</a>
+      <a class="btn-turq small expand" href="cadastro.html" target="_blank" rel="noopener">Abrir Conta</a>
+    </div>
+  </header>
+
+  <!-- TICKER -->
+  <div class="tickerbar"><div class="ticker" id="ticker"></div></div>
+
+  <div class="container">
+    <!-- HERO -->
+    <section id="landing" class="section">
+      <div class="hero">
+        <div class="hero-copy">
+          <h1 class="hero-title">
+            <span class="rb-gradient-gold">ROYAL</span> impulsiona o seu patrimônio
+          </h1>
+          <p class="hero-sub">Plataforma estável, execução rápida e design premium para investir com confiança.</p>
+          <div class="cta">
+            <a class="btn-turq big expand" href="cadastro.html" target="_blank" rel="noopener">Quero abrir minha conta</a>
+            <a class="btn-turq ghost expand" href="login.html" target="_blank" rel="noopener">Já tenho conta</a>
+          </div>
+          <div class="kpis">
+            <div><strong data-countup="70000">0</strong><span>Investidores</span></div>
+            <div><strong data-countup="1500000">0</strong><span>Ordens no ano</span></div>
+            <div><strong data-countup="35">0</strong><span>Execução média (ms)</span></div>
+          </div>
+        </div>
+
+        <!-- Gráfico mais elaborado (mantido) -->
+        <div class="hero-visual">
+          <canvas id="canvasHero" width="460" height="240" aria-label="Crescimento por classe e meses"></canvas>
+          <div class="hero-legend">
+            <span class="dot dot-a"></span> Ações
+            <span class="dot dot-b"></span> FIIs
+            <span class="dot dot-c"></span> Renda Fixa
+          </div>
+        </div>
+      </div>
+
+      <!-- BADGES (corrigidos e mais chamativos) -->
+      <div class="trustbar">
+        <button class="trust-badge action-blue">
+          <span class="badge-ico">🛡️</span>
+          <span class="badge-title">Infra Estável</span>
+          <span class="badge-sub">Alta disponibilidade</span>
+        </button>
+        <button class="trust-badge action-blue">
+          <span class="badge-ico">⚡</span>
+          <span class="badge-title">Execução Ágil</span>
+          <span class="badge-sub">Milissegundos</span>
+        </button>
+        <button class="trust-badge action-blue">
+          <span class="badge-ico">📊</span>
+          <span class="badge-title">Relatórios Smart</span>
+          <span class="badge-sub">Export & Share</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- MERCADOS -->
+    <section id="sec-mercados" class="section">
+      <h2 class="section-title sparkle">Mercados</h2>
+      <p class="section-punch">Vitrine com logos oficiais, nomes e preços ao vivo.</p>
+
+      <div class="carousel-wrap">
+        <div id="carouselTrack" class="carousel-track"></div>
+      </div>
+
+      <!-- Histórias -->
+      <div class="panel growth">
+        <h3 class="panel-title">Histórias de crescimento</h3>
+        <div class="stories-wrap" id="storiesWrap"></div>
+      </div>
+    </section>
+
+    <!-- PRODUTOS -->
+    <section id="sec-produtos" class="section">
+      <h2 class="section-title sparkle">Produtos</h2>
+      <div class="panel panel-royal-outline">
+        <p class="produtos-resumo">Home Broker completo, gráficos, extratos e exportações — tudo no padrão Royal.</p>
+      </div>
+    </section>
+
+    <!-- SUPORTE -->
+    <section id="sec-suporte" class="section">
+      <h2 class="section-title sparkle">Suporte</h2>
+      <div class="support-grid">
+        <button class="support-card royal-cta" onclick="simularEnvio('telefone')"><div class="support-ico">📞</div><h4>Telefone</h4><p>(11) 4000-0000 • Seg–Sex, 9h–18h</p></button>
+        <button class="support-card royal-cta" onclick="simularEnvio('email')"><div class="support-ico">✉️</div><h4>E-mail</h4><p>atendimento@royalbroker.com</p></button>
+        <button class="support-card royal-cta" onclick="toggleChat()"><div class="support-ico">💬</div><h4>Chat</h4><p>Fale agora com o assistente Royal</p></button>
+      </div>
+    </section>
+
+    <!-- CHAT -->
+    <div id="rbChat" class="chat-float" aria-hidden="true">
+      <div class="chat-head"><strong>Royal Assist</strong><button class="chat-close" onclick="toggleChat()" aria-label="Fechar chat">×</button></div>
+      <div class="chat-body" id="chatBody"><div class="msg bot">Olá! Sou o assistente Royal. Como posso ajudar?</div></div>
+      <form class="chat-send" onsubmit="event.preventDefault(); enviarChat();">
+        <input id="chatInput" class="chat-input" placeholder="Digite sua mensagem..." />
+        <button class="btn-royal small">Enviar</button>
+      </form>
+    </div>
+
+    <!-- RODAPÉ -->
+    <footer class="footer">
+      <div>© 2025 Royal Broker — Todos os direitos reservados.</div>
+      <div>Desenvolvido pela Squad: <strong>Sara</strong>, <strong>Gisele</strong>, <strong>Shyva</strong>, <strong>Marcelo</strong>, <strong>Wagner</strong>, <strong>Rafael</strong>.</div>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

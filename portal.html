@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Royal Broker — Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body class="portal">
+  <div class="container portal-container">
+
+    <!-- BOAS-VINDAS + INVESTIMENTOS -->
+    <section class="panel panel-royal-outline welcome">
+      <div class="welcome-left">
+        <!-- LOGO VISÍVEL ACIMA -->
+        <img src="img/royal-logo.png" class="royal-mark" alt="Royal Broker">
+        <!-- “CONECTADO” SEPARADO (sem logo dentro) -->
+        <div class="connected-chip"><span class="online-dot"></span> Conectado</div>
+
+        <h1 class="welcome-title">Bem-vindo, <span id="username"></span>!</h1>
+        <p class="welcome-sub">Sua mesa Royal está pronta: mercado ao vivo, boleta ágil e relatórios.</p>
+
+        <!-- BOTÃO 📈 + CONFIGURAÇÕES (≡) LADO A LADO -->
+        <div class="quick-actions">
+          <button class="btn-emoji" title="Análise técnica" onclick="abrirAnalise()">📈</button>
+
+          <div class="menu-wrap">
+            <button class="menu-btn" id="menuBtn" aria-label="Abrir menu">≡</button>
+            <div class="menu-dropdown" id="menuDropdown" aria-hidden="true">
+              <button onclick="abrirMinhaConta()">Minha conta</button>
+              <button onclick="scrollToAlterarSenha()">Alterar senha</button>
+              <button class="danger" onclick="logout()">Encerrar sessão</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD: INVESTIMENTO NACIONAL (gráfico animado para cima) -->
+      <div class="invest-card">
+        <div class="invest-head">
+          <div class="dot-ok"></div>
+          <div class="invest-title">Investimento Nacional</div>
+        </div>
+
+        <div class="invest-body">
+          <div class="invest-total">
+            <div class="invest-label">Total investido + Conta investimento</div>
+            <div class="invest-valor">R$ <span id="investTotal">142.360,43</span></div>
+            <div class="invest-perf">
+              <span id="investPerf" class="up">▲ 8,12%</span>
+              <small>(12 meses)</small>
+            </div>
+          </div>
+          <canvas id="invSpark" width="240" height="76"></canvas>
+        </div>
+
+        <div class="invest-footer center">
+          <div class="invest-saldo">Saldo Conta Investimento Nacional</div>
+          <div class="invest-saldo-valor">R$ <span id="saldo">100.000,00</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MERCADO AO VIVO -->
+    <section class="panel panel-royal-outline">
+      <h3 class="panel-title sparkle">Mercado ao vivo</h3>
+      <div class="boleta-row">
+        <label>Ativo:
+          <select id="rtSymbol" class="rb-input input-royal-focus"></select>
+        </label>
+        <span class="muted">Preço atual: R$ <strong id="rtPrice">0,00</strong></span>
+      </div>
+      <canvas id="rtCanvas" width="900" height="260" class="rt-canvas"></canvas>
+    </section>
+
+    <div class="grid-2-col">
+      <!-- CARTEIRA -->
+      <section class="panel panel-royal-outline">
+        <div class="panel-flex">
+          <h3 class="panel-title sparkle">Carteira</h3>
+
+          <!-- (REMOVIDO o menu daqui; ele está ao lado do 📈) -->
+          <div class="export-bar dropdown">
+            <button class="btn-json small" onclick="abrirBaixar('carteira')">Baixar Extrato</button>
+            <div class="drop" id="drop-carteira" aria-hidden="true">
+              <div class="drop-title">Baixar Extrato<br><small>Escolha o formato:</small></div>
+              <div class="drop-actions">
+                <button class="btn-xls" onclick="exportarXLS('carteira')">XLSX</button>
+                <button class="btn-json" onclick="exportarJSON('carteira')">JSON</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <table id="carteira" class="rb-table">
+          <thead>
+          <tr>
+            <th>Logo</th><th>Ativo</th><th>Quantidade</th>
+            <th>Preço Médio (R$)</th><th>Valor Total (R$)</th>
+            <th>Lucro/Prejuízo</th><th>Variação (%)</th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <!-- BOOK -->
+      <section class="panel panel-royal-outline">
+        <div class="panel-flex">
+          <h3 class="panel-title sparkle">Book de Ofertas (B3)</h3>
+          <div class="export-bar dropdown">
+            <button class="btn-json small" onclick="abrirBaixar('book')">Baixar Extrato</button>
+            <div class="drop" id="drop-book" aria-hidden="true">
+              <div class="drop-title">Baixar Extrato<br><small>Escolha o formato:</small></div>
+              <div class="drop-actions">
+                <button class="btn-xls" onclick="exportarXLS('book')">XLSX</button>
+                <button class="btn-json" onclick="exportarJSON('book')">JSON</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="scrollable">
+          <table id="book" class="rb-table with-hover">
+            <thead><tr><th>Logo</th><th>Ativo</th><th>Preço Atual (R$)</th><th>Variação</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="muted tip">Ao clicar nos ativos, os dados são preenchidos automaticamente na Boleta.</div>
+      </section>
+    </div>
+
+    <!-- BOLETA -->
+    <section class="panel panel-royal-outline">
+      <h3 class="panel-title sparkle">Boleta de Compra e Venda</h3>
+      <div class="boleta-row">
+        <select id="tipo" class="rb-input input-royal-focus">
+          <option>Compra</option><option>Venda</option>
+        </select>
+        <select id="ativo" class="rb-input input-royal-focus"></select>
+        <input type="number" id="quantidade" class="rb-input input-royal-focus" placeholder="Qtd (múltiplos de 100)">
+        <input type="number" id="valor" class="rb-input input-royal-focus" placeholder="Valor por lote (R$)">
+        <button class="btn-royal rb-glow" onclick="executarOperacao()">Enviar Ordem</button>
+      </div>
+      <div id="mensagem" class="msg-inline"></div>
+    </section>
+
+    <!-- ALTERAR SENHA -->
+    <section id="sec-alterar-senha" class="panel panel-royal-outline">
+      <h3 class="panel-title sparkle">Alterar Senha</h3>
+      <div class="boleta-row">
+        <span class="senha-wrapper">
+          <input type="password" id="novaSenha" class="rb-input input-royal-focus" placeholder="Digite a nova senha">
+          <button type="button" class="toggleSenha" onclick="toggleSenha('novaSenha', this)" aria-label="Mostrar/ocultar senha">👁️</button>
+        </span>
+        <button class="btn-royal" onclick="alterarSenha()">Salvar Nova Senha</button>
+      </div>
+      <div id="senhaMsg" class="success"></div>
+    </section>
+
+<!-- EXTRATO -->
+<section class="panel panel-royal-outline" id="sec-extrato">
+  <div class="panel-flex">
+    <h3 class="panel-title sparkle">Extrato de Operações</h3>
+
+    <!-- Baixar Extrato -->
+    <div class="export-bar dropdown">
+      <button class="btn-json small" onclick="abrirBaixar('extrato')">Baixar Extrato</button>
+      <div class="drop" id="drop-extrato" aria-hidden="true">
+        <div class="drop-title">Baixar Extrato<br><small>Escolha o formato:</small></div>
+        <div class="drop-actions">
+          <button class="btn-xls" onclick="exportarXLS('extrato')">XLSX</button>
+          <button class="btn-json" onclick="exportarJSON('extrato')">JSON</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div id="filtro-datas" class="boleta-row">
+    <label>Data Inicial:
+      <input type="date" id="dataInicial" class="rb-input input-royal-focus">
+    </label>
+    <label>Data Final:
+      <input type="date" id="dataFinal" class="rb-input input-royal-focus">
+    </label>
+    <button class="btn-royal rb-glow" onclick="filtrarExtrato()">Filtrar</button>
+
+    <div id="ordenacao-datas" class="boleta-row">
+      <label>Ordenar:</label>
+      <select id="ordenacao" class="rb-input input-royal-focus">
+        <option value="desc">Mais recentes primeiro</option>
+        <option value="asc">Mais antigas primeiro</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="filtroMsg" class="error"></div>
+
+  <!-- Tabela -->
+  <table id="extrato" class="rb-table">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Tipo</th>
+        <th>Ativo</th>
+        <th>Qtd</th>
+        <th>Preço</th>
+        <th>Valor Total (R$)</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+
+    <footer class="footer">
+      <div>© 2025 Royal Broker — Todos os direitos reservados.</div>
+      <div>Desenvolvido pela Squad: <strong>Sara</strong>, <strong>Gisele</strong>, <strong>Shyva</strong>, <strong>Marcelo</strong>, <strong>Wagner</strong>, <strong>Rafael</strong>.</div>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

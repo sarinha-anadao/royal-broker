@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Abrir Conta — Royal Broker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body class="login-body">
+  <main class="login-center">
+    <!-- CARTÃO COM BORDA COLORIDA -->
+    <div class="login-card cascade login-compact hover-expand">
+      <a class="close-x in-card" href="index.html" aria-label="Voltar à Home">×</a>
+
+      <img src="img/royal-logo.png" alt="Royal Broker" class="login-logo small">
+      <h2 class="rb-login-title rb-gold-strong">ABRIR CONTA</h2>
+
+      <form onsubmit="event.preventDefault(); salvarCadastro();" class="rb-form lefted single-col">
+        <label>Nome Completo
+          <input type="text" id="cadNome" class="rb-input input-royal-focus" placeholder="Digite seu nome completo">
+        </label>
+        <label>WhatsApp
+          <input type="text" id="cadZap" class="rb-input input-royal-focus" placeholder="Digite seu celular com DDD">
+        </label>
+        <label>E-mail
+          <input type="email" id="cadEmail" class="rb-input input-royal-focus" placeholder="Digite seu e-mail válido">
+        </label>
+        <label>CPF
+          <input type="text" id="cadCpf" class="rb-input input-royal-focus" placeholder="Digite seu CPF">
+        </label>
+        <label>Senha
+          <input type="password" id="cadSenha" class="rb-input input-royal-focus" placeholder="Crie uma senha segura">
+        </label>
+        <label>Confirmar senha
+          <input type="password" id="cadConfSenha" class="rb-input input-royal-focus" placeholder="Repita a mesma senha criada">
+        </label>
+
+        <div class="hint">Mínimo 6 caracteres, com pelo menos 1 letra e 1 número.</div>
+
+        <!-- turquesa sem borda dourada -->
+        <button class="btn-turq expand rb-enter" type="submit">Criar conta</button>
+
+        <p class="rb-bottom light-blue">
+          Já tem conta?
+          <a class="btn-inline btn-turq expand" href="login.html" target="_blank" rel="noopener">Entrar</a>
+        </p>
+
+        <div id="cadMsg" class="error" role="alert"></div>
+      </form>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
