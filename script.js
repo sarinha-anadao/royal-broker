@@ -81,7 +81,7 @@ function buildCarousel(){
 }
 function countUp(){ document.querySelectorAll("[data-countup]").forEach(el=>{ const t=+el.getAttribute("data-countup"); let c=0; const s=Math.max(1,Math.floor(t/120)); (function tick(){ c+=s; if(c>=t)c=t; el.textContent=t>=1000?c.toLocaleString("pt-BR"):c; if(c<t) requestAnimationFrame(tick); })(); }); }
 
-/* Gráfico do hero */
+/* Gráfico do hero (decorativo) */
 (function drawHero(){ const c=$("#canvasHero"); if(!c) return; const ctx=c.getContext("2d"); const W=c.width,H=c.height,p=28; function step(){ ctx.fillStyle="#0b1b26"; ctx.fillRect(0,0,W,H);
   ctx.strokeStyle="#123a5a"; for(let i=0;i<=4;i++){ const y=p+((H-p*1.6)*i/4); ctx.beginPath(); ctx.moveTo(p,y); ctx.lineTo(W-p,y); ctx.stroke(); }
   const t = Date.now()/650; const colors = ["#3fd0ff","#6ce36c","#ffd261"];
@@ -248,6 +248,10 @@ function portalInit(){
     $("#lastLogin").innerText = `Último acesso: ${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
   }
 
+  // zera inputs da boleta (evita reaproveitar número do navegador)
+  if (document.getElementById('quantidade')) document.getElementById('quantidade').value = '';
+  if (document.getElementById('valor')) document.getElementById('valor').value = '';
+
   preencherSelectAtivos(); preencherRtSelect();
   atualizarCarteira(); atualizarBook(); atualizarExtrato(); atualizarOrdens();
   startRtChart(); startSpark();
@@ -304,9 +308,8 @@ function abrirMinhaConta(){
   document.getElementById('mcEmail').innerText = u.email || '—';
   document.getElementById('mcZap').innerText   = u.zap || '—';
   document.getElementById('mcCpf').innerText   = cpfAtual || '—';
-  // Sempre mostrar "Premium"
   const contaEl = document.getElementById('mcConta');
-  if (contaEl) contaEl.textContent = 'Premium';
+  if (contaEl) contaEl.textContent = 'Premium'; // sempre Premium
   showModal('modalConta');
 }
 function abrirAlterarSenha(){
@@ -317,7 +320,7 @@ function abrirAlterarSenha(){
 }
 function scrollToAlterarSenha(){ abrirAlterarSenha(); }
 
-/* ===== Alterar senha (suporta portal antigo ou modal novo) ===== */
+/* ===== Alterar senha ===== */
 function alterarSenha(from){
   const inputEl = from==='modal' ? document.getElementById('novaSenhaModal') : document.getElementById('novaSenha');
   const msgEl   = from==='modal' ? document.getElementById('senhaMsgModal') : document.getElementById('senhaMsg');

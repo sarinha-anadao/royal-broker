@@ -69,8 +69,9 @@ a{color:#cfe8ff; text-decoration:none}
 .cta{display:flex; gap:12px; flex-wrap:wrap}
 .kpis{display:flex; gap:28px; margin-top:18px; flex-wrap:wrap}
 .kpis strong{font-size:26px; color:var(--gold)}
-.kpis span{display:block; color:#{muted}
-}
+.kpis span{display:block; color:var(--muted)}
+
+/* Hero gráfico legenda */
 .hero-legend{margin-top:8px; display:flex; gap:16px; align-items:center; font-size:12px; color:#cfe8ff}
 .dot{display:inline-block; width:10px; height:10px; border-radius:50%}
 .dot-a{background:#3fd0ff}
@@ -100,7 +101,7 @@ a{color:#cfe8ff; text-decoration:none}
 .citem img{width:40px; height:40px; object-fit:contain; border-radius:10px; background:#fff}
 .avatar{display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:10px; background:#123a5a; color:#cfe8ff; font-weight:800}
 .ctext b{display:block; color:var(--royal-bright)}
-.ctext small{color:#gold; font-weight:800}
+.ctext small{color:var(--gold); font-weight:800}
 
 /* Stories */
 .stories-wrap{display:flex; gap:12px; overflow:auto; padding:4px 2px}
@@ -360,3 +361,23 @@ a{color:#cfe8ff; text-decoration:none}
 
 /* Ajustes visuais menores */
 .last-login{ margin:6px 0 4px; font-size:12px; color:#7aa6c2 }
+
+/* ==== Corrige o fundo branco do autofill (Chrome/Safari) ==== */
+input.rb-input:-webkit-autofill,
+input.rb-input:-webkit-autofill:hover,
+input.rb-input:-webkit-autofill:focus,
+textarea.rb-input:-webkit-autofill,
+select.rb-input:-webkit-autofill {
+  -webkit-text-fill-color: var(--ink) !important;
+  -webkit-box-shadow: 0 0 0px 1000px #1b2230 inset !important;
+  box-shadow: 0 0 0px 1000px #1b2230 inset !important;
+  caret-color: var(--ink);
+  transition: background-color 9999s ease-in-out 0s !important;
+}
+/* Firefox (parcial) */
+input.rb-input:autofill,
+textarea.rb-input:autofill,
+select.rb-input:autofill {
+  background-color: #1b2230 !important;
+  color: var(--ink) !important;
+}

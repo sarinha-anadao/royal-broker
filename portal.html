@@ -137,8 +137,28 @@
           <option>Compra</option><option>Venda</option>
         </select>
         <select id="ativo" class="rb-input input-royal-focus"></select>
-        <input type="number" id="quantidade" class="rb-input input-royal-focus" placeholder="Qtd (múltiplos de 100)">
-        <input type="number" id="valor" class="rb-input input-royal-focus" placeholder="Valor por lote (R$)">
+
+        <!-- QTD -->
+        <input
+          type="number"
+          id="quantidade"
+          class="rb-input input-royal-focus"
+          placeholder="Qtd (múltiplos de 100)"
+          autocomplete="off"
+          inputmode="numeric"
+          pattern="[0-9]*"
+        />
+
+        <!-- VALOR -->
+        <input
+          type="number"
+          id="valor"
+          class="rb-input input-royal-focus"
+          placeholder="Valor por lote (R$)"
+          autocomplete="off"
+          inputmode="decimal"
+        />
+
         <button class="btn-royal rb-glow" onclick="executarOperacao()">Enviar Ordem</button>
       </div>
       <div id="mensagem" class="msg-inline"></div>
@@ -213,7 +233,6 @@
       <button class="modal-x" onclick="hideModal('modalConta')" aria-label="Fechar">×</button>
     </div>
     <div class="modal-body">
-      <!-- cards centralizados, com hover turquesa -->
       <div class="kv cards center">
         <div class="card">
           <div class="label">Nome</div>

@@ -14,24 +14,37 @@
       <img src="img/royal-logo.png" alt="Royal Broker" class="login-logo small">
       <h2 class="rb-login-title rb-gold-strong">ABRIR CONTA</h2>
 
-      <form onsubmit="event.preventDefault(); salvarCadastro();" class="rb-form lefted single-col">
+      <form onsubmit="event.preventDefault(); salvarCadastro();" class="rb-form lefted single-col" autocomplete="on">
         <label>Nome Completo
-          <input type="text" id="cadNome" class="rb-input input-royal-focus" placeholder="Digite seu nome completo">
+          <input type="text" id="cadNome" class="rb-input input-royal-focus"
+                 placeholder="Digite seu nome completo"
+                 autocomplete="name" autocapitalize="words">
         </label>
         <label>WhatsApp
-          <input type="text" id="cadZap" class="rb-input input-royal-focus" placeholder="Digite seu celular com DDD">
+          <input type="text" id="cadZap" class="rb-input input-royal-focus"
+                 placeholder="Digite seu celular com DDD"
+                 autocomplete="tel" inputmode="tel" pattern="[0-9\\s()+-]*">
         </label>
         <label>E-mail
-          <input type="email" id="cadEmail" class="rb-input input-royal-focus" placeholder="Digite seu e-mail válido">
+          <input type="email" id="cadEmail" class="rb-input input-royal-focus"
+                 placeholder="Digite seu e-mail válido"
+                 autocomplete="email">
         </label>
         <label>CPF
-          <input type="text" id="cadCpf" class="rb-input input-royal-focus" placeholder="Digite seu CPF">
+          <input type="text" id="cadCpf" class="rb-input input-royal-focus"
+                 placeholder="Digite seu CPF"
+                 autocomplete="off" inputmode="numeric" pattern="[0-9]*"
+                 autocapitalize="off" autocorrect="off" spellcheck="false">
         </label>
         <label>Senha
-          <input type="password" id="cadSenha" class="rb-input input-royal-focus" placeholder="Crie uma senha segura">
+          <input type="password" id="cadSenha" class="rb-input input-royal-focus"
+                 placeholder="Crie uma senha segura"
+                 autocomplete="new-password">
         </label>
         <label>Confirmar senha
-          <input type="password" id="cadConfSenha" class="rb-input input-royal-focus" placeholder="Repita a mesma senha criada">
+          <input type="password" id="cadConfSenha" class="rb-input input-royal-focus"
+                 placeholder="Repita a mesma senha criada"
+                 autocomplete="new-password">
         </label>
 
         <div class="hint">Mínimo 6 caracteres, com pelo menos 1 letra e 1 número.</div>
@@ -40,8 +53,7 @@
 
         <p class="rb-bottom light-blue">
           Já tem conta?
-          <!-- sem _blank -->
-          <a class="btn-inline btn-turq expand" href="login.html">Entrar</a>
+          <a class="btn-inline btn-turq expand" href="login.html" rel="noopener">Entrar</a>
         </p>
 
         <div id="cadMsg" class="error" role="alert"></div>
