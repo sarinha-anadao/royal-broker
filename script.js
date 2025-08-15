@@ -7,42 +7,62 @@ const logos = {
   PETR4:"img/petr4.png", VALE3:"img/vale3.png", ITUB4:"img/itub4.png", BBDC4:"img/bbdc4.png",
   ABEV3:"img/abev3.png", MGLU3:"img/mglu3.png", BBAS3:"img/bbas3.png", LREN3:"img/lren3.png"
 };
+
+/* ---- Usuários ---- */
+const USERS_KEY = "rb_users";
+const DEFAULT_USERS = {
+  "11111111111": { senha:"123", conta:"A", historicoSenhas:["123"], nome:"Conta A", email:"demo@royal.com", zap:"(11) 99999-0000", plano:"Premium" },
+  "22222222222": { senha:"456", conta:"B", historicoSenhas:["456"], nome:"Conta B", email:"demo2@royal.com", zap:"(21) 98888-0000", plano:"Premium" }
+};
+
+function limparCPF(v){ return (v||"").replace(/\D/g,''); }
+function loadUsers(){
+  try{ return JSON.parse(localStorage.getItem(USERS_KEY) || "{}"); }
+  catch{ return {}; }
+}
+function saveUsers(obj){
+  localStorage.setItem(USERS_KEY, JSON.stringify(obj));
+}
+(function seedDefaultUsers(){
+  const cur = loadUsers();
+  let changed = false;
+  for(const k of Object.keys(DEFAULT_USERS)){
+    if(!cur[k]){ cur[k] = DEFAULT_USERS[k]; changed = true; }
+  }
+  if(changed) saveUsers(cur);
+})();
+
+function getUser(cpf){
+  cpf = limparCPF(cpf);
+  const store = loadUsers();
+  return store[cpf] || null;
+}
+function setUser(cpf, data){
+  cpf = limparCPF(cpf);
+  const store = loadUsers();
+  store[cpf] = { ...(store[cpf]||{}), ...data };
+  saveUsers(store);
+}
+function userExists(cpf){
+  cpf = limparCPF(cpf);
+  const store = loadUsers();
+  return !!store[cpf];
+}
+
+/* ---- Contas “mockadas” por perfil A/B ---- */
 const contas = {
   A:{ nome:"Conta A", saldo:100000, carteira:{ PETR4:300, VALE3:200, ITUB4:100 } },
   B:{ nome:"Conta B", saldo:100000, carteira:{ MGLU3:100, BBAS3:100 } }
 };
 
-/* ===== PERSISTÊNCIA DE USUÁRIOS (localStorage) ===== */
-const DEFAULT_USERS = {
-  "11111111111": { senha:"123", conta:"A", historicoSenhas:["123"], nome:"Conta A" },
-  "22222222222": { senha:"456", conta:"B", historicoSenhas:["456"], nome:"Conta B" }
-};
-function limparCPF(v){ return (v||"").replace(/\D/g,''); }
-function loadUsers(){
-  try{
-    const raw = localStorage.getItem('rb_users');
-    const saved = raw ? JSON.parse(raw) : {};
-    return { ...DEFAULT_USERS, ...saved };
-  }catch(e){
-    console.warn('rb_users inválido, limpando', e);
-    localStorage.removeItem('rb_users');
-    return { ...DEFAULT_USERS };
-  }
-}
-function saveUsers(users){ localStorage.setItem('rb_users', JSON.stringify(users)); }
-function getUser(cpf){ const users = loadUsers(); return users[cpf]; }
-function setUser(cpf, data){
-  const users = loadUsers();
-  users[cpf] = { ...(users[cpf]||{}), ...data };
-  saveUsers(users);
-}
-function hasUser(cpf){ const users = loadUsers(); return !!users[cpf]; }
-
-/* ========= VARS GERAIS ========= */
 let usuarioAtual=null, extrato=[], ordens=[], cpfAtual="";
 const $ = sel => document.querySelector(sel);
 const formatBR = v => (+v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
 (function(){ const y=$("#ano"); if(y) y.innerText=new Date().getFullYear(); })();
+
+function escapeHTML(s=""){
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
 
 /* ========= HOME ========= */
 function goTo(id){ document.getElementById(id)?.scrollIntoView({behavior:"smooth"}); }
@@ -81,9 +101,10 @@ function buildCarousel(){
 }
 function countUp(){ document.querySelectorAll("[data-countup]").forEach(el=>{ const t=+el.getAttribute("data-countup"); let c=0; const s=Math.max(1,Math.floor(t/120)); (function tick(){ c+=s; if(c>=t)c=t; el.textContent=t>=1000?c.toLocaleString("pt-BR"):c; if(c<t) requestAnimationFrame(tick); })(); }); }
 
-/* Gráfico do hero (decorativo) */
-(function drawHero(){ const c=$("#canvasHero"); if(!c) return; const ctx=c.getContext("2d"); const W=c.width,H=c.height,p=28; function step(){ ctx.fillStyle="#0b1b26"; ctx.fillRect(0,0,W,H);
+/* Gráfico do hero */
+(function drawHero(){ const c=$("#canvasHero"); if(!c) return; const ctx=c.getContext("2d"); const W=c.width,H=c.height,p=28; const months=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"]; function step(){ ctx.fillStyle="#0b1b26"; ctx.fillRect(0,0,W,H);
   ctx.strokeStyle="#123a5a"; for(let i=0;i<=4;i++){ const y=p+((H-p*1.6)*i/4); ctx.beginPath(); ctx.moveTo(p,y); ctx.lineTo(W-p,y); ctx.stroke(); }
+  ctx.fillStyle="#7aa6c2"; months.slice(0,6).forEach((m,i)=>{ const x=p+((W-p*2)/5)*i; ctx.fillText(m, x-8, H-8); });
   const t = Date.now()/650; const colors = ["#3fd0ff","#6ce36c","#ffd261"];
   [0,1,2].forEach(si=>{
     ctx.beginPath();
@@ -135,90 +156,132 @@ function enviarChat(){
 function toggleSenha(id, el){ const f=document.getElementById(id); if(!f) return; f.type = f.type==="password" ? "text" : "password"; if(el) el.textContent = f.type==="password" ? "👁️" : "🙈"; }
 
 function loginApp(){
-  const cpf = limparCPF(document.getElementById('cpf')?.value);
-  const senha = document.getElementById('senha')?.value || '';
+  const cpf = limparCPF($("#cpf")?.value), senha=$("#senha")?.value;
   const user = getUser(cpf);
-  const msg = document.getElementById('loginMsg');
-
-  if(user && user.senha === senha){
-    localStorage.setItem('rb_cpf', cpf);
-    localStorage.setItem('rb_last_login_'+cpf, new Date().toISOString());
-    if(msg){ msg.className='success'; msg.textContent='Login efetuado!'; }
-    window.location.href = 'portal.html';
+  const msg=$("#loginMsg");
+  if(user && user.senha===senha){
+    localStorage.setItem("rb_cpf", cpf);
+    localStorage.setItem("rb_last_login_"+cpf, new Date().toISOString());
+    window.open("portal.html","_blank","noopener");
+    if(msg){ msg.className="success"; msg.textContent="Login efetuado! Portal aberto em nova aba."; }
   } else {
-    if(msg){ msg.className='error'; msg.textContent='CPF ou senha inválidos.'; }
+    if(msg){ msg.className="error"; msg.textContent="CPF ou senha inválidos."; }
   }
 }
 
 function salvarCadastro(){
-  const cpf   = limparCPF(document.getElementById('cadCpf')?.value);
-  const nome  = document.getElementById('cadNome')?.value?.trim();
-  const zap   = document.getElementById('cadZap')?.value?.trim();
-  const email = document.getElementById('cadEmail')?.value?.trim();
-  const s = document.getElementById('cadSenha')?.value || '';
-  const c = document.getElementById('cadConfSenha')?.value || '';
-  const msg = document.getElementById('cadMsg');
+  const cpf = limparCPF($("#cadCpf")?.value),
+        nome=$("#cadNome")?.value?.trim(),
+        zap=$("#cadZap")?.value?.trim(),
+        email=$("#cadEmail")?.value?.trim(),
+        s=$("#cadSenha")?.value, c=$("#cadConfSenha")?.value, msg=$("#cadMsg");
+  if(!nome || !cpf || !zap || !email || !s || !c){ msg.textContent="Preencha todos os campos."; return; }
+  if(userExists(cpf)){ msg.textContent="CPF já cadastrado."; return; }
+  if(s!==c){ msg.textContent="As senhas não coincidem."; return; }
+  if(s.length<6 || !/[A-Za-z]/.test(s) || !/[0-9]/.test(s)){ msg.textContent="Senha fraca."; return; }
 
-  if(!nome || !cpf || !zap || !email || !s || !c){
-    if(msg){ msg.className='error'; msg.textContent='Preencha todos os campos.'; }
-    return;
-  }
-  if(hasUser(cpf)){
-    if(msg){ msg.className='error'; msg.textContent='CPF já cadastrado.'; }
-    return;
-  }
-  if(s !== c){
-    if(msg){ msg.className='error'; msg.textContent='As senhas não coincidem.'; }
-    return;
-  }
-  if(s.length<6 || !/[A-Za-z]/.test(s) || !/[0-9]/.test(s)){
-    if(msg){ msg.className='error'; msg.textContent='Senha fraca (mín. 6, 1 letra e 1 número).'; }
-    return;
-  }
-
-  setUser(cpf, { senha:s, conta:'A', historicoSenhas:[s], nome, email, zap });
-  if(msg){ msg.className='success'; msg.textContent='Conta criada com sucesso! Redirecionando para o login...'; }
-  setTimeout(()=>{ window.location.href='login.html'; }, 900);
+  setUser(cpf, {senha:s, conta:"A", historicoSenhas:[s], nome, email, zap, plano:"Premium"});
+  msg.className="success"; msg.textContent="Conta criada com sucesso.";
+  setTimeout(()=>{ window.location.href="login.html"; }, 900);
 }
 
 function recuperarSenha(){
-  const cpf   = limparCPF(document.getElementById('recCpf')?.value);
-  const email = document.getElementById('recEmail')?.value?.trim();
-  const msg   = document.getElementById('recMsg');
-
-  if(!cpf || !email){ if(msg){ msg.className='error'; msg.textContent='Informe CPF e e-mail cadastrado.'; } return; }
-  const u = getUser(cpf);
-  if(!u){ if(msg){ msg.className='error'; msg.textContent='CPF não encontrado.'; } return; }
-
-  sessionStorage.setItem('reset_cpf', cpf);
-  if(msg){ msg.className='success'; msg.textContent='Enviamos instruções para o e-mail (simulação).'; }
-  setTimeout(()=>{ window.location.href='redefinir.html'; }, 700);
+  const msg=$("#recMsg"); if(!msg) return;
+  msg.className="success"; msg.textContent="Enviamos instruções para o email cadastrado.";
+  setTimeout(()=>{ window.open("redefinir.html","_blank","noopener"); }, 700);
 }
 
 function salvarNovaSenha(){
-  const nova = document.getElementById('novaSenhaRec')?.value || '';
-  const conf = document.getElementById('confirmarSenhaRec')?.value || '';
-  const msg  = document.getElementById('msgRedefinicao');
-  const cpf  = sessionStorage.getItem('reset_cpf') || localStorage.getItem('rb_cpf');
+  const nova = $("#novaSenhaRec")?.value;
+  const conf = $("#confirmarSenhaRec")?.value;
+  const msg = $("#msgRedefinicao");
+  const cpf = localStorage.getItem("rb_cpf") || "11111111111";
+  if(!nova || !conf){ msg.className="error"; msg.textContent="Preencha os dois campos."; return; }
+  if(nova!==conf){ msg.className="error"; msg.textContent="As senhas não coincidem."; return; }
+  if(nova.length<6 || !/[A-Za-z]/.test(nova) || !/[0-9]/.test(nova)){ msg.className="error"; msg.textContent="A senha precisa de 6+ caracteres, 1 letra e 1 número."; return; }
 
-  if(!cpf){ if(msg){ msg.className='error'; msg.textContent='Sessão expirada. Volte ao recuperar senha.'; } return; }
-  if(!nova || !conf){ if(msg){ msg.className='error'; msg.textContent='Preencha os dois campos.'; } return; }
-  if(nova !== conf){ if(msg){ msg.className='error'; msg.textContent='As senhas não coincidem.'; } return; }
-  if(nova.length<6 || !/[A-Za-z]/.test(nova) || !/[0-9]/.test(nova)){
-    if(msg){ msg.className='error'; msg.textContent='A senha precisa de 6+ caracteres, 1 letra e 1 número.'; }
-    return;
-  }
-
-  const u = getUser(cpf) || {};
+  const u = getUser(cpf) || {conta:"A", historicoSenhas:[]};
   const hist = u.historicoSenhas || [];
-  if(hist.slice(0,4).includes(nova)){
-    if(msg){ msg.className='error'; msg.textContent='Não é permitido reutilizar nenhuma das últimas 4 senhas.'; }
+  if(hist.slice(0,4).includes(nova)){ msg.className="error"; msg.textContent="Não é permitido reutilizar nenhuma das últimas 4 senhas."; return; }
+  u.senha = nova;
+  u.historicoSenhas = [nova, ...hist].slice(0,4);
+  setUser(cpf, u);
+
+  msg.className="success"; msg.textContent="Senha redefinida com sucesso. Redirecionando para o login...";
+  setTimeout(()=>{ window.location.href="login.html"; }, 1200);
+}
+
+/* ========= MODAIS (Minha Conta / Alterar Senha) ========= */
+function showModal(id){
+  const m = document.getElementById(id);
+  if(!m) return;
+  m.classList.add("show");
+  m.setAttribute("aria-hidden","false");
+}
+function hideModal(id){
+  const m = document.getElementById(id);
+  if(!m) return;
+  m.classList.remove("show");
+  m.setAttribute("aria-hidden","true");
+}
+
+function abrirMinhaConta(){
+  const cpf = cpfAtual || localStorage.getItem("rb_cpf");
+  const u = getUser(cpf);
+  if(!u){ alert("Sessão expirada. Faça login novamente."); return; }
+
+  // preenche conteúdo do modal
+  const box = document.getElementById("contaDados");
+  if(box){
+    box.innerHTML = `
+      <div class="conta-grid">
+        <div class="conta-item"><label>Plano</label><div>${escapeHTML(u.plano || "Premium")}</div></div>
+        <div class="conta-item"><label>Nome completo</label><div>${escapeHTML(u.nome||"—")}</div></div>
+        <div class="conta-item"><label>CPF</label><div>${escapeHTML(limparCPF(cpf).replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4'))}</div></div>
+        <div class="conta-item"><label>WhatsApp</label><div>${escapeHTML(u.zap||"—")}</div></div>
+        <div class="conta-item"><label>E-mail</label><div>${escapeHTML(u.email||"—")}</div></div>
+      </div>
+    `;
+  }
+  showModal("modalConta");
+}
+
+function abrirAlterarSenha(){
+  const msg = $("#senhaMsgModal");
+  const n1 = $("#novaSenhaModal");
+  const n2 = $("#confSenhaModal");
+  if(msg) msg.textContent="";
+  if(n1) n1.value="";
+  if(n2) n2.value="";
+  showModal("modalSenha");
+}
+
+/* Alterar senha: funciona no modal novo e mantém compatibilidade com a seção antiga */
+function alterarSenha(){
+  const nova = $("#novaSenhaModal")?.value || $("#novaSenha")?.value;
+  const conf = $("#confSenhaModal")?.value || $("#novaSenha")?.value;
+  const msg = $("#senhaMsgModal") || $("#senhaMsg");
+  const cpf = cpfAtual || localStorage.getItem("rb_cpf");
+
+  if(!nova || !conf){ if(msg){ msg.className="error"; msg.textContent="Preencha os campos de senha."; } return; }
+  if(nova!==conf){ if(msg){ msg.className="error"; msg.textContent="As senhas não coincidem."; } return; }
+  if(nova.length<6 || !/[A-Za-z]/.test(nova) || !/[0-9]/.test(nova)){
+    if(msg){ msg.className="error"; msg.textContent="A senha precisa de 6+ caracteres, 1 letra e 1 número."; }
     return;
   }
-  setUser(cpf, { senha:nova, historicoSenhas:[nova, ...hist].slice(0,4) });
-  sessionStorage.removeItem('reset_cpf');
-  if(msg){ msg.className='success'; msg.textContent='Senha redefinida! Redirecionando para o login...'; }
-  setTimeout(()=>{ window.location.href='login.html'; }, 1200);
+
+  const u = getUser(cpf);
+  if(!u){ if(msg){ msg.className="error"; msg.textContent="Sessão expirada. Faça login novamente."; } return; }
+  const hist = u.historicoSenhas || [];
+  if(hist.slice(0,4).includes(nova)){ if(msg){ msg.className="error"; msg.textContent="Não é permitido reutilizar nenhuma das últimas 4 senhas."; } return; }
+
+  u.senha = nova;
+  u.historicoSenhas = [nova, ...hist].slice(0,4);
+  setUser(cpf, u);
+
+  if(msg){ msg.className="success"; msg.textContent="Senha alterada com sucesso!"; }
+  // fecha o modal após um pequeno delay, se for o modal
+  if($("#senhaMsgModal")) setTimeout(()=> hideModal("modalSenha"), 900);
 }
 
 /* ========= PORTAL ========= */
@@ -241,22 +304,18 @@ function portalInit(){
   if($("#username")) $("#username").innerText = user.nome || contaBase.nome;
   if($("#saldo")) $("#saldo").innerText = formatBR(usuarioAtual.saldo);
 
-  // último acesso
+  // último acesso (decorativo)
   const last = localStorage.getItem('rb_last_login_'+cpf);
   if(last && $("#lastLogin")){
     const d = new Date(last);
     $("#lastLogin").innerText = `Último acesso: ${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
   }
 
-  // zera inputs da boleta (evita reaproveitar número do navegador)
-  if (document.getElementById('quantidade')) document.getElementById('quantidade').value = '';
-  if (document.getElementById('valor')) document.getElementById('valor').value = '';
-
   preencherSelectAtivos(); preencherRtSelect();
   atualizarCarteira(); atualizarBook(); atualizarExtrato(); atualizarOrdens();
   startRtChart(); startSpark();
 
-  // MENU (≡)
+  // MENU (≡) ao lado do 📈
   const btn = $("#menuBtn"), drop = $("#menuDropdown");
   if(btn && drop){
     btn.addEventListener("click", ()=>{
@@ -274,75 +333,24 @@ function portalInit(){
   if(qAtivo && $("#ativo")) $("#ativo").value = qAtivo;
   if(qTipo && $("#tipo")) $("#tipo").value = qTipo;
 
-  // ESC fecha modal
+  // ======= BLOQUEIO DE AUTOFILL NA BOLETA (CPF aparecendo) =======
+  guardNoAutofillBoleta();
+  setTimeout(guardNoAutofillBoleta, 800);
+  setTimeout(guardNoAutofillBoleta, 2000);
+
+  // Fechar modais com ESC / clique no backdrop
   document.addEventListener('keydown', (ev)=>{
     if(ev.key === 'Escape'){ hideModal('modalConta'); hideModal('modalSenha'); }
   });
+  ["modalConta","modalSenha"].forEach(id=>{
+    const m = document.getElementById(id);
+    if(m){
+      m.addEventListener('click', (e)=>{ if(e.target === m) hideModal(id); });
+    }
+  });
 }
 
-function abrirAnalise(){ window.open("analise.html","_blank","noopener"); }
-
-/* ====== MODAIS ====== */
-function showModal(id){
-  $("#modalBackdrop")?.classList.add('show');
-  const m = document.getElementById(id);
-  if(!m) return;
-  m.classList.add('show');
-  if(id==='modalSenha'){ setTimeout(()=> document.getElementById('novaSenhaModal')?.focus(), 0); }
-}
-function hideModal(id){
-  document.getElementById(id)?.classList.remove('show');
-  if(!document.querySelector('.rb-modal.show')){
-    $("#modalBackdrop")?.classList.remove('show');
-  }
-}
-function closeModal(e){
-  if(e.target && e.target.id === 'modalBackdrop'){
-    hideModal('modalConta'); hideModal('modalSenha');
-  }
-}
-
-function abrirMinhaConta(){
-  const u = getUser(cpfAtual) || {};
-  document.getElementById('mcNome').innerText  = u.nome || '—';
-  document.getElementById('mcEmail').innerText = u.email || '—';
-  document.getElementById('mcZap').innerText   = u.zap || '—';
-  document.getElementById('mcCpf').innerText   = cpfAtual || '—';
-  const contaEl = document.getElementById('mcConta');
-  if (contaEl) contaEl.textContent = 'Premium'; // sempre Premium
-  showModal('modalConta');
-}
-function abrirAlterarSenha(){
-  $("#novaSenhaModal").value = '';
-  $("#senhaMsgModal").textContent = '';
-  $("#senhaMsgModal").className = 'success';
-  showModal('modalSenha');
-}
-function scrollToAlterarSenha(){ abrirAlterarSenha(); }
-
-/* ===== Alterar senha ===== */
-function alterarSenha(from){
-  const inputEl = from==='modal' ? document.getElementById('novaSenhaModal') : document.getElementById('novaSenha');
-  const msgEl   = from==='modal' ? document.getElementById('senhaMsgModal') : document.getElementById('senhaMsg');
-  const nova = inputEl?.value || '';
-
-  if(!cpfAtual){ msgEl.className='error'; msgEl.textContent='Sessão expirada. Faça login novamente.'; return; }
-  if(!nova){ msgEl.className='error'; msgEl.textContent='Digite a nova senha.'; return; }
-  if(nova.length<6 || !/[A-Za-z]/.test(nova) || !/[0-9]/.test(nova)){
-    msgEl.className='error'; msgEl.textContent='A senha precisa de 6+ caracteres, 1 letra e 1 número.'; return;
-  }
-  const u = getUser(cpfAtual) || {};
-  const hist = u.historicoSenhas || [];
-  if(hist.slice(0,4).includes(nova)){
-    msgEl.className='error'; msgEl.textContent='Não é permitido reutilizar nenhuma das últimas 4 senhas.'; return;
-  }
-
-  setUser(cpfAtual, { senha:nova, historicoSenhas:[nova, ...hist].slice(0,4) });
-  msgEl.className='success'; msgEl.textContent='Senha alterada com sucesso!';
-  if(from==='modal'){ setTimeout(()=> hideModal('modalSenha'), 900); }
-}
-
-/* ======= SPARK ======= */
+/* Sparkline com VIÉS DE ALTA */
 function startSpark(){
   const c=$("#invSpark"); if(!c) return; const ctx=c.getContext("2d");
   let pts=Array.from({length:50},(_,i)=> 55 + i*0.8 + Math.sin(i/2)*2 + (Math.random()*1.2-0.6));
@@ -528,6 +536,7 @@ setInterval(()=>{
 /* ========= EXPORTAÇÕES ========= */
 function abrirBaixar(qual){
   const el = document.getElementById(`drop-${qual}`);
+  if(!el) return;
   const open = el.getAttribute("aria-hidden")==="false";
   el.setAttribute("aria-hidden", open ? "true" : "false");
 }
@@ -658,6 +667,41 @@ function montarMiniWallet(){
 }
 function voltarPortal(){ window.location.href="portal.html"; }
 
+/* ========= BLOQUEIO DE AUTOFILL NA BOLETA ========= */
+function guardNoAutofillBoleta(){
+  const ids = ['quantidade','valor'];
+  ids.forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+
+    el.setAttribute('name', id + '_' + Math.random().toString(36).slice(2));
+    el.setAttribute('autocomplete','off');
+    el.setAttribute('autocorrect','off');
+    el.setAttribute('autocapitalize','off');
+    el.setAttribute('aria-autocomplete','none');
+
+    const limparSeParecerCPF = () => {
+      const digits = String(el.value || '').replace(/\D/g,'');
+      if (digits.length >= 11) el.value = '';
+    };
+
+    limparSeParecerCPF();
+
+    el.readOnly = true;
+    if (document.activeElement !== el) el.value = '';
+
+    setTimeout(()=>{
+      el.readOnly = false;
+      limparSeParecerCPF();
+    }, 300);
+
+    el.removeEventListener('input', limparSeParecerCPF);
+    el.removeEventListener('change', limparSeParecerCPF);
+    el.addEventListener('input', limparSeParecerCPF);
+    el.addEventListener('change', limparSeParecerCPF);
+  });
+}
+
 /* ========= AUTO INIT ========= */
 window.addEventListener("DOMContentLoaded", ()=>{
   if(document.body.classList.contains("portal")) portalInit();
@@ -677,6 +721,7 @@ window.filtrarExtrato=filtrarExtrato;
 window.cancelarOrdem=cancelarOrdem;
 window.exportarJSON=exportarJSON;
 window.exportarXLS=exportarXLS;
+window.alterarSenha=alterarSenha;
 window.logout=logout;
 window.recuperarSenha=recuperarSenha;
 window.salvarNovaSenha=salvarNovaSenha;
@@ -687,5 +732,3 @@ window.abrirMinhaConta=abrirMinhaConta;
 window.abrirAlterarSenha=abrirAlterarSenha;
 window.showModal=showModal;
 window.hideModal=hideModal;
-window.closeModal=closeModal;
-window.alterarSenha=alterarSenha;
