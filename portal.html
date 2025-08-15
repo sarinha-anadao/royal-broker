@@ -12,30 +12,30 @@
     <!-- BOAS-VINDAS + INVESTIMENTOS -->
     <section class="panel panel-royal-outline welcome">
       <div class="welcome-left">
-        <!-- LOGO VISÍVEL ACIMA -->
+        <!-- LOGO MENOR -->
         <img src="img/royal-logo.png" class="royal-mark" alt="Royal Broker">
-        <!-- “CONECTADO” SEPARADO (sem logo dentro) -->
         <div class="connected-chip"><span class="online-dot"></span> Conectado</div>
 
         <h1 class="welcome-title">Bem-vindo, <span id="username"></span>!</h1>
         <p class="welcome-sub">Sua mesa Royal está pronta: mercado ao vivo, boleta ágil e relatórios.</p>
+        <div class="last-login muted" id="lastLogin"></div>
 
-        <!-- BOTÃO 📈 + CONFIGURAÇÕES (≡) LADO A LADO -->
+        <!-- BOTÕES IGUAIS (📈 e ≡) -->
         <div class="quick-actions">
-          <button class="btn-emoji" title="Análise técnica" onclick="abrirAnalise()">📈</button>
+          <button class="qa-btn" title="Análise técnica" onclick="abrirAnalise()">📈</button>
 
           <div class="menu-wrap">
-            <button class="menu-btn" id="menuBtn" aria-label="Abrir menu">≡</button>
+            <button class="qa-btn" id="menuBtn" aria-label="Abrir menu">≡</button>
             <div class="menu-dropdown" id="menuDropdown" aria-hidden="true">
               <button onclick="abrirMinhaConta()">Minha conta</button>
-              <button onclick="scrollToAlterarSenha()">Alterar senha</button>
+              <button onclick="abrirAlterarSenha()">Alterar senha</button>
               <button class="danger" onclick="logout()">Encerrar sessão</button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- CARD: INVESTIMENTO NACIONAL (gráfico animado para cima) -->
+      <!-- CARD: INVESTIMENTO NACIONAL -->
       <div class="invest-card">
         <div class="invest-head">
           <div class="dot-ok"></div>
@@ -79,7 +79,6 @@
         <div class="panel-flex">
           <h3 class="panel-title sparkle">Carteira</h3>
 
-          <!-- (REMOVIDO o menu daqui; ele está ao lado do 📈) -->
           <div class="export-bar dropdown">
             <button class="btn-json small" onclick="abrirBaixar('carteira')">Baixar Extrato</button>
             <div class="drop" id="drop-carteira" aria-hidden="true">
@@ -145,79 +144,120 @@
       <div id="mensagem" class="msg-inline"></div>
     </section>
 
-    <!-- ALTERAR SENHA -->
-    <section id="sec-alterar-senha" class="panel panel-royal-outline">
-      <h3 class="panel-title sparkle">Alterar Senha</h3>
-      <div class="boleta-row">
-        <span class="senha-wrapper">
-          <input type="password" id="novaSenha" class="rb-input input-royal-focus" placeholder="Digite a nova senha">
-          <button type="button" class="toggleSenha" onclick="toggleSenha('novaSenha', this)" aria-label="Mostrar/ocultar senha">👁️</button>
-        </span>
-        <button class="btn-royal" onclick="alterarSenha()">Salvar Nova Senha</button>
-      </div>
-      <div id="senhaMsg" class="success"></div>
-    </section>
+    <!-- EXTRATO -->
+    <section class="panel panel-royal-outline" id="sec-extrato">
+      <div class="panel-flex">
+        <h3 class="panel-title sparkle">Extrato de Operações</h3>
 
-<!-- EXTRATO -->
-<section class="panel panel-royal-outline" id="sec-extrato">
-  <div class="panel-flex">
-    <h3 class="panel-title sparkle">Extrato de Operações</h3>
-
-    <!-- Baixar Extrato -->
-    <div class="export-bar dropdown">
-      <button class="btn-json small" onclick="abrirBaixar('extrato')">Baixar Extrato</button>
-      <div class="drop" id="drop-extrato" aria-hidden="true">
-        <div class="drop-title">Baixar Extrato<br><small>Escolha o formato:</small></div>
-        <div class="drop-actions">
-          <button class="btn-xls" onclick="exportarXLS('extrato')">XLSX</button>
-          <button class="btn-json" onclick="exportarJSON('extrato')">JSON</button>
+        <div class="export-bar dropdown">
+          <button class="btn-json small" onclick="abrirBaixar('extrato')">Baixar Extrato</button>
+          <div class="drop" id="drop-extrato" aria-hidden="true">
+            <div class="drop-title">Baixar Extrato<br><small>Escolha o formato:</small></div>
+            <div class="drop-actions">
+              <button class="btn-xls" onclick="exportarXLS('extrato')">XLSX</button>
+              <button class="btn-json" onclick="exportarJSON('extrato')">JSON</button>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- Filtros -->
-  <div id="filtro-datas" class="boleta-row">
-    <label>Data Inicial:
-      <input type="date" id="dataInicial" class="rb-input input-royal-focus">
-    </label>
-    <label>Data Final:
-      <input type="date" id="dataFinal" class="rb-input input-royal-focus">
-    </label>
-    <button class="btn-royal rb-glow" onclick="filtrarExtrato()">Filtrar</button>
+      <!-- Filtros -->
+      <div id="filtro-datas" class="boleta-row">
+        <label>Data Inicial:
+          <input type="date" id="dataInicial" class="rb-input input-royal-focus">
+        </label>
+        <label>Data Final:
+          <input type="date" id="dataFinal" class="rb-input input-royal-focus">
+        </label>
+        <button class="btn-royal rb-glow" onclick="filtrarExtrato()">Filtrar</button>
 
-    <div id="ordenacao-datas" class="boleta-row">
-      <label>Ordenar:</label>
-      <select id="ordenacao" class="rb-input input-royal-focus">
-        <option value="desc">Mais recentes primeiro</option>
-        <option value="asc">Mais antigas primeiro</option>
-      </select>
-    </div>
-  </div>
+        <div id="ordenacao-datas" class="boleta-row">
+          <label>Ordenar:</label>
+          <select id="ordenacao" class="rb-input input-royal-focus">
+            <option value="desc">Mais recentes primeiro</option>
+            <option value="asc">Mais antigas primeiro</option>
+          </select>
+        </div>
+      </div>
 
-  <div id="filtroMsg" class="error"></div>
+      <div id="filtroMsg" class="error"></div>
 
-  <!-- Tabela -->
-  <table id="extrato" class="rb-table">
-    <thead>
-      <tr>
-        <th>Data</th>
-        <th>Tipo</th>
-        <th>Ativo</th>
-        <th>Qtd</th>
-        <th>Preço</th>
-        <th>Valor Total (R$)</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</section>
-
+      <table id="extrato" class="rb-table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Tipo</th>
+            <th>Ativo</th>
+            <th>Qtd</th>
+            <th>Preço</th>
+            <th>Valor Total (R$)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
 
     <footer class="footer">
       <div>© 2025 Royal Broker — Todos os direitos reservados.</div>
       <div>Desenvolvido pela Squad: <strong>Sara</strong>, <strong>Gisele</strong>, <strong>Shyva</strong>, <strong>Marcelo</strong>, <strong>Wagner</strong>, <strong>Rafael</strong>.</div>
     </footer>
+  </div>
+
+  <!-- ===== MODAIS ===== -->
+  <div id="modalBackdrop" class="modal-backdrop" onclick="closeModal(event)"></div>
+
+  <!-- Minha conta -->
+  <div id="modalConta" class="rb-modal" role="dialog" aria-modal="true" aria-labelledby="modalContaTitle">
+    <div class="modal-head">
+      <h3 id="modalContaTitle">Minha conta</h3>
+      <button class="modal-x" onclick="hideModal('modalConta')" aria-label="Fechar">×</button>
+    </div>
+    <div class="modal-body">
+      <!-- cards centralizados, com hover turquesa -->
+      <div class="kv cards center">
+        <div class="card">
+          <div class="label">Nome</div>
+          <div class="value" id="mcNome">—</div>
+        </div>
+        <div class="card">
+          <div class="label">E-mail</div>
+          <div class="value" id="mcEmail">—</div>
+        </div>
+        <div class="card">
+          <div class="label">WhatsApp</div>
+          <div class="value" id="mcZap">—</div>
+        </div>
+        <div class="card">
+          <div class="label">CPF</div>
+          <div class="value" id="mcCpf">—</div>
+        </div>
+        <div class="card">
+          <div class="label">Conta</div>
+          <div class="value"><span id="mcConta" class="badge-premium">Premium</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-turq" onclick="hideModal('modalConta')">Ok</button>
+    </div>
+  </div>
+
+  <!-- Alterar senha -->
+  <div id="modalSenha" class="rb-modal" role="dialog" aria-modal="true" aria-labelledby="modalSenhaTitle">
+    <div class="modal-head">
+      <h3 id="modalSenhaTitle">Alterar senha</h3>
+      <button class="modal-x" onclick="hideModal('modalSenha')" aria-label="Fechar">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="boleta-row">
+        <span class="senha-wrapper" style="flex:1">
+          <input type="password" id="novaSenhaModal" class="rb-input input-royal-focus" placeholder="Nova senha (mín. 6, 1 letra e 1 número)">
+          <button type="button" class="toggleSenha" onclick="toggleSenha('novaSenhaModal', this)" aria-label="Mostrar/ocultar senha">👁️</button>
+        </span>
+        <button class="btn-royal" onclick="alterarSenha('modal')">Salvar Nova Senha</button>
+      </div>
+      <div id="senhaMsgModal" class="success"></div>
+    </div>
   </div>
 
   <script src="script.js"></script>

@@ -36,7 +36,6 @@ a{color:#cfe8ff; text-decoration:none}
 /* Botões base */
 .btn-royal{background:linear-gradient(135deg,var(--royal) 0%,var(--royal2) 100%); color:#fff; border:1px solid rgba(255,255,255,.06); border-radius:12px; cursor:pointer; padding:12px 18px; box-shadow:0 10px 24px rgba(46,120,255,.25)}
 .btn-royal:hover{filter:brightness(1.08)}
-/* Turquesa sem borda dourada */
 .btn-turq{background:linear-gradient(135deg,var(--turq) 0%, var(--turq-2) 100%); color:#082027; border:0; border-radius:12px; padding:10px 16px; font-weight:800; box-shadow:0 8px 20px rgba(39,211,211,.2); transition:transform .18s ease, box-shadow .18s ease, outline .18s ease}
 .btn-turq.ghost{background:transparent; color:#cfe8ff; outline:2px solid rgba(39,211,211,.35)}
 .btn-turq.expand:hover{transform:scale(1.03); outline:3px solid rgba(39,211,211,.7); box-shadow:0 0 24px rgba(39,211,211,.35)}
@@ -62,6 +61,7 @@ a{color:#cfe8ff; text-decoration:none}
 .ticker .sym{color:var(--royal-bright); font-weight:800; margin-right:6px}
 .ticker .price{color:var(--gold); font-weight:800}
 
+/* Hero */
 .hero{display:grid; grid-template-columns:1fr .8fr; gap:24px; align-items:center; margin-top:16px}
 .hero-title{margin:0 0 10px; font-size:40px; line-height:1.08; color:#fff}
 .rb-gradient-gold{background:linear-gradient(180deg,#fff6cc 0%, var(--gold) 55%, #d18d00 100%); -webkit-background-clip:text; background-clip:text; color:transparent}
@@ -69,16 +69,15 @@ a{color:#cfe8ff; text-decoration:none}
 .cta{display:flex; gap:12px; flex-wrap:wrap}
 .kpis{display:flex; gap:28px; margin-top:18px; flex-wrap:wrap}
 .kpis strong{font-size:26px; color:var(--gold)}
-.kpis span{display:block; color:var(--muted); margin-top:4px}
-
-/* Hero gráfico legenda */
+.kpis span{display:block; color:#{muted}
+}
 .hero-legend{margin-top:8px; display:flex; gap:16px; align-items:center; font-size:12px; color:#cfe8ff}
 .dot{display:inline-block; width:10px; height:10px; border-radius:50%}
 .dot-a{background:#3fd0ff}
 .dot-b{background:#6ce36c}
 .dot-c{background:#ffd261}
 
-/* BADGES corrigidas */
+/* BADGES */
 .trustbar{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:22px}
 .trust-badge{display:grid; grid-template-columns:auto 1fr; align-items:center; gap:10px; background:linear-gradient(180deg, rgba(77,160,255,.12), rgba(77,160,255,.05)); border:1px solid rgba(77,160,255,.45); border-radius:14px; padding:16px; box-shadow:0 12px 28px rgba(0,0,0,.25), inset 0 0 22px rgba(77,160,255,.12); color:#e9f5ff}
 .badge-ico{font-size:22px}
@@ -101,7 +100,7 @@ a{color:#cfe8ff; text-decoration:none}
 .citem img{width:40px; height:40px; object-fit:contain; border-radius:10px; background:#fff}
 .avatar{display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:10px; background:#123a5a; color:#cfe8ff; font-weight:800}
 .ctext b{display:block; color:var(--royal-bright)}
-.ctext small{color:var(--gold); font-weight:800}
+.ctext small{color:#gold; font-weight:800}
 
 /* Stories */
 .stories-wrap{display:flex; gap:12px; overflow:auto; padding:4px 2px}
@@ -113,7 +112,7 @@ a{color:#cfe8ff; text-decoration:none}
 /* Suporte */
 .support-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
 .support-card{background:#0f1f2c; border:1px solid var(--grid); border-radius:14px; padding:16px; text-align:center; color:#dfefff}
-.royal-cta{background:linear-gradient(180deg,#122a44,#0f1f2c); border:1px solid rgba(77,160,255,.35); transition:transform .15s ease, box-shadow .15s}
+.royal-cta{background:linear-gradient(180deg,#122a44,#0f1f2c); border:1px solid rgba(77,160,255,.35); transition:transform .15s, box-shadow .15s}
 .royal-cta:hover{transform:scale(1.05); box-shadow:0 0 22px rgba(77,160,255,.6)}
 .support-ico{font-size:28px; margin-bottom:8px}
 
@@ -154,7 +153,6 @@ a{color:#cfe8ff; text-decoration:none}
 .close-x.in-card{ right:12px; top:12px }
 .hover-expand{transition:transform .18s ease, box-shadow .18s ease}
 .hover-expand:hover{ transform:scale(1.02) }
-/* eye apenas no wrapper da senha */
 .senha-wrapper{position:relative; display:block}
 .toggleSenha{ position:absolute; right:8px; top:50%; transform:translateY(-50%); cursor:pointer; color:#cfe8ff; background:transparent; border:none; font-size:16px }
 
@@ -173,15 +171,29 @@ a{color:#cfe8ff; text-decoration:none}
 
 /* Boas-vindas + Card investimentos */
 .welcome{display:grid; grid-template-columns:1fr auto; gap:14px; align-items:center}
-.welcome-badge{display:inline-flex; align-items:center; gap:8px; background:linear-gradient(135deg,#1f5dff 0%, #2e78ff 100%); border:1px solid rgba(255,255,255,.1); color:#fff; border-radius:999px; padding:6px 12px; width:max-content; font-weight:700; letter-spacing:.04em}
+.welcome-badge{display:inline-flex; align-items:center; gap:8px; background:linear-gradient(135deg,#2e78ff 0%, #1f5dff 100%); border:1px solid rgba(255,255,255,.1); color:#fff; border-radius:999px; padding:6px 12px; width:max-content; font-weight:700; letter-spacing:.04em}
 .welcome-badge.green{background:linear-gradient(135deg,#2ecc71,#19b662)}
 .badge-logo{width:16px; height:16px; object-fit:contain}
 .online-dot{display:inline-block; width:8px; height:8px; background:#39d98a; border-radius:50%; margin-left:2px}
 .welcome-title{margin:6px 0 0; font-size:24px}
 .welcome-sub{margin:4px 0 8px; color:#cfe8ff}
-.btn-emoji{background:#122436; border:1px solid #1c3650; color:#e7f6ff; border-radius:10px; padding:8px 10px; cursor:pointer; transition:transform .15s, box-shadow .15s}
-.btn-emoji:hover{transform:scale(1.05); box-shadow:0 0 14px rgba(39,211,211,.4); outline:2px solid rgba(39,211,211,.4)}
 
+/* ===== Quick actions iguais (📈 e ≡) ===== */
+.quick-actions{ display:flex; align-items:center; gap:10px; margin-top:8px }
+.qa-btn{
+  width:52px; height:52px; display:inline-flex; align-items:center; justify-content:center;
+  font-size:22px; line-height:1; cursor:pointer;
+  background:#122436; border:1px solid #1c3650; color:#e7f6ff; border-radius:12px;
+  transition:transform .15s, box-shadow .15s, outline .15s, border-color .15s;
+}
+.qa-btn:hover{
+  transform:scale(1.04);
+  outline:3px solid rgba(39,211,211,.65);
+  box-shadow:0 0 16px rgba(39,211,211,.35);
+  border-color:rgba(39,211,211,.55);
+}
+
+/* Invest card */
 .invest-card{background:#121b28; border:1px solid #22384d; border-radius:14px; padding:12px; width:360px}
 .invest-head{display:flex; gap:8px; align-items:center; margin-bottom:8px}
 .dot-ok{width:12px; height:12px; border-radius:50%; background:#39d98a}
@@ -222,33 +234,11 @@ a{color:#cfe8ff; text-decoration:none}
 .btn-buy{background:linear-gradient(135deg,#2ecc71,#19b662); color:#05120e; border:0; border-radius:10px; padding:10px 14px; font-weight:800; cursor:pointer; box-shadow:0 10px 24px rgba(46,204,113,.25)}
 .btn-sell{background:linear-gradient(135deg,#ff6b6b,#ff4a4a); color:#200; border:0; border-radius:10px; padding:10px 14px; font-weight:800; cursor:pointer; box-shadow:0 10px 24px rgba(255,107,107,.25)}
 .btn-buy:hover,.btn-sell:hover{transform:scale(1.03); box-shadow:0 0 18px rgba(255,255,255,.15)}
-/* ==== Borda colorida neon para login/cadastro ==== */
+
+/* Borda colorida neon (login/cadastro) */
 .cascade{position:relative; isolation:isolate}
 .cascade::before{
   content:""; position:absolute; inset:-3px; border-radius:14px; z-index:-1;
-  background:conic-gradient(from 0deg,
-    #ff3c3c, #ff7f3c, #ffbf3c, #73ff3c,
-    #3cfff3, #3c7fff, #a53cff, #ff3ce7, #ff3c3c);
-  filter:blur(10px);
-  animation:cascade-spin 6s linear infinite;
-  opacity:.9;
-}
-.cascade::after{
-  content:""; position:absolute; inset:0; border-radius:12px; z-index:-1;
-  background:#0f1821;
-}
-@keyframes cascade-spin{to{transform:rotate(360deg)}}
-/* ==== BORDA COLORIDA (sem girar) — apenas piscando ==== */
-/* Aplique em cartões que já usam .cascade (login/cadastro). */
-
-.cascade{ position:relative; isolation:isolate }
-
-/* Anel colorido estático atrás do cartão */
-.cascade::before{
-  content:"";
-  position:absolute; inset:-3px; z-index:-1;
-  border-radius:14px;
-  /* gradiente fixo (não-animado em posição) */
   background:
     linear-gradient(180deg,
       #ff3c3c 0%,
@@ -262,73 +252,111 @@ a{color:#cfe8ff; text-decoration:none}
       #ff3c3c 100%);
   background-size:100% 100%;
   filter: blur(9px) brightness(1);
-  /* apenas “piscando” a intensidade, sem mover/rodar */
   animation: cascade-blink 2.6s ease-in-out infinite;
   opacity:.78;
 }
+.cascade::after{ content:""; position:absolute; inset:0; border-radius:12px; z-index:-1; background:#0f1821; }
+@keyframes cascade-blink{ 0%,100% { filter: blur(9px) brightness(1); opacity:.70; } 50% { filter: blur(12px) brightness(1.08); opacity:.92; } }
+.cascade.hover-expand:hover::before{ filter: blur(13px) brightness(1.12); animation-duration: 2.1s; }
+.login-body #cpf{ background:#1b2230 !important; color:#e7f6ff !important; border-color:#3a4a5e !important; }
 
-/* Máscara interna para manter o cartão limpo */
-.cascade::after{
-  content:"";
-  position:absolute; inset:0; z-index:-1;
-  border-radius:12px;
-  background:#0f1821; /* cor do card */
-}
-
-/* Piscada suave do brilho */
-@keyframes cascade-blink{
-  0%,100% { filter: blur(9px) brightness(1);   opacity:.70; }
-  50%     { filter: blur(12px) brightness(1.08); opacity:.92; }
-}
-
-/* Ao passar o mouse, expande um pouco e aumenta o brilho */
-.hover-expand:hover{ transform:scale(1.02); }
-.cascade.hover-expand:hover::before{
-  filter: blur(13px) brightness(1.12);
-  animation-duration: 2.1s;
-}
-
-/* (Opcional) caso exista alguma animação antiga aplicada, anulamos aqui */
-.cascade::before{
-  animation-name: cascade-blink !important; /* garante que não use spin/slide antigos */
-}
-
-/* ===== Login: CPF com fundo escuro ===== */
-.login-body #cpf{
-  background:#1b2230 !important;
-  color:#e7f6ff !important;
-  border-color:#3a4a5e !important;
-}
-
-/* ===== Welcome (logo acima e conectado separado) ===== */
-.royal-mark{
-  width:64px; height:auto; object-fit:contain;
-  display:block; margin:-4px 0 6px 0;
-}
-.connected-chip{
-  display:inline-flex; align-items:center; gap:8px;
-  background:linear-gradient(135deg,#2ecc71,#19b662);
-  border:1px solid rgba(255,255,255,.1);
-  color:#05120e; border-radius:999px; padding:6px 12px;
-  font-weight:800; letter-spacing:.02em; margin-bottom:6px;
-}
-
-/* Botão 📈 + menu lado a lado */
-.quick-actions{ display:flex; align-items:center; gap:8px; margin-top:6px }
+/* ===== Menu (Configurações) maior ===== */
 .menu-wrap{ position:relative }
-.menu-btn{
-  background:#122436; border:1px solid #1c3650; color:#e7f6ff;
-  border-radius:10px; padding:8px 10px; cursor:pointer;
-}
 .menu-dropdown{
-  position:absolute; right:0; top:42px; min-width:220px; z-index:20;
+  position:absolute; right:0; top:42px; min-width:260px; z-index:20;
   background:#0f1821; border:1px solid var(--grid); border-radius:12px;
-  padding:8px; display:none; box-shadow:0 12px 24px rgba(0,0,0,.35);
+  padding:10px; display:none; box-shadow:0 16px 28px rgba(0,0,0,.45);
 }
 .menu-dropdown[aria-hidden="false"]{ display:block }
 .menu-dropdown button{
   width:100%; text-align:left; background:transparent; color:#e7f6ff;
-  border:1px solid #203447; border-radius:10px; padding:8px 10px; margin:4px 0;
+  border:1px solid #203447; border-radius:10px; padding:10px 12px; margin:6px 0;
+  transition:transform .12s, outline .12s, border-color .12s;
+}
+.menu-dropdown button:hover{
+  transform:translateX(2px);
+  outline:2px solid rgba(39,211,211,.45);
+  border-color:rgba(39,211,211,.45);
 }
 .menu-dropdown .danger{ border-color:#4a1f23; color:#ff8a8a }
 
+/* ===== Modais centrais (bordas azul royal) ===== */
+.modal-backdrop{
+  position:fixed; inset:0; background:rgba(0,0,0,.5); opacity:0; pointer-events:none; transition:opacity .15s ease; z-index:9000;
+}
+.modal-backdrop.show{ opacity:1; pointer-events:auto; }
+
+.rb-modal{
+  position:fixed; left:50%; top:50%; transform:translate(-50%,-50%) scale(.96);
+  width:min(520px, 92vw); background:#0f1821; color:#e7f6ff;
+  border:2px solid var(--royal); border-radius:14px; box-shadow:0 18px 38px rgba(0,0,0,.55);
+  display:none; z-index:9010; transition:transform .15s ease, opacity .15s ease; opacity:0;
+}
+.rb-modal.show{ display:block; opacity:1; transform:translate(-50%,-50%) scale(1); }
+
+.modal-head{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  padding:12px 14px; border-bottom:1px solid var(--grid); background:#0b1320; border-radius:12px 12px 0 0;
+}
+.modal-head h3{ margin:0; color:var(--royal-bright) }
+.modal-x{
+  background:transparent; color:#fff; border:none; font-size:20px; line-height:1; width:32px; height:32px; border-radius:8px; cursor:pointer;
+}
+.modal-x:hover{ outline:2px solid rgba(39,211,211,.45); }
+
+.modal-body{ padding:14px; }
+.modal-foot{ padding:12px 14px; border-top:1px solid var(--grid); display:flex; justify-content:flex-end; gap:8px; }
+
+/* KV original */
+.kv{ display:grid; grid-template-columns:1fr; gap:10px }
+.kv dt{ color:#97c0de; font-weight:600 }
+.kv dd{ margin:0; color:#e7f6ff; font-weight:700 }
+
+/* ======= Minha conta: cards centralizados com hover turquesa ======= */
+#modalConta .modal-body{ text-align:center }
+.kv.cards{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:12px;
+  justify-items:center;
+}
+@media (min-width:560px){
+  .kv.cards{ grid-template-columns:1fr 1fr; }
+}
+.kv.cards .card{
+  width:100%;
+  background:#121b28;
+  border:1px solid #203447;
+  border-radius:12px;
+  padding:12px 14px;
+  text-align:center;
+  transition:transform .15s, box-shadow .15s, outline .15s, border-color .15s;
+}
+.kv.cards .card:hover{
+  outline:3px solid rgba(39,211,211,.60);
+  border-color:rgba(39,211,211,.60);
+  box-shadow:0 0 18px rgba(39,211,211,.25);
+  transform:translateY(-1px);
+}
+.kv.cards .label{ color:#97c0de; font-weight:600; margin-bottom:6px }
+.kv.cards .value{ color:#e7f6ff; font-weight:800 }
+
+/* Selo Premium da conta */
+.badge-premium{
+  display:inline-flex; align-items:center; justify-content:center;
+  background:linear-gradient(135deg,#2e78ff,#1f5dff);
+  border:1px solid rgba(77,160,255,.45);
+  border-radius:999px;
+  padding:6px 12px;
+  font-weight:900;
+  box-shadow:0 6px 14px rgba(46,120,255,.25);
+}
+
+/* ====== LOGO MENOR ====== */
+.royal-mark{
+  width:44px;  /* reduzida */
+  height:auto; object-fit:contain; display:block; margin:-2px 0 6px 0;
+}
+
+/* Ajustes visuais menores */
+.last-login{ margin:6px 0 4px; font-size:12px; color:#7aa6c2 }

@@ -17,7 +17,6 @@ const DEFAULT_USERS = {
   "11111111111": { senha:"123", conta:"A", historicoSenhas:["123"], nome:"Conta A" },
   "22222222222": { senha:"456", conta:"B", historicoSenhas:["456"], nome:"Conta B" }
 };
-
 function limparCPF(v){ return (v||"").replace(/\D/g,''); }
 function loadUsers(){
   try{
@@ -82,10 +81,9 @@ function buildCarousel(){
 }
 function countUp(){ document.querySelectorAll("[data-countup]").forEach(el=>{ const t=+el.getAttribute("data-countup"); let c=0; const s=Math.max(1,Math.floor(t/120)); (function tick(){ c+=s; if(c>=t)c=t; el.textContent=t>=1000?c.toLocaleString("pt-BR"):c; if(c<t) requestAnimationFrame(tick); })(); }); }
 
-/* Gráfico do hero (linhas por classe) */
-(function drawHero(){ const c=$("#canvasHero"); if(!c) return; const ctx=c.getContext("2d"); const W=c.width,H=c.height,p=28; const months=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"]; function step(){ ctx.fillStyle="#0b1b26"; ctx.fillRect(0,0,W,H);
+/* Gráfico do hero */
+(function drawHero(){ const c=$("#canvasHero"); if(!c) return; const ctx=c.getContext("2d"); const W=c.width,H=c.height,p=28; function step(){ ctx.fillStyle="#0b1b26"; ctx.fillRect(0,0,W,H);
   ctx.strokeStyle="#123a5a"; for(let i=0;i<=4;i++){ const y=p+((H-p*1.6)*i/4); ctx.beginPath(); ctx.moveTo(p,y); ctx.lineTo(W-p,y); ctx.stroke(); }
-  ctx.fillStyle="#7aa6c2"; months.slice(0,6).forEach((m,i)=>{ const x=p+((W-p*2)/5)*i; ctx.fillText(m, x-8, H-8); });
   const t = Date.now()/650; const colors = ["#3fd0ff","#6ce36c","#ffd261"];
   [0,1,2].forEach(si=>{
     ctx.beginPath();
@@ -144,6 +142,7 @@ function loginApp(){
 
   if(user && user.senha === senha){
     localStorage.setItem('rb_cpf', cpf);
+    localStorage.setItem('rb_last_login_'+cpf, new Date().toISOString());
     if(msg){ msg.className='success'; msg.textContent='Login efetuado!'; }
     window.location.href = 'portal.html';
   } else {
@@ -242,10 +241,18 @@ function portalInit(){
   if($("#username")) $("#username").innerText = user.nome || contaBase.nome;
   if($("#saldo")) $("#saldo").innerText = formatBR(usuarioAtual.saldo);
 
+  // último acesso
+  const last = localStorage.getItem('rb_last_login_'+cpf);
+  if(last && $("#lastLogin")){
+    const d = new Date(last);
+    $("#lastLogin").innerText = `Último acesso: ${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
+  }
+
   preencherSelectAtivos(); preencherRtSelect();
   atualizarCarteira(); atualizarBook(); atualizarExtrato(); atualizarOrdens();
   startRtChart(); startSpark();
 
+  // MENU (≡)
   const btn = $("#menuBtn"), drop = $("#menuDropdown");
   if(btn && drop){
     btn.addEventListener("click", ()=>{
@@ -257,19 +264,82 @@ function portalInit(){
     });
   }
 
+  // Prefill (?ativo=PETR4&tipo=Compra)
   const q = new URLSearchParams(location.search);
   const qAtivo = q.get("ativo"); const qTipo = q.get("tipo");
   if(qAtivo && $("#ativo")) $("#ativo").value = qAtivo;
   if(qTipo && $("#tipo")) $("#tipo").value = qTipo;
+
+  // ESC fecha modal
+  document.addEventListener('keydown', (ev)=>{
+    if(ev.key === 'Escape'){ hideModal('modalConta'); hideModal('modalSenha'); }
+  });
 }
 
 function abrirAnalise(){ window.open("analise.html","_blank","noopener"); }
-function abrirMinhaConta(){
-  alert("Minha conta:\nCPF: "+cpfAtual+"\nNome: "+(getUser(cpfAtual)?.nome || "Conta "+(getUser(cpfAtual)?.conta||""))+"\nE-mail: (exemplo)\nWhatsApp: (exemplo)");
-}
-function scrollToAlterarSenha(){ document.getElementById("sec-alterar-senha")?.scrollIntoView({behavior:"smooth"}); }
 
-/* Sparkline com VIÉS DE ALTA */
+/* ====== MODAIS ====== */
+function showModal(id){
+  $("#modalBackdrop")?.classList.add('show');
+  const m = document.getElementById(id);
+  if(!m) return;
+  m.classList.add('show');
+  if(id==='modalSenha'){ setTimeout(()=> document.getElementById('novaSenhaModal')?.focus(), 0); }
+}
+function hideModal(id){
+  document.getElementById(id)?.classList.remove('show');
+  if(!document.querySelector('.rb-modal.show')){
+    $("#modalBackdrop")?.classList.remove('show');
+  }
+}
+function closeModal(e){
+  if(e.target && e.target.id === 'modalBackdrop'){
+    hideModal('modalConta'); hideModal('modalSenha');
+  }
+}
+
+function abrirMinhaConta(){
+  const u = getUser(cpfAtual) || {};
+  document.getElementById('mcNome').innerText  = u.nome || '—';
+  document.getElementById('mcEmail').innerText = u.email || '—';
+  document.getElementById('mcZap').innerText   = u.zap || '—';
+  document.getElementById('mcCpf').innerText   = cpfAtual || '—';
+  // Sempre mostrar "Premium"
+  const contaEl = document.getElementById('mcConta');
+  if (contaEl) contaEl.textContent = 'Premium';
+  showModal('modalConta');
+}
+function abrirAlterarSenha(){
+  $("#novaSenhaModal").value = '';
+  $("#senhaMsgModal").textContent = '';
+  $("#senhaMsgModal").className = 'success';
+  showModal('modalSenha');
+}
+function scrollToAlterarSenha(){ abrirAlterarSenha(); }
+
+/* ===== Alterar senha (suporta portal antigo ou modal novo) ===== */
+function alterarSenha(from){
+  const inputEl = from==='modal' ? document.getElementById('novaSenhaModal') : document.getElementById('novaSenha');
+  const msgEl   = from==='modal' ? document.getElementById('senhaMsgModal') : document.getElementById('senhaMsg');
+  const nova = inputEl?.value || '';
+
+  if(!cpfAtual){ msgEl.className='error'; msgEl.textContent='Sessão expirada. Faça login novamente.'; return; }
+  if(!nova){ msgEl.className='error'; msgEl.textContent='Digite a nova senha.'; return; }
+  if(nova.length<6 || !/[A-Za-z]/.test(nova) || !/[0-9]/.test(nova)){
+    msgEl.className='error'; msgEl.textContent='A senha precisa de 6+ caracteres, 1 letra e 1 número.'; return;
+  }
+  const u = getUser(cpfAtual) || {};
+  const hist = u.historicoSenhas || [];
+  if(hist.slice(0,4).includes(nova)){
+    msgEl.className='error'; msgEl.textContent='Não é permitido reutilizar nenhuma das últimas 4 senhas.'; return;
+  }
+
+  setUser(cpfAtual, { senha:nova, historicoSenhas:[nova, ...hist].slice(0,4) });
+  msgEl.className='success'; msgEl.textContent='Senha alterada com sucesso!';
+  if(from==='modal'){ setTimeout(()=> hideModal('modalSenha'), 900); }
+}
+
+/* ======= SPARK ======= */
 function startSpark(){
   const c=$("#invSpark"); if(!c) return; const ctx=c.getContext("2d");
   let pts=Array.from({length:50},(_,i)=> 55 + i*0.8 + Math.sin(i/2)*2 + (Math.random()*1.2-0.6));
@@ -417,22 +487,6 @@ function filtrarExtrato(){
   const lim=new Date(ini); lim.setMonth(lim.getMonth()+12);
   if(fim>lim){ msg.textContent="Máximo de 12 meses por consulta."; return; }
   const filtrado = extrato.filter(e=> e.date>=ini && e.date<=fim ); atualizarExtrato(filtrado);
-}
-
-/* Alterar senha (portal) */
-function alterarSenha(){
-  const nova=$("#novaSenha")?.value, msg=$("#senhaMsg");
-  const cpf  = cpfAtual || localStorage.getItem('rb_cpf');
-  const u = getUser(cpf);
-
-  if(!u){ if(msg){ msg.className='error'; msg.textContent='Sessão expirada. Faça login novamente.'; } return; }
-  if(!nova || nova.length<6 || !/[A-Za-z]/.test(nova) || !/[0-9]/.test(nova)){
-    msg.className="error"; msg.textContent="A senha precisa de 6+ caracteres, 1 letra e 1 número."; return;
-  }
-  const hist = u.historicoSenhas || [];
-  if(hist.slice(0,4).includes(nova)){ msg.className="error"; msg.textContent="Não é permitido reutilizar nenhuma das últimas 4 senhas."; return; }
-  setUser(cpf, { senha:nova, historicoSenhas:[nova, ...hist].slice(0,4) });
-  msg.className="success"; msg.textContent="Senha alterada com sucesso!";
 }
 
 /* ========= GRÁFICO RT ========= */
@@ -620,10 +674,15 @@ window.filtrarExtrato=filtrarExtrato;
 window.cancelarOrdem=cancelarOrdem;
 window.exportarJSON=exportarJSON;
 window.exportarXLS=exportarXLS;
-window.alterarSenha=alterarSenha;
 window.logout=logout;
 window.recuperarSenha=recuperarSenha;
 window.salvarNovaSenha=salvarNovaSenha;
 window.abrirAnalise=abrirAnalise;
 window.abrirBaixar=abrirBaixar;
 window.voltarPortal=voltarPortal;
+window.abrirMinhaConta=abrirMinhaConta;
+window.abrirAlterarSenha=abrirAlterarSenha;
+window.showModal=showModal;
+window.hideModal=hideModal;
+window.closeModal=closeModal;
+window.alterarSenha=alterarSenha;
