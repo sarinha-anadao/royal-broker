@@ -103,21 +103,9 @@
         </table>
       </section>
 
-      <!-- BOOK -->
+      <!-- BOOK (sem B3 e sem baixar extrato; título centralizado) -->
       <section class="panel panel-royal-outline">
-        <div class="panel-flex">
-          <h3 class="panel-title sparkle">Book de Ofertas (B3)</h3>
-          <div class="export-bar dropdown">
-            <button class="btn-json small" onclick="abrirBaixar('book')">Baixar Extrato</button>
-            <div class="drop" id="drop-book" aria-hidden="true">
-              <div class="drop-title">Baixar Extrato<br><small>Escolha o formato:</small></div>
-              <div class="drop-actions">
-                <button class="btn-xls" onclick="exportarXLS('book')">XLSX</button>
-                <button class="btn-json" onclick="exportarJSON('book')">JSON</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <h3 class="panel-title center">Book de Ofertas</h3>
 
         <div class="scrollable">
           <table id="book" class="rb-table with-hover">
@@ -226,38 +214,42 @@
   <!-- ===== MODAIS ===== -->
   <div id="modalBackdrop" class="modal-backdrop" onclick="closeModal(event)"></div>
 
-  <!-- Minha conta -->
+  <!-- Minha conta (formulário vertical, editável) -->
   <div id="modalConta" class="rb-modal" role="dialog" aria-modal="true" aria-labelledby="modalContaTitle">
     <div class="modal-head">
       <h3 id="modalContaTitle">Minha conta</h3>
       <button class="modal-x" onclick="hideModal('modalConta')" aria-label="Fechar">×</button>
     </div>
+
     <div class="modal-body">
-      <div class="kv cards center">
-        <div class="card">
-          <div class="label">Nome</div>
-          <div class="value" id="mcNome">—</div>
-        </div>
-        <div class="card">
-          <div class="label">E-mail</div>
-          <div class="value" id="mcEmail">—</div>
-        </div>
-        <div class="card">
-          <div class="label">WhatsApp</div>
-          <div class="value" id="mcZap">—</div>
-        </div>
-        <div class="card">
-          <div class="label">CPF</div>
-          <div class="value" id="mcCpf">—</div>
-        </div>
-        <div class="card">
-          <div class="label">Conta</div>
-          <div class="value"><span id="mcConta" class="badge-premium">Premium</span></div>
-        </div>
-      </div>
+      <form class="rb-form lefted single-col" onsubmit="event.preventDefault(); salvarMinhaConta();" autocomplete="on">
+        <label>Nome completo
+          <input type="text" id="mcNome" class="rb-input input-royal-focus" placeholder="Seu nome" autocomplete="name">
+        </label>
+
+        <label>E-mail
+          <input type="email" id="mcEmail" class="rb-input input-royal-focus" placeholder="Seu e-mail" autocomplete="email">
+        </label>
+
+        <label>WhatsApp
+          <input type="text" id="mcZap" class="rb-input input-royal-focus" placeholder="Seu celular (DDD)" autocomplete="tel" inputmode="tel" pattern="[0-9\\s()+-]*">
+        </label>
+
+        <label>CPF
+          <input type="text" id="mcCpf" class="rb-input input-royal-focus" placeholder="Seu CPF" readonly>
+        </label>
+
+        <label>Plano
+          <input type="text" id="mcPlano" class="rb-input input-royal-focus" readonly>
+        </label>
+
+        <button class="btn-royal" type="submit">Salvar Alterações</button>
+        <div id="contaMsg" class="success"></div>
+      </form>
     </div>
+
     <div class="modal-foot">
-      <button class="btn-turq" onclick="hideModal('modalConta')">Ok</button>
+      <button class="btn-turq" onclick="hideModal('modalConta')">Fechar</button>
     </div>
   </div>
 

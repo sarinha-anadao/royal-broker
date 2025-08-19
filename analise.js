@@ -1,49 +1,30 @@
-const logos={
-  PETR4:"img/petr4.png", VALE3:"img/vale3.png", ITUB4:"img/itub4.png", BBDC4:"img/bbdc4.png",
-  ABEV3:"img/abev3.png", MGLU3:"img/mglu3.png", BBAS3:"img/bbas3.png", LREN3:"img/lren3.png"
-};
-const fmt = v => (v||0).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2});
+/* =========================
+   Análise Técnica — Royal Broker
+   analise.js (completo)
+   ========================= */
+(function(){
+  "use strict";
+  const logos = window.logos || { PETR4:"img/petr4.png", VALE3:"img/vale3.png", ITUB4:"img/itub4.png", BBDC4:"img/bbdc4.png", ABEV3:"img/abev3.png", MGLU3:"img/mglu3.png", BBAS3:"img/bbas3.png", LREN3:"img/lren3.png" };
+  const ativosB3 = window.ativosB3 || { PETR4: 30.38, VALE3: 73.21, ITUB4: 32.33, BBDC4: 28.53, ABEV3: 15.72, MGLU3: 3.48,  BBAS3: 49.33, LREN3: 19.38 };
+  const $ = (sel)=> document.querySelector(sel);
+  const fmt = v => (v||0).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2});
+  const limparCPF = v => String(v||"").replace(/\D/g, '');
+  function loadState(cpf){ try{ const key = "rb_state_" + limparCPF(cpf||""); const raw = localStorage.getItem(key); if(!raw) return null; const st = JSON.parse(raw); if(Array.isArray(st.extrato)) st.extrato = st.extrato.map(e => ({...e, date: new Date(e.date)})); return st; }catch{ return null; } }
+  function getUserSafe(cpf){ try{ if(typeof window.getUser === "function") return window.getUser(cpf); }catch{} return null; }
 
-let series=[], mode='line', timer=null, sym='PETR4', tf='10s';
-
-function init(){
-  const atv=document.getElementById('atv'), tfSel=document.getElementById('tf'), btLine=document.getElementById('btLine'), btC=document.getElementById('btCandle');
-  atv.addEventListener('change', ()=>{ sym=atv.value; setLogo(); reset(); });
-  tfSel.addEventListener('change', ()=>{ tf=tfSel.value; reset(); });
-  btLine.onclick=()=>{ mode='line'; btLine.classList.add('on'); btC.classList.remove('on'); };
-  btC.onclick=()=>{ mode='candle'; btC.classList.add('on'); btLine.classList.remove('on'); };
-  setLogo(); reset(); loadCarteira();
-}
-function setLogo(){ const img=document.getElementById('atvLogo'); img.src=logos[sym]||''; img.alt=sym; }
-function reset(){ series=[]; if(timer) clearInterval(timer); seed(); timer=setInterval(tick, 1000); drawLoop(); }
-function tfToStep(){ const map={'10s':10000,'1m':60000,'5m':300000,'30m':1800000,'1h':3600000,'2h':7200000,'4h':14400000,'1d':86400000,'1w':604800000}; return map[tf]||60000; }
-function seed(){ const step=tfToStep(); let t=Date.now()-step*80; let p=60; for(let i=0;i<80;i++){ const o=p; const c=p+= (Math.random()-0.5)*1.2; const h=Math.max(o,c)+Math.random()*1.2; const l=Math.min(o,c)-Math.random()*1.2; series.push({t, o, h, l, c}); t+=step; } }
-function tick(){ const step=tfToStep(); const last=series[series.length-1]; const t=last? last.t+step:Date.now(); const o=last? last.c:60; const c=o + (Math.random()-0.5)*1.4; const h=Math.max(o,c)+Math.random()*1.1; const l=Math.min(o,c)-Math.random()*1.1; series.push({t,o,h,l,c}); if(series.length>150) series.shift(); draw(); }
-
-const c=document.getElementById('kChart'), ctx=c.getContext('2d'); let mouse=null;
-c.addEventListener('mousemove', e=>{ const rect=c.getBoundingClientRect(); mouse={x:e.clientX-rect.left, y:e.clientY-rect.top}; draw(); });
-c.addEventListener('mouseleave', ()=>{ mouse=null; draw(); });
-
-function drawAxes(W,H,pad){ ctx.strokeStyle="#123a5a"; for(let i=0;i<=4;i++){ const y=pad+(H-pad*2)*i/4; ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(W-pad,y); ctx.stroke(); } }
-function draw(){ const W=c.width, H=c.height, pad=28; ctx.fillStyle="#0b1b26"; ctx.fillRect(0,0,W,H); drawAxes(W,H,pad); if(series.length<2) return;
-  const minT=series[0].t, maxT=series[series.length-1].t; const minP=Math.min(...series.map(s=>s.l)), maxP=Math.max(...series.map(s=>s.h)); const XR=W-pad*2, YR=H-pad*2;
-  if(mode==='line'){ ctx.beginPath(); series.forEach((s,i)=>{ const x=pad+((s.t-minT)/(maxT-minT))*XR; const y=pad+(1-((s.c-minP)/(maxP-minP)))*YR; if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); }); const g=ctx.createLinearGradient(0,0,W,0); g.addColorStop(0,"#4da0ff"); g.addColorStop(1,"#2e78ff"); ctx.strokeStyle=g; ctx.lineWidth=1.6; ctx.stroke(); }
-  else{ const bw=XR/series.length*0.7; series.forEach(s=>{ const x=pad+((s.t-minT)/(maxT-minT))*XR; const yO=pad+(1-((s.o-minP)/(maxP-minP)))*YR; const yC=pad+(1-((s.c-minP)/(maxP-minP)))*YR; const yH=pad+(1-((s.h-minP)/(maxP-minP)))*YR; const yL=pad+(1-((s.l-minP)/(maxP-minP)))*YR; ctx.strokeStyle="#cfe8ff"; ctx.beginPath(); ctx.moveTo(x,yH); ctx.lineTo(x,yL); ctx.stroke(); ctx.fillStyle = s.c>=s.o ? "#2ecc71":"#ff6b6b"; ctx.fillRect(x-bw/2, Math.min(yO,yC), bw, Math.max(2,Math.abs(yC-yO))); }); }
-  if(mouse){ const mX=mouse.x, mY=mouse.y; ctx.strokeStyle="rgba(200,220,255,.35)"; ctx.beginPath(); ctx.moveTo(mX,pad); ctx.lineTo(mX,H-pad); ctx.stroke(); ctx.beginPath(); ctx.MoveTo; ctx.moveTo(pad,mY); ctx.lineTo(W-pad,mY); ctx.stroke();
-    const idx = Math.max(0, Math.min(series.length-1, Math.round(((mX-pad)/XR)*series.length)));
-    const s=series[idx]; const dt=new Date(s.t); const boxX=Math.min(W-240, Math.max(pad+6, mX+10)); const boxY=Math.max(pad+6, mY-70);
-    const lines=[`${dt.toLocaleDateString()} ${dt.toLocaleTimeString()}`, `Abertura: ${fmt(s.o)}`, `Máxima: ${fmt(s.h)}`, `Mínima: ${fmt(s.l)}`, `Fechamento: ${fmt(s.c)}`];
-    ctx.fillStyle="rgba(15,24,33,.95)"; ctx.strokeStyle="#2a4158"; ctx.lineWidth=1; ctx.beginPath(); ctx.roundRect(boxX,boxY,210,88,8); ctx.fill(); ctx.stroke();
-    ctx.fillStyle="#cfe8ff"; ctx.font="12px sans-serif"; lines.forEach((t,i)=> ctx.fillText(t, boxX+10, boxY+18+i*14));
+  let anaBars = []; let anaTimer = null; let cross = null;
+  function tfSeconds(){ const el = $("#anaInterval"); const val = +(el?.value || 60); return isFinite(val) && val>0 ? val : 60; }
+  function genSeedBars(n){ const sym = $("#anaSymbol")?.value || "PETR4"; let p = +(ativosB3[sym] || 50); for(let i=0;i<n;i++){ const o=p; const h=o + Math.random()*2; const l=o - Math.random()*2; const c=l + Math.random()*(h-l); anaBars.push({o,h,l,c,t:Date.now()-(n-i)*1000}); p=c; } }
+  function pushBarTick(intervalSec){ const last = anaBars[anaBars.length-1]; const now = Date.now(); if(!last || (now - last.t) >= intervalSec*1000){ const sym = $("#anaSymbol")?.value || "PETR4"; const base = last ? last.c : (ativosB3[sym]||50); const o=base, h=base, l=base, c=base; anaBars.push({o,h,l,c,t:now}); if(anaBars.length>220) anaBars.shift(); } else { const cur = anaBars[anaBars.length-1]; const c = cur.c + (Math.random()-0.5)*0.20; cur.c = c; cur.h = Math.max(cur.h, c); cur.l = Math.min(cur.l, c); } }
+  function resetAna(){ if(anaTimer) clearInterval(anaTimer); anaBars = []; genSeedBars(80); drawAna(); const sec = tfSeconds(); anaTimer = setInterval(()=>{ pushBarTick(sec); drawAna(); }, 1000); }
+  function drawAna(){ const c=$("#kChart"); if(!c) return; const ctx=c.getContext("2d"); const pad=40; const W=c.width, H=c.height; ctx.fillStyle="#0b1b26"; ctx.fillRect(0,0,W,H); ctx.strokeStyle="#123a5a"; for(let i=0;i<=4;i++){ const y=pad+((H-pad*2)*i/4); ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(W-pad,y); ctx.stroke(); } if(anaBars.length<2) return; const minP = Math.min(...anaBars.map(b=>b.l)); const maxP = Math.max(...anaBars.map(b=>b.h)); const xw = (W - pad*2) / (anaBars.length-1 || 1); const type = ($("#anaType")?.value || "candle").toLowerCase(); if(type === "line"){ ctx.beginPath(); anaBars.forEach((b,i)=>{ const x=pad+i*xw; const y=pad+(1-((b.c-minP)/((maxP-minP)||1)))*(H-pad*2); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); }); ctx.strokeStyle="#4da0ff"; ctx.lineWidth=1.4; ctx.stroke(); } else { const cw = Math.max(3, xw*0.6); anaBars.forEach((b,i)=>{ const x=pad+i*xw; const yO=pad+(1-((b.o-minP)/((maxP-minP)||1)))*(H-pad*2); const yC=pad+(1-((b.c-minP)/((maxP-minP)||1)))*(H-pad*2); const yH=pad+(1-((b.h-minP)/((maxP-minP)||1)))*(H-pad*2); const yL=pad+(1-((b.l-minP)/((maxP-minP)||1)))*(H-pad*2); const up = b.c>=b.o; ctx.strokeStyle = up ? "#39d98a" : "#ff6b6b"; ctx.fillStyle   = up ? "#1a3b2a" : "#3a2121"; ctx.beginPath(); ctx.moveTo(x, yH); ctx.lineTo(x, yL); ctx.stroke(); const h = Math.max(2, Math.abs(yC - yO)); ctx.fillRect(x - cw/2, Math.min(yO,yC), cw, h); ctx.strokeRect(x - cw/2, Math.min(yO,yC), cw, h); }); }
+    if(cross){ const idx = Math.round((cross.x - pad) / xw); if(idx>=0 && idx<anaBars.length){ const b = anaBars[idx]; const x = pad + idx*xw; ctx.strokeStyle="rgba(255,255,255,.25)"; ctx.beginPath(); ctx.moveTo(x, pad); ctx.lineTo(x, H-pad); ctx.stroke(); const y = pad+(1-((b.c-minP)/((maxP-minP)||1)))*(H-pad*2); ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(W-pad, y); ctx.stroke(); const boxW=230, boxH=100, bx=Math.min(W-pad-boxW, Math.max(pad, x+10)), by=pad+10; ctx.fillStyle="rgba(12,20,32,.95)"; ctx.fillRect(bx,by,boxW,boxH); ctx.strokeStyle="#1c3650"; ctx.strokeRect(bx,by,boxW,boxH); ctx.fillStyle="#e7f6ff"; ctx.font="12px Inter, Arial"; const dt = new Date(b.t).toLocaleString(); ctx.fillText(dt, bx+10, by+18); ctx.fillStyle="#97c0de"; ctx.fillText("Abertura:", bx+10, by+38); ctx.fillStyle="#e7f6ff"; ctx.fillText(fmt(b.o), bx+140, by+38); ctx.fillStyle="#97c0de"; ctx.fillText("Máxima:", bx+10, by+54);   ctx.fillStyle="#39d98a"; ctx.fillText(fmt(b.h), bx+140, by+54); ctx.fillStyle="#97c0de"; ctx.fillText("Mínima:", bx+10, by+70);   ctx.fillStyle="#ff6b6b"; ctx.fillText(fmt(b.l), bx+140, by+70); ctx.fillStyle="#97c0de"; ctx.fillText("Fechamento:", bx+10, by+86); ctx.fillStyle="#e7f6ff"; ctx.fillText(fmt(b.c), bx+140, by+86); } }
   }
-}
-function drawLoop(){ draw(); requestAnimationFrame(drawLoop); }
-
-function loadCarteira(){
-  let snap = {}; try{ snap = JSON.parse(localStorage.getItem('rb_carteira_snapshot')||"{}"); }catch{}
-  const tb=document.getElementById('anaCarteira').querySelector('tbody'); tb.innerHTML="";
-  Object.entries(snap).forEach(([k,v])=>{ tb.innerHTML+=`<tr><td><img src="${logos[k]||''}" style="width:18px;height:18px;background:#fff;border-radius:4px"></td><td>${k}</td><td>${v}</td></tr>`; });
-}
-function goBack(){ history.length>1 ? history.back() : window.close(); }
-
-window.addEventListener('DOMContentLoaded', init);
+  function montarMiniWallet(){ const t = $("#miniWallet tbody"); if(!t) return; const cpf = localStorage.getItem("rb_cpf"); let carteira = {}, pmRef = {}; const st = cpf ? loadState(cpf) : null; if(st && st.carteira){ carteira = st.carteira || {}; pmRef = st.precoMedio || {}; } else { const u = getUserSafe(cpf); const cts = (window.contas||{}); const conta = (u && cts[u.conta]) ? cts[u.conta] : null; if(conta){ carteira = conta.carteira || {}; pmRef = Object.fromEntries(Object.keys(carteira).map(k=>[k, ativosB3[k]||0])); } }
+    const rows = Object.keys(carteira).map(k=>{ const logo = logos[k] ? `<img src="${logos[k]}" class="logo-mini big" alt="${k}">` : ''; const qtd  = carteira[k] || 0; const pm   = +(pmRef[k] ?? ativosB3[k] ?? 0); return `<tr><td>${logo}</td><td>${k}</td><td>${qtd}</td><td>${fmt(pm)}</td></tr>`; }).join(""); t.innerHTML = rows || `<tr><td colspan="4" class="muted">Sem posições na carteira.</td></tr>`; }
+  function setLogoFromSymbol(){ const sym = $("#anaSymbol")?.value || "PETR4"; const img = $("#anaLogo"); if(img){ img.src = logos[sym] || "img/royal-logo.png"; img.alt = sym; } }
+  function anaInit(){ const symSel = $("#anaSymbol"), intSel = $("#anaInterval"), typeSel= $("#anaType"), chart  = $("#kChart"); if(!chart) return; if(symSel){ symSel.innerHTML = Object.keys(ativosB3).map(k=>`<option value="${k}">${k}</option>`).join(""); symSel.onchange = ()=>{ setLogoFromSymbol(); resetAna(); }; } if(intSel){ intSel.onchange = resetAna; } if(typeSel){ typeSel.onchange = drawAna; } setLogoFromSymbol(); resetAna(); montarMiniWallet(); $("#btnBuy")?.addEventListener("click", ()=>{ const a=symSel?.value||"PETR4"; window.location.href=`portal.html?ativo=${a}&tipo=Compra`; }); $("#btnSell")?.addEventListener("click", ()=>{ const a=symSel?.value||"PETR4"; window.location.href=`portal.html?ativo=${a}&tipo=Venda`; }); chart.addEventListener("mousemove", e=>{ const r=chart.getBoundingClientRect(); cross={x:e.clientX - r.left, y:e.clientY - r.top}; drawAna(); }); chart.addEventListener("mouseleave", ()=>{ cross=null; drawAna(); }); }
+  function voltarPortal(){ window.location.href = "portal.html"; }
+  window.addEventListener("DOMContentLoaded", ()=>{ if(document.body.classList.contains("analise")) anaInit(); });
+  window.anaInit = anaInit; window.voltarPortal = window.voltarPortal || voltarPortal;
+})();

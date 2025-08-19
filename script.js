@@ -10,6 +10,8 @@ const logos = {
 
 /* ---- Usuários ---- */
 const USERS_KEY = "rb_users";
+const STATE_KEY_PREFIX = "rb_state_"; // ⇦ carteira/saldo/extrato/ordens por CPF
+
 const DEFAULT_USERS = {
   "11111111111": { senha:"123", conta:"A", historicoSenhas:["123"], nome:"Conta A", email:"demo@royal.com", zap:"(11) 99999-0000", plano:"Premium" },
   "22222222222": { senha:"456", conta:"B", historicoSenhas:["456"], nome:"Conta B", email:"demo2@royal.com", zap:"(21) 98888-0000", plano:"Premium" }
@@ -49,7 +51,30 @@ function userExists(cpf){
   return !!store[cpf];
 }
 
-/* ---- Contas “mockadas” por perfil A/B ---- */
+/* ---- Estado persistente por usuário (carteira, saldo, extrato, ordens) ---- */
+function loadState(cpf){
+  try{
+    const raw = localStorage.getItem(STATE_KEY_PREFIX + limparCPF(cpf));
+    if(!raw) return null;
+    const st = JSON.parse(raw);
+    // rehidrata datas do extrato
+    if(Array.isArray(st.extrato)) st.extrato = st.extrato.map(e => ({...e, date: new Date(e.date)}));
+    return st;
+  }catch{ return null; }
+}
+function saveState(cpf){
+  if(!usuarioAtual) return;
+  const pack = {
+    saldo: usuarioAtual.saldo,
+    carteira: usuarioAtual.carteira,
+    precoMedio: usuarioAtual.precoMedio,
+    extrato: extrato.map(e => ({...e, date: (e.date instanceof Date ? e.date.toISOString() : e.date)})),
+    ordens
+  };
+  localStorage.setItem(STATE_KEY_PREFIX + limparCPF(cpf), JSON.stringify(pack));
+}
+
+/* ---- Contas base “mockadas” por perfil A/B ---- */
 const contas = {
   A:{ nome:"Conta A", saldo:100000, carteira:{ PETR4:300, VALE3:200, ITUB4:100 } },
   B:{ nome:"Conta B", saldo:100000, carteira:{ MGLU3:100, BBAS3:100 } }
@@ -181,6 +206,16 @@ function salvarCadastro(){
   if(s.length<6 || !/[A-Za-z]/.test(s) || !/[0-9]/.test(s)){ msg.textContent="Senha fraca."; return; }
 
   setUser(cpf, {senha:s, conta:"A", historicoSenhas:[s], nome, email, zap, plano:"Premium"});
+  // cria estado inicial desta conta
+  const base = contas.A;
+  localStorage.setItem(STATE_KEY_PREFIX+cpf, JSON.stringify({
+    saldo: base.saldo,
+    carteira: base.carteira,
+    precoMedio: Object.fromEntries(Object.keys(base.carteira).map(k=>[k, ativosB3[k]||0])),
+    extrato: [],
+    ordens: []
+  }));
+
   msg.className="success"; msg.textContent="Conta criada com sucesso.";
   setTimeout(()=>{ window.location.href="login.html"; }, 900);
 }
@@ -214,15 +249,43 @@ function salvarNovaSenha(){
 /* ========= MODAIS (Minha Conta / Alterar Senha) ========= */
 function showModal(id){
   const m = document.getElementById(id);
+  const back = document.getElementById("modalBackdrop");
   if(!m) return;
   m.classList.add("show");
   m.setAttribute("aria-hidden","false");
+  if(back){ back.classList.add("show"); }
 }
 function hideModal(id){
   const m = document.getElementById(id);
+  const back = document.getElementById("modalBackdrop");
   if(!m) return;
   m.classList.remove("show");
   m.setAttribute("aria-hidden","true");
+  if(back){ back.classList.remove("show"); }
+}
+// Fecha qualquer modal ao clicar no backdrop
+function closeModal(ev){
+  const back = document.getElementById('modalBackdrop');
+  if(!back) return;
+  if(ev.target === back){
+    hideModal('modalConta');
+    hideModal('modalSenha');
+  }
+}
+
+// Abre o modal de Alterar Senha (usado no menu)
+function abrirAlterarSenha(){
+  const msg = document.getElementById('senhaMsgModal');
+  if(msg){ msg.textContent = ''; msg.className = ''; }
+  showModal('modalSenha');
+  // foca no campo de nova senha, se existir
+  setTimeout(()=> document.getElementById('novaSenhaModal')?.focus(), 50);
+}
+
+/* ========= MODAIS (Minha Conta / Alterar Senha) ========= */
+function formatCPFView(v){
+  const s = limparCPF(v||"");
+  return s.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
 }
 
 function abrirMinhaConta(){
@@ -230,33 +293,49 @@ function abrirMinhaConta(){
   const u = getUser(cpf);
   if(!u){ alert("Sessão expirada. Faça login novamente."); return; }
 
-  // preenche conteúdo do modal
-  const box = document.getElementById("contaDados");
-  if(box){
-    box.innerHTML = `
-      <div class="conta-grid">
-        <div class="conta-item"><label>Plano</label><div>${escapeHTML(u.plano || "Premium")}</div></div>
-        <div class="conta-item"><label>Nome completo</label><div>${escapeHTML(u.nome||"—")}</div></div>
-        <div class="conta-item"><label>CPF</label><div>${escapeHTML(limparCPF(cpf).replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4'))}</div></div>
-        <div class="conta-item"><label>WhatsApp</label><div>${escapeHTML(u.zap||"—")}</div></div>
-        <div class="conta-item"><label>E-mail</label><div>${escapeHTML(u.email||"—")}</div></div>
-      </div>
-    `;
-  }
+  // preenche os inputs do formulário (um embaixo do outro)
+  const nome  = document.getElementById("mcNome");
+  const zap   = document.getElementById("mcZap");
+  const email = document.getElementById("mcEmail");
+  const cpfI  = document.getElementById("mcCpf");
+  const plano = document.getElementById("mcPlano");
+  const msg   = document.getElementById("contaMsg");
+
+  if(nome)  nome.value  = u.nome  || "";
+  if(zap)   zap.value   = u.zap   || "";
+  if(email) email.value = u.email || "";
+  if(cpfI)  cpfI.value  = formatCPFView(cpf);
+  if(plano) plano.value = u.plano || "Premium";
+  if(msg){ msg.textContent = ""; msg.className = "success"; }
+
   showModal("modalConta");
 }
 
-function abrirAlterarSenha(){
-  const msg = $("#senhaMsgModal");
-  const n1 = $("#novaSenhaModal");
-  const n2 = $("#confSenhaModal");
-  if(msg) msg.textContent="";
-  if(n1) n1.value="";
-  if(n2) n2.value="";
-  showModal("modalSenha");
+function salvarMinhaConta(){
+  const cpf = cpfAtual || localStorage.getItem("rb_cpf");
+  const u = getUser(cpf);
+  const msg = document.getElementById("contaMsg");
+
+  if(!u){ if(msg){ msg.className="error"; msg.textContent="Sessão expirada."; } return; }
+
+  const nome  = document.getElementById("mcNome")?.value?.trim();
+  const zap   = document.getElementById("mcZap")?.value?.trim();
+  const email = document.getElementById("mcEmail")?.value?.trim();
+
+  if(!nome || !zap || !email){
+    if(msg){ msg.className="error"; msg.textContent="Preencha Nome, WhatsApp e E-mail."; }
+    return;
+  }
+
+  setUser(cpf, { nome, zap, email });                 // salva
+  if(document.getElementById("username")) document.getElementById("username").innerText = nome; // reflete no header
+
+  if(msg){ msg.className="success"; msg.textContent="Dados atualizados com sucesso!"; }
+  setTimeout(()=> hideModal("modalConta"), 900);
 }
 
-/* Alterar senha: funciona no modal novo e mantém compatibilidade com a seção antiga */
+
+/* Alterar senha (modal ou seção antiga) */
 function alterarSenha(){
   const nova = $("#novaSenhaModal")?.value || $("#novaSenha")?.value;
   const conf = $("#confSenhaModal")?.value || $("#novaSenha")?.value;
@@ -280,8 +359,31 @@ function alterarSenha(){
   setUser(cpf, u);
 
   if(msg){ msg.className="success"; msg.textContent="Senha alterada com sucesso!"; }
-  // fecha o modal após um pequeno delay, se for o modal
   if($("#senhaMsgModal")) setTimeout(()=> hideModal("modalSenha"), 900);
+}
+
+/* ========= PORTAL ========= */
+function abrirAnalise(){ // ⇦ faltava esta função
+  window.location.href = "analise.html";
+}
+/* === Persistência de carteira por usuário (NOVO) === */
+const PORT_SNAP = (cpf)=> `rb_port_${limparCPF(cpf)}`;
+
+function loadPortfolioForUser(cpf){
+  try{
+    const raw = localStorage.getItem(PORT_SNAP(cpf));
+    if(!raw) return null;
+    return JSON.parse(raw);
+  }catch{ return null; }
+}
+function savePortfolioForUser(cpf){
+  if(!usuarioAtual) return;
+  const snap = {
+    saldo: usuarioAtual.saldo,
+    carteira: usuarioAtual.carteira,
+    precoMedio: usuarioAtual.precoMedio
+  };
+  localStorage.setItem(PORT_SNAP(cpf), JSON.stringify(snap));
 }
 
 /* ========= PORTAL ========= */
@@ -294,8 +396,20 @@ function portalInit(){
 
   cpfAtual = cpf;
   const contaBase = contas[user.conta] || contas.A;
+
+  // base do usuário (mock) + cpf
   usuarioAtual = JSON.parse(JSON.stringify(contaBase));
   usuarioAtual.cpf = cpf;
+
+  // === Carrega carteira/saldo persistidos, se existirem ===
+  const snap = loadPortfolioForUser(cpf);
+  if(snap){
+    usuarioAtual.saldo      = (snap.saldo      ?? usuarioAtual.saldo);
+    usuarioAtual.carteira   = (snap.carteira   ?? usuarioAtual.carteira);
+    usuarioAtual.precoMedio = (snap.precoMedio ?? usuarioAtual.precoMedio);
+  }
+
+  // garante precoMedio para todos os ativos já existentes
   usuarioAtual.precoMedio = usuarioAtual.precoMedio || {};
   for(const atv in usuarioAtual.carteira){
     if(!usuarioAtual.precoMedio[atv]) usuarioAtual.precoMedio[atv] = (ativosB3?.[atv]||0);
@@ -333,7 +447,7 @@ function portalInit(){
   if(qAtivo && $("#ativo")) $("#ativo").value = qAtivo;
   if(qTipo && $("#tipo")) $("#tipo").value = qTipo;
 
-  // ======= BLOQUEIO DE AUTOFILL NA BOLETA (CPF aparecendo) =======
+  // Bloqueia autofill indevido na boleta
   guardNoAutofillBoleta();
   setTimeout(guardNoAutofillBoleta, 800);
   setTimeout(guardNoAutofillBoleta, 2000);
@@ -350,27 +464,56 @@ function portalInit(){
   });
 }
 
-/* Sparkline com VIÉS DE ALTA */
+
+/* Sparkline com VIÉS DE ALTA — SUBSTITUÍDO: 12 barras responsivas e com clipping */
 function startSpark(){
-  const c=$("#invSpark"); if(!c) return; const ctx=c.getContext("2d");
-  let pts=Array.from({length:50},(_,i)=> 55 + i*0.8 + Math.sin(i/2)*2 + (Math.random()*1.2-0.6));
+  const c = document.getElementById("invSpark");
+  if(!c) return;
+  const ctx = c.getContext("2d");
+
+  // Ajusta o canvas ao container para nunca sair do retângulo
+  function resize(){
+    const boxW = (c.parentElement?.clientWidth || 240);
+    c.width  = Math.max(180, Math.floor(boxW));
+    c.height = 76;
+  }
+  resize();
+  window.addEventListener("resize", resize);
+
+  // 12 valores (12 meses) normalizados
+  let vals = Array.from({length:12}, () => 0.55 + Math.random()*0.35);
+
   function draw(){
     ctx.clearRect(0,0,c.width,c.height);
-    const g = ctx.createLinearGradient(0,0,0,c.height);
-    g.addColorStop(0,"rgba(57,217,138,.55)");
-    g.addColorStop(1,"rgba(57,217,138,0)");
-    ctx.beginPath();
-    pts.forEach((p,i)=>{ const x=i*(c.width/(pts.length-1)); const y=c.height - (p/140)*c.height; if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
-    ctx.lineTo(c.width, c.height); ctx.lineTo(0,c.height); ctx.closePath(); ctx.fillStyle=g; ctx.fill();
-    ctx.beginPath();
-    pts.forEach((p,i)=>{ const x=i*(c.width/(pts.length-1)); const y=c.height - (p/140)*c.height; if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
-    ctx.strokeStyle="#39d98a"; ctx.lineWidth=1.8; ctx.stroke();
-    const next = pts[pts.length-1] + 0.25 + (Math.random()*0.8 - 0.2);
-    pts = pts.slice(1).concat([next]);
+
+    const padX = 8, padY = 8;
+    const W = c.width  - padX*2;
+    const H = c.height - padY*2;
+
+    const n = 12;
+    const unit = W / n;
+    const barW = Math.max(6, unit * 0.68); // largura da barra
+    const gap  = unit - barW;              // espaço entre barras
+
+    for(let i=0;i<n;i++){
+      const v = Math.min(1, Math.max(0, vals[i]));
+      const h = Math.max(2, v * H);
+      const x = padX + i*(barW+gap);
+      const y = padY + (H - h);
+      ctx.fillStyle = "#39d98a";
+      ctx.fillRect(x, y, barW, h);
+    }
+
+    // desloca e acrescenta suavemente
+    const last = vals[vals.length-1];
+    const next = Math.min(1, Math.max(0.15, last + (Math.random()-0.5)*0.08));
+    vals = vals.slice(1).concat([next]);
+
     requestAnimationFrame(draw);
   }
   draw();
 }
+
 
 /* Selects e tabelas */
 function preencherSelectAtivos(){
@@ -428,76 +571,164 @@ function preencherRtSelect(){
 function executarOperacao(){
   const tipo=$("#tipo").value, ativo=$("#ativo").value;
   const qtd=parseInt($("#quantidade").value), valor=parseFloat($("#valor").value);
-  const cotacao=ativosB3[ativo], total=qtd*valor, msg=$("#mensagem"); msg.textContent=""; msg.className="msg-inline";
-  if(isNaN(qtd)||qtd<=0||qtd%100!==0||isNaN(valor)){ msg.textContent="Preencha quantidade válida (múltiplos de 100) e valor."; msg.classList.add("error"); return; }
-  if(tipo==="Compra" && total>usuarioAtual.saldo){ msg.textContent="Saldo insuficiente para essa compra."; msg.classList.add("error"); return; }
-  if(tipo==="Venda" && (!usuarioAtual.carteira[ativo] || usuarioAtual.carteira[ativo]<qtd)){ msg.textContent="Você não possui ativos suficientes para vender."; msg.classList.add("error"); return; }
+  const cotacao=ativosB3[ativo], total=qtd*valor, msg=$("#mensagem"); 
+  msg.textContent=""; msg.className="msg-inline";
 
-  const beforeSaldo = usuarioAtual.saldo;
-  const ordem = { tipo, ativo, qtd, valor, cotacao, status: Math.abs(valor-cotacao)<=1 ? "Executada":"Aceita", id: Date.now(), date: new Date(), filled:0, avgFillPrice:0 };
+  if(isNaN(qtd)||qtd<=0||qtd%100!==0||isNaN(valor)){
+    msg.textContent="Preencha quantidade válida (múltiplos de 100) e valor.";
+    msg.classList.add("error"); return;
+  }
+  if(tipo==="Compra" && total>usuarioAtual.saldo){
+    msg.textContent="Saldo insuficiente para essa compra.";
+    msg.classList.add("error"); return;
+  }
+  if(tipo==="Venda" && (!usuarioAtual.carteira[ativo] || usuarioAtual.carteira[ativo]<qtd)){
+    msg.textContent="Você não possui ativos suficientes para vender.";
+    msg.classList.add("error"); return;
+  }
+
+  const ordem = { 
+    tipo, ativo, qtd, valor, cotacao,
+    status: Math.abs(valor-cotacao)<=1 ? "Executada":"Aceita",
+    id: Date.now(), date: new Date(), filled:0, avgFillPrice:0
+  };
 
   if (ordem.status==="Executada"){
     aplicarParcial(ordem, ordem.qtd, valor);
     extrato.unshift({ ...ordem, price: valor, total: ordem.qtd*valor });
-    const delta = usuarioAtual.saldo - beforeSaldo;
-    msg.textContent = delta >= 0 ? "Ordem executada com saldo positivo." : "Ordem executada com saldo negativo.";
-    msg.classList.add(delta>=0 ? "success" : "error");
+
+    // mensagem neutra (sem “saldo negativo” indevido)
+    msg.textContent = "Ordem executada.";
+    msg.classList.remove("error");
+    msg.classList.add(usuarioAtual.saldo >= 0 ? "success" : "error");
   } else {
-    msg.textContent="Ordem aceita. Aguardando preenchimentos."; msg.classList.remove("error","success");
+    msg.textContent="Ordem aceita. Aguardando preenchimentos.";
+    msg.classList.remove("error","success");
   }
 
   ordens.unshift(ordem);
   atualizarOrdens(); atualizarCarteira(); atualizarExtrato();
 }
-function aplicarParcial(o, qtdFill, price){
-  if (qtdFill<=0) return;
-  if (o.tipo==="Compra"){
-    const qtyOld = usuarioAtual.carteira[o.ativo] || 0;
-    const pmOld  = usuarioAtual.precoMedio[o.ativo] || 0;
-    const qtyNew = qtyOld + qtdFill;
-    const pmNew  = qtyNew>0 ? ((pmOld*qtyOld) + price*qtdFill)/qtyNew : 0;
-    usuarioAtual.precoMedio[o.ativo] = pmNew;
-    usuarioAtual.carteira[o.ativo]  = qtyNew;
-    usuarioAtual.saldo -= price*qtdFill;
+/* ==== ENGINE de ordens, extrato e carteira (NOVO) ==== */
+function aplicarParcial(ordem, qtdFill, precoFill){
+  if(!usuarioAtual) return;
+  const ativo = ordem.ativo;
+  const qtdAnt = usuarioAtual.carteira[ativo] || 0;
+  const pmAnt  = usuarioAtual.precoMedio?.[ativo] || 0;
+
+  if(ordem.tipo === "Compra"){
+    // saldo
+    usuarioAtual.saldo -= (qtdFill * precoFill);
+    // posição
+    const novaQtd = qtdAnt + qtdFill;
+    const novoPM  = novaQtd > 0 ? ((pmAnt * qtdAnt) + (precoFill * qtdFill)) / novaQtd : 0;
+    usuarioAtual.carteira[ativo] = novaQtd;
+    usuarioAtual.precoMedio[ativo] = +novoPM.toFixed(2);
   } else {
-    usuarioAtual.saldo += price*qtdFill;
-    usuarioAtual.carteira[o.ativo] = (usuarioAtual.carteira[o.ativo]||0) - qtdFill;
-    if (usuarioAtual.carteira[o.ativo] <= 0){ delete usuarioAtual.carteira[o.ativo]; delete usuarioAtual.precoMedio[o.ativo]; }
+    // Venda
+    usuarioAtual.saldo += (qtdFill * precoFill);
+    const novaQtd = Math.max(0, qtdAnt - qtdFill);
+    usuarioAtual.carteira[ativo] = novaQtd;
+    // Mantém pm; se zera posição, preservo pm para exibição (ou zere se preferir)
+    if(novaQtd === 0 && usuarioAtual.precoMedio[ativo] == null){
+      usuarioAtual.precoMedio[ativo] = pmAnt;
+    }
   }
+
+  // Persiste
+  savePortfolioForUser(cpfAtual);
+  saveState(cpfAtual);
 }
-function cancelarOrdem(id){
-  const index = ordens.findIndex(o=>o.id===id && (o.status==="Aceita" || o.status.startsWith("Parcial")));
-  if(index!==-1){ ordens.splice(index,1); atualizarOrdens(); const m=$("#mensagem"); if(m){ m.textContent="Ordem cancelada."; m.className="msg-inline"; } }
-}
+
 function atualizarOrdens(){
-  const t=$("#ordens tbody"); if(!t) return; t.innerHTML="";
-  ordens.forEach(o=>{
-    const execStr = o.filled>0 ? `${o.filled}/${o.qtd}` : `0/${o.qtd}`;
-    t.innerHTML += `<tr>
-      <td>${o.tipo}</td><td>${o.ativo}</td><td>${o.qtd}</td>
-      <td>${o.valor.toFixed(2)}</td><td>${execStr}</td><td>${o.status}</td>
-      <td>${(o.status==="Aceita"||o.status.startsWith("Parcial"))?`<button class="btn-json small" onclick="cancelarOrdem(${o.id})">Cancelar</button>`:""}</td>
-    </tr>`;
+  const t = document.querySelector("#ordens tbody");
+  if(!t) return;
+  t.innerHTML = "";
+
+  (ordens || []).forEach(o=>{
+    const filledPct = o.qtd ? Math.round((o.filled || 0) / o.qtd * 100) : 0;
+    const podeCancelar = o.status === "Aceita" || (String(o.status).startsWith("Parcial") && (o.filled||0) < o.qtd);
+
+    t.insertAdjacentHTML("beforeend", `
+      <tr>
+        <td>${o.id}</td>
+        <td>${o.tipo}</td>
+        <td>${o.ativo}</td>
+        <td>${o.qtd}</td>
+        <td>${(+o.valor).toFixed(2)}</td>
+        <td>${filledPct}%</td>
+        <td>${escapeHTML(o.status)}</td>
+        <td>
+          ${podeCancelar ? `<button class="btn sm" onclick="cancelarOrdem(${o.id})">Cancelar</button>` : `—`}
+        </td>
+      </tr>
+    `);
   });
 }
-function atualizarExtrato(list = extrato){
-  const t=$("#extrato tbody"); if(!t) return; t.innerHTML="";
-  const ord=$("#ordenacao")?.value || 'desc';
-  const sorted = list.slice().sort((a,b)=> ord==='asc' ? a.date-b.date : b.date-a.date);
-  sorted.forEach(e=>{
-    t.innerHTML += `<tr><td>${e.date.toLocaleDateString()}</td><td>${e.tipo}</td><td>${e.ativo}</td><td>${e.qtd}</td><td>${(e.price||e.valor).toFixed(2)}</td><td>${(e.total||e.qtd*(e.price||e.valor)).toFixed(2)}</td></tr>`;
+
+function cancelarOrdem(id){
+  const o = (ordens || []).find(x => x.id === id);
+  if(!o) return;
+  if(o.status === "Executada" || o.status === "Cancelada") return;
+  o.status = "Cancelada";
+  atualizarOrdens();
+  saveState(cpfAtual);
+}
+
+function atualizarExtrato(){
+  const t = document.querySelector("#extrato tbody");
+  if(!t) return;
+  t.innerHTML = "";
+
+  (extrato || []).forEach(e=>{
+    const dt = e.date instanceof Date ? e.date : new Date(e.date);
+    const preco = +(e.price || e.valor || 0);
+    const tot   = +(e.total || (e.qtd || 0) * preco);
+
+    t.insertAdjacentHTML("beforeend", `
+      <tr>
+        <td>${dt.toLocaleDateString()} ${dt.toLocaleTimeString()}</td>
+        <td>${e.tipo}</td>
+        <td>${e.ativo}</td>
+        <td>${e.qtd}</td>
+        <td>${preco.toFixed(2)}</td>
+        <td>${tot.toFixed(2)}</td>
+      </tr>
+    `);
   });
 }
+
 function filtrarExtrato(){
-  const msg=$("#filtroMsg"); msg.textContent="";
-  let dtIni=$("#dataInicial").value, dtFim=$("#dataFinal").value; const hoje=new Date();
-  if(!dtIni && !dtFim){ dtFim=hoje.toISOString().slice(0,10); const past=new Date(hoje); past.setDate(past.getDate()-30); dtIni=past.toISOString().slice(0,10); }
-  else if(!dtIni||!dtFim){ msg.textContent="Informe data inicial e final, ou deixe ambos em branco."; return; }
-  const ini=new Date(dtIni), fim=new Date(dtFim);
-  if(ini>fim){ msg.textContent="A data inicial não pode ser maior que a final."; return; }
-  const lim=new Date(ini); lim.setMonth(lim.getMonth()+12);
-  if(fim>lim){ msg.textContent="Máximo de 12 meses por consulta."; return; }
-  const filtrado = extrato.filter(e=> e.date>=ini && e.date<=fim ); atualizarExtrato(filtrado);
+  // Implementação simples: se existirem selects com id extratoTipo/extratoAtivo, filtra;
+  // senão, apenas re-renderiza tudo.
+  const selTipo  = document.getElementById("extratoTipo");
+  const selAtivo = document.getElementById("extratoAtivo");
+  const tipo  = selTipo  ? (selTipo.value || "")  : "";
+  const ativo = selAtivo ? (selAtivo.value || "") : "";
+
+  let lista = extrato.slice();
+  if(tipo)  lista = lista.filter(e => String(e.tipo).toLowerCase() === tipo.toLowerCase());
+  if(ativo) lista = lista.filter(e => String(e.ativo).toUpperCase() === ativo.toUpperCase());
+
+  const t = document.querySelector("#extrato tbody");
+  if(!t) return;
+  t.innerHTML = "";
+
+  lista.forEach(e=>{
+    const dt = e.date instanceof Date ? e.date : new Date(e.date);
+    const preco = +(e.price || e.valor || 0);
+    const tot   = +(e.total || (e.qtd || 0) * preco);
+    t.insertAdjacentHTML("beforeend", `
+      <tr>
+        <td>${dt.toLocaleDateString()} ${dt.toLocaleTimeString()}</td>
+        <td>${e.tipo}</td>
+        <td>${e.ativo}</td>
+        <td>${e.qtd}</td>
+        <td>${preco.toFixed(2)}</td>
+        <td>${tot.toFixed(2)}</td>
+      </tr>
+    `);
+  });
 }
 
 /* ========= GRÁFICO RT ========= */
@@ -524,7 +755,7 @@ setInterval(()=>{
             o.avgFillPrice = ((o.avgFillPrice * o.filled) + (fillPrice * chunk)) / (o.filled + chunk || 1);
             o.filled += chunk;
             o.status = o.filled < o.qtd ? `Parcial ${Math.round(o.filled/o.qtd*100)}%` : "Executada";
-            if(o.status==="Executada"){ extrato.unshift({ ...o, price:+(o.avgFillPrice||o.valor), total:o.qtd * +(o.avgFillPrice||o.valor) }); }
+            if(o.status==="Executada"){ extrato.unshift({ ...o, price:+(o.avgFillPrice||o.valor), total:o.qtd * +(o.avgFillPrice||o.valor) }); saveState(cpfAtual); }
           }
         }
       }
@@ -659,10 +890,14 @@ function drawAna(){
 }
 function montarMiniWallet(){
   const t=$("#miniWallet tbody"); if(!t) return;
-  const cpf = localStorage.getItem("rb_cpf"); const u = getUser(cpf); const conta = contas[u?.conta||"A"];
-  t.innerHTML = Object.keys(conta.carteira).map(k=>{
+  const cpf = localStorage.getItem("rb_cpf");
+  const st = loadState(cpf);
+  const baseCarteira = st?.carteira || (contas[getUser(cpf)?.conta||"A"]?.carteira) || {};
+  const basePM = st?.precoMedio || {};
+  t.innerHTML = Object.keys(baseCarteira).map(k=>{
     const logo = logos[k] ? `<img src="${logos[k]}" class="logo-mini big">` : '';
-    return `<tr><td>${logo}</td><td>${k}</td><td>${conta.carteira[k]}</td><td>${(ativosB3[k]||0).toFixed(2)}</td></tr>`;
+    const pm = (basePM[k] ?? ativosB3[k] ?? 0).toFixed(2);
+    return `<tr><td>${logo}</td><td>${k}</td><td>${baseCarteira[k]}</td><td>${pm}</td></tr>`;
   }).join("");
 }
 function voltarPortal(){ window.location.href="portal.html"; }
@@ -715,6 +950,7 @@ window.salvarCadastro=salvarCadastro;
 window.simularEnvio=(t)=>alert(t==="email"?"Simulando envio de e-mail...":"Simulando chamada telefônica...");
 window.toggleChat=toggleChat;
 window.enviarChat=enviarChat;
+window.closeModal = closeModal;
 window.portalInit=portalInit;
 window.executarOperacao=executarOperacao;
 window.filtrarExtrato=filtrarExtrato;

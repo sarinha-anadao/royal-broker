@@ -64,7 +64,7 @@ a{color:#cfe8ff; text-decoration:none}
 /* Hero */
 .hero{display:grid; grid-template-columns:1fr .8fr; gap:24px; align-items:center; margin-top:16px}
 .hero-title{margin:0 0 10px; font-size:40px; line-height:1.08; color:#fff}
-.rb-gradient-gold{background:linear-gradient(180deg,#fff6cc 0%, var(--gold) 55%, #d18d00 100%); -webkit-background-clip:text; background-clip:text; color:transparent}
+.rb-gradient-gold{background:linear-gradient(180deg,#fff6cc 0%, var(--gold) 55%, #d18d00 100%); -webkit-background-clip:text; background-clip:text; color:transparent; text-shadow:0 0 14px rgba(255,194,77,.35) }
 .hero-sub{margin:0 0 18px; color:#d9edff}
 .cta{display:flex; gap:12px; flex-wrap:wrap}
 .kpis{display:flex; gap:28px; margin-top:18px; flex-wrap:wrap}
@@ -90,6 +90,7 @@ a{color:#cfe8ff; text-decoration:none}
 .panel:hover{border-color:#0e2d4a; box-shadow:0 0 24px rgba(11,42,74,.4)}
 .panel-royal-outline{background:rgba(15,24,33,.65); border:1px solid rgba(77,160,255,.45); box-shadow:0 0 28px rgba(77,160,255,.12), inset 0 0 18px rgba(77,160,255,.08)}
 .panel-title{margin:0 0 6px; color:var(--royal-bright)}
+.panel-title.center{ text-align:center; width:100%; margin:0 auto; } /* centralizar Book */
 .panel-sub{margin:0 0 12px}
 
 /* Carrossel de ativos */
@@ -122,7 +123,7 @@ a{color:#cfe8ff; text-decoration:none}
   position: fixed; right: 18px; bottom: 18px;
   width: 340px; max-width: 92vw; background:#0f1821;
   border: 1px solid rgba(77,160,255,.45); border-radius: 14px;
-  box-shadow: 0 12px 28px rgba(0,0,0,.45); display: none; overflow: hidden; z-index: 9999;
+  box-shadow:0 12px 28px rgba(0,0,0,.45); display: none; overflow: hidden; z-index: 9999;
 }
 .chat-head{display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:#0b1320; border-bottom:1px solid var(--grid)}
 .chat-close{background:transparent; color:#fff; border:none; font-size:20px; cursor:pointer}
@@ -199,12 +200,21 @@ a{color:#cfe8ff; text-decoration:none}
 .invest-head{display:flex; gap:8px; align-items:center; margin-bottom:8px}
 .dot-ok{width:12px; height:12px; border-radius:50%; background:#39d98a}
 .invest-title{color:#e7f6ff; font-weight:800}
-.invest-body{display:flex; align-items:center; justify-content:space-between; gap:8px}
+
+/* Mantém tudo dentro do card e deixa o gráfico responsivo */
+.invest-body{display:flex; align-items:center; justify-content:space-between; gap:8px; overflow:hidden;}
+.invest-body canvas{ display:block; max-width:100%; height:auto; } /* canvas responsivo dentro do card */
+
 .invest-label{color:#97c0de; font-size:12px}
 .invest-valor{font-size:20px; font-weight:900}
-.invest-perf{color:#97c0de; display:flex; gap:6px; align-items:center}
+
+/* % + (12 meses) em UMA LINHA */
+.invest-perf{color:#97c0de; display:flex; gap:6px; align-items:center; flex-wrap:nowrap;}
 .invest-perf .up{color:#39d98a; font-weight:800}
 .invest-perf .down{color:#ff8a8a; font-weight:800}
+/* (12 meses) menor e sem quebrar linha */
+.invest-perf .months{ color:var(--muted); font-size:.82rem; white-space:nowrap; margin-left:2px; }
+
 .invest-footer{margin-top:8px; padding-top:8px; border-top:1px solid #22384d; display:flex; flex-direction:column; gap:4px; align-items:center; justify-content:center}
 .invest-footer.center{ text-align:center }
 
@@ -269,6 +279,7 @@ a{color:#cfe8ff; text-decoration:none}
   padding:10px; display:none; box-shadow:0 16px 28px rgba(0,0,0,.45);
 }
 .menu-dropdown[aria-hidden="false"]{ display:block }
+.menu-dropdown .danger{ border-color:#4a1f23; color:#ff8a8a }
 .menu-dropdown button{
   width:100%; text-align:left; background:transparent; color:#e7f6ff;
   border:1px solid #203447; border-radius:10px; padding:10px 12px; margin:6px 0;
@@ -279,7 +290,6 @@ a{color:#cfe8ff; text-decoration:none}
   outline:2px solid rgba(39,211,211,.45);
   border-color:rgba(39,211,211,.45);
 }
-.menu-dropdown .danger{ border-color:#4a1f23; color:#ff8a8a }
 
 /* ===== Modais centrais (bordas azul royal) ===== */
 .modal-backdrop{
@@ -308,13 +318,20 @@ a{color:#cfe8ff; text-decoration:none}
 .modal-body{ padding:14px; }
 .modal-foot{ padding:12px 14px; border-top:1px solid var(--grid); display:flex; justify-content:flex-end; gap:8px; }
 
-/* KV original */
+/* ===== Minha Conta como formulário (um campo embaixo do outro) ===== */
+#modalConta .modal-body{ text-align:left; }
+#modalConta .rb-form.single-col{ max-width:420px; margin:0 auto; }
+#modalConta .rb-form.lefted label{ width:100%; }
+#modalConta .rb-form .rb-input{ width:100%; }
+#contaMsg{ margin-top:6px; text-align:center; font-weight:800; }
+
+/* KV original (mantido se você ainda usar cards) */
 .kv{ display:grid; grid-template-columns:1fr; gap:10px }
 .kv dt{ color:#97c0de; font-weight:600 }
 .kv dd{ margin:0; color:#e7f6ff; font-weight:700 }
 
-/* ======= Minha conta: cards centralizados com hover turquesa ======= */
-#modalConta .modal-body{ text-align:center }
+/* ======= Minha conta: cards (legado) ======= */
+#modalConta .modal-body{ text-align:left }
 .kv.cards{
   display:grid;
   grid-template-columns:1fr;
@@ -355,7 +372,7 @@ a{color:#cfe8ff; text-decoration:none}
 
 /* ====== LOGO MENOR ====== */
 .royal-mark{
-  width:44px;  /* reduzida */
+  width:44px;
   height:auto; object-fit:contain; display:block; margin:-2px 0 6px 0;
 }
 
