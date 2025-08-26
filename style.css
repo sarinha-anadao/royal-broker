@@ -776,3 +776,89 @@ select.rb-input:autofill {
 .operacao-info h4{margin:0; color:var(--gold); font-size:18px}
 .operacao-info p{margin:5px 0 0; color:var(--muted)}
 .operacao-total{text-align:center; margin:15px 0; padding:10px; background:#1a2f3d; border-radius:6px; color:var(--gold)}
+
+/* ===== MODAIS DE ALERTAS E HISTÓRICO ===== */
+.alerta-form{display:flex; flex-direction:column; gap:16px; margin-bottom:20px}
+.alerta-tipo{display:flex; flex-direction:column; gap:8px}
+.alerta-tipo label{display:flex; align-items:center; gap:8px; cursor:pointer; padding:8px; border-radius:6px; transition:all 0.3s ease}
+.alerta-tipo label:hover{background:rgba(46,120,255,0.1)}
+.alerta-tipo input[type="radio"]{accent-color:var(--royal)}
+.alerta-preco label{display:flex; flex-direction:column; gap:6px; color:var(--royal-bright); font-weight:600}
+.alerta-preco input{width:100%; padding:10px; border-radius:6px; border:1px solid rgba(46,120,255,0.3); background:rgba(46,120,255,0.05); color:var(--ink)}
+.alerta-acoes{display:flex; flex-direction:column; gap:8px}
+.alerta-acoes label{display:flex; align-items:center; gap:8px; cursor:pointer; padding:8px; border-radius:6px; transition:all 0.3s ease}
+.alerta-acoes label:hover{background:rgba(46,120,255,0.1)}
+.alerta-acoes input[type="checkbox"]{accent-color:var(--royal)}
+.alerta-actions{display:flex; gap:12px; justify-content:center}
+
+.historico-filtros{display:flex; gap:12px; margin-bottom:16px}
+.historico-filtros select{flex:1; padding:8px; border-radius:6px; border:1px solid rgba(46,120,255,0.3); background:rgba(46,120,255,0.05); color:var(--ink)}
+.historico-lista{display:flex; flex-direction:column; gap:8px; max-height:300px; overflow-y:auto}
+.historico-item{display:flex; justify-content:space-between; align-items:center; padding:12px; border-radius:8px; transition:all 0.3s ease}
+.historico-item.compra{background:rgba(46,204,113,0.1); border:1px solid rgba(46,204,113,0.3)}
+.historico-item.venda{background:rgba(255,107,107,0.1); border:1px solid rgba(255,107,107,0.3)}
+.historico-item:hover{transform:translateY(-1px); box-shadow:0 4px 8px rgba(0,0,0,0.2)}
+.historico-info{display:flex; flex-direction:column; gap:4px}
+.historico-ativo{color:var(--royal-bright); font-weight:700; font-size:16px}
+.historico-tipo{color:var(--muted); font-size:12px; text-transform:uppercase; font-weight:600}
+.historico-data{color:var(--muted); font-size:11px}
+.historico-valores{display:flex; flex-direction:column; gap:4px; text-align:right}
+.historico-qtd{color:var(--muted); font-size:12px}
+.historico-preco{color:var(--gold); font-weight:700; font-size:14px}
+.historico-total{color:var(--royal-bright); font-weight:700; font-size:16px}
+
+/* ===== BARRAS DE ROLAGEM PERSONALIZADAS ===== */
+/* Webkit (Chrome, Safari, Edge) */
+.modal-content::-webkit-scrollbar,
+.historico-lista::-webkit-scrollbar,
+.indicadores-grid::-webkit-scrollbar,
+.niveis-container::-webkit-scrollbar,
+.padroes-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-track,
+.historico-lista::-webkit-scrollbar-track,
+.indicadores-grid::-webkit-scrollbar-track,
+.niveis-container::-webkit-scrollbar-track,
+.padroes-container::-webkit-scrollbar-track {
+  background: rgba(46, 120, 255, 0.1);
+  border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb,
+.historico-lista::-webkit-scrollbar-thumb,
+.indicadores-grid::-webkit-scrollbar-thumb,
+.niveis-container::-webkit-scrollbar-thumb,
+.padroes-container::-webkit-scrollbar-thumb {
+  background: var(--royal);
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover,
+.historico-lista::-webkit-scrollbar-thumb:hover,
+.indicadores-grid::-webkit-scrollbar-thumb:hover,
+.niveis-container::-webkit-scrollbar-thumb:hover,
+.padroes-container::-webkit-scrollbar-thumb:hover {
+  background: var(--royal-bright);
+}
+
+/* Firefox */
+.modal-content,
+.historico-lista,
+.indicadores-grid,
+.niveis-container,
+.padroes-container {
+  scrollbar-width: thin;
+  scrollbar-color: var(--royal) rgba(46, 120, 255, 0.1);
+}
+
+/* ===== RESPONSIVO PARA NOVOS MODAIS ===== */
+@media (max-width: 768px) {
+  .alerta-tipo{flex-direction:column}
+  .alerta-actions{flex-direction:column}
+  .historico-filtros{flex-direction:column}
+  .historico-item{flex-direction:column; gap:8px; text-align:center}
+  .historico-valores{text-align:center}
+}

@@ -168,3 +168,4 @@
 **Desenvolvido pela Squad Royal**: Sara, Gisele, Shyva, Marcelo, Wagner, Rafael
 **Data**: Janeiro 2025
 **Versão**: 2.0 - Melhorias Implementadas
+
