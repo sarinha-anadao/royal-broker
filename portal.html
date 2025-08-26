@@ -5,6 +5,22 @@
   <title>Royal Broker — Portal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="style.css"/>
+  <style>
+    .senha-regras {
+      margin-top: 10px;
+      font-size: 12px;
+    }
+    .senha-regra {
+      margin: 2px 0;
+      transition: color 0.3s;
+    }
+    .senha-regra.valida {
+      color: #39d98a;
+    }
+    .senha-regra.invalida {
+      color: #ff6b6b;
+    }
+  </style>
 </head>
 <body class="portal">
   <div class="container portal-container">
@@ -22,14 +38,17 @@
 
         <!-- BOTÕES IGUAIS (📈 e ≡) -->
         <div class="quick-actions">
-          <button class="qa-btn" title="Análise técnica" onclick="abrirAnalise()">📈</button>
+          <button class="btn-dark-mode" onclick="toggleDarkMode()" id="darkModeBtn">
+            <span id="darkModeIcon">🌙</span>
+          </button>
+          <button class="qa-btn" title="Análise técnica" onclick="navegarPara('analise.html')">📈</button>
 
           <div class="menu-wrap">
             <button class="qa-btn" id="menuBtn" aria-label="Abrir menu">≡</button>
             <div class="menu-dropdown" id="menuDropdown" aria-hidden="true">
-              <button onclick="abrirMinhaConta()">Minha conta</button>
-              <button onclick="abrirAlterarSenha()">Alterar senha</button>
-              <button class="danger" onclick="logout()">Encerrar sessão</button>
+                          <button onclick="abrirMinhaConta()">Minha conta</button>
+            <button onclick="abrirAlterarSenha()">Alterar senha</button>
+            <button class="danger" onclick="logout()">Encerrar sessão</button>
             </div>
           </div>
         </div>
@@ -48,7 +67,9 @@
             <div class="invest-valor">R$ <span id="investTotal">142.360,43</span></div>
             <div class="invest-perf">
               <span id="investPerf" class="up">▲ 8,12%</span>
-              <small>(12 meses)</small>
+            </div>
+            <div class="invest-periodo">
+              <small>12 meses</small>
             </div>
           </div>
           <canvas id="invSpark" width="240" height="76"></canvas>
@@ -74,21 +95,33 @@
     </section>
 
     <div class="grid-2-col">
-      <!-- CARTEIRA -->
+      <!-- CARTEIRA COM FAVORITOS -->
       <section class="panel panel-royal-outline">
         <div class="panel-flex">
           <h3 class="panel-title sparkle">Carteira</h3>
 
-          <div class="export-bar dropdown">
-            <button class="btn-json small" onclick="abrirBaixar('carteira')">Baixar Extrato</button>
-            <div class="drop" id="drop-carteira" aria-hidden="true">
-              <div class="drop-title">Baixar Extrato<br><small>Escolha o formato:</small></div>
-              <div class="drop-actions">
-                <button class="btn-xls" onclick="exportarXLS('carteira')">XLSX</button>
-                <button class="btn-json" onclick="exportarJSON('carteira')">JSON</button>
+          <div class="carteira-controls">
+            <button class="btn-turq small" onclick="mostrarFavoritos()" id="btnFavoritosCarteira">
+              <span id="favoritosIconCarteira">⭐</span> Meus Favoritos
+            </button>
+            <div class="export-bar dropdown">
+              <button class="btn-json small" onclick="abrirBaixar('carteira')">Baixar Extrato</button>
+              <div class="drop" id="drop-carteira" aria-hidden="true">
+                <div class="drop-title">Baixar Extrato<br><small>Escolha o formato:</small></div>
+                <div class="drop-actions">
+                  <button class="btn-xls" onclick="exportarXLS('carteira')">XLSX</button>
+                  <button class="btn-json" onclick="exportarJSON('carteira')">JSON</button>
+                  <button class="btn-pdf" onclick="exportarPDF('carteira')">PDF</button>
+                </div>
               </div>
             </div>
           </div>
+        </div>
+
+        <!-- SEÇÃO DE FAVORITOS -->
+        <div id="favoritosSection" class="favoritos-section" style="display: none;">
+          <h4 class="favoritos-title">⭐ Meus Ativos Favoritos</h4>
+          <div id="favoritosList" class="favoritos-grid"></div>
         </div>
 
         <table id="carteira" class="rb-table">
@@ -103,51 +136,66 @@
         </table>
       </section>
 
-      <!-- BOOK (sem B3 e sem baixar extrato; título centralizado) -->
+      <!-- BOOK DE OFERTAS SIMPLIFICADO -->
       <section class="panel panel-royal-outline">
         <h3 class="panel-title center">Book de Ofertas</h3>
 
         <div class="scrollable">
           <table id="book" class="rb-table with-hover">
-            <thead><tr><th>Logo</th><th>Ativo</th><th>Preço Atual (R$)</th><th>Variação</th></tr></thead>
+            <thead><tr><th>Favorito</th><th>Logo</th><th>Ativo</th><th>Preço Atual (R$)</th><th>Variação</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
-        <div class="muted tip">Ao clicar nos ativos, os dados são preenchidos automaticamente na Boleta.</div>
+        <div class="muted tip">Clique na estrela para favoritar. Ao clicar nos ativos, os dados são preenchidos automaticamente na Boleta.</div>
       </section>
     </div>
 
-    <!-- BOLETA -->
+    <!-- BOLETA MELHORADA -->
     <section class="panel panel-royal-outline">
       <h3 class="panel-title sparkle">Boleta de Compra e Venda</h3>
-      <div class="boleta-row">
-        <select id="tipo" class="rb-input input-royal-focus">
-          <option>Compra</option><option>Venda</option>
-        </select>
-        <select id="ativo" class="rb-input input-royal-focus"></select>
+      <div class="boleta-container">
+        <div class="boleta-row">
+          <label>Tipo de Operação
+            <select id="tipo" class="rb-input input-royal-focus">
+              <option>Compra</option><option>Venda</option>
+            </select>
+          </label>
+          
+          <label>Ativo
+            <select id="ativo" class="rb-input input-royal-focus"></select>
+          </label>
+        </div>
 
-        <!-- QTD -->
-        <input
-          type="number"
-          id="quantidade"
-          class="rb-input input-royal-focus"
-          placeholder="Qtd (múltiplos de 100)"
-          autocomplete="off"
-          inputmode="numeric"
-          pattern="[0-9]*"
-        />
+        <div class="boleta-row">
+          <label>Quantidade (múltiplos de 100)
+            <input
+              type="number"
+              id="quantidade"
+              class="rb-input input-royal-focus"
+              placeholder="100, 200, 300..."
+              autocomplete="off"
+              inputmode="numeric"
+              pattern="[0-9]*"
+            />
+          </label>
 
-        <!-- VALOR -->
-        <input
-          type="number"
-          id="valor"
-          class="rb-input input-royal-focus"
-          placeholder="Valor por lote (R$)"
-          autocomplete="off"
-          inputmode="decimal"
-        />
+          <label>Valor por lote (R$)
+            <input
+              type="number"
+              id="valor"
+              class="rb-input input-royal-focus"
+              placeholder="0,00"
+              autocomplete="off"
+              inputmode="decimal"
+              step="0.01"
+            />
+          </label>
+        </div>
 
-        <button class="btn-royal rb-glow" onclick="executarOperacao()">Enviar Ordem</button>
+        <div class="boleta-actions">
+          <button class="btn-royal rb-glow" onclick="executarOperacao()">Enviar Ordem</button>
+          <button class="btn-turq ghost" onclick="limparBoleta()">Limpar</button>
+        </div>
       </div>
       <div id="mensagem" class="msg-inline"></div>
     </section>
@@ -161,10 +209,11 @@
           <button class="btn-json small" onclick="abrirBaixar('extrato')">Baixar Extrato</button>
           <div class="drop" id="drop-extrato" aria-hidden="true">
             <div class="drop-title">Baixar Extrato<br><small>Escolha o formato:</small></div>
-            <div class="drop-actions">
-              <button class="btn-xls" onclick="exportarXLS('extrato')">XLSX</button>
-              <button class="btn-json" onclick="exportarJSON('extrato')">JSON</button>
-            </div>
+                          <div class="drop-actions">
+                <button class="btn-xls" onclick="exportarXLS('extrato')">XLSX</button>
+                <button class="btn-json" onclick="exportarJSON('extrato')">JSON</button>
+                <button class="btn-pdf" onclick="exportarPDF('extrato')">PDF</button>
+              </div>
           </div>
         </div>
       </div>
@@ -203,6 +252,68 @@
         </thead>
         <tbody></tbody>
       </table>
+    </section>
+
+    <!-- FUNCIONALIDADES ADICIONAIS -->
+    <div class="grid-2-col">
+      <!-- COMPARADOR DE ATIVOS -->
+      <section class="panel panel-royal-outline">
+        <h3 class="panel-title sparkle">⚖️ Comparador de Ativos</h3>
+        <div class="comparador-controls">
+          <select id="ativo1" class="rb-input">
+            <option value="">Selecione o primeiro ativo</option>
+          </select>
+          <span class="vs">VS</span>
+          <select id="ativo2" class="rb-input">
+            <option value="">Selecione o segundo ativo</option>
+          </select>
+          <button class="btn-royal" onclick="compararAtivos()">Comparar</button>
+        </div>
+        <div id="comparadorResult" class="comparador-result"></div>
+      </section>
+
+      <!-- ALERTAS PERSONALIZADOS -->
+      <section class="panel panel-royal-outline">
+        <h3 class="panel-title sparkle">🔔 Alertas Personalizados</h3>
+        <div class="alerta-form">
+          <input type="text" id="alertaAtivo" class="rb-input" placeholder="Ex: PETR4">
+          <select id="alertaCondicao" class="rb-input">
+            <option value="acima">subir acima de</option>
+            <option value="abaixo">cair abaixo de</option>
+          </select>
+          <input type="number" id="alertaPreco" class="rb-input" placeholder="R$ 30,00" step="0.01">
+          <button class="btn-royal" onclick="criarAlerta()">Criar Alerta</button>
+        </div>
+        <div id="alertasList" class="alertas-list"></div>
+      </section>
+    </div>
+
+    <!-- SISTEMA DE CONQUISTAS -->
+    <section class="panel panel-royal-outline">
+      <h3 class="panel-title sparkle">🏅 Suas Conquistas</h3>
+      <div id="conquistasList" class="conquistas-grid"></div>
+    </section>
+
+    <!-- CALENDÁRIO DE EVENTOS -->
+    <section class="panel panel-royal-outline">
+      <h3 class="panel-title sparkle">📅 Calendário de Eventos</h3>
+      <div id="calendarioEventos" class="calendario-grid"></div>
+    </section>
+
+    <!-- CALCULADORA DE CUSTOS -->
+    <section class="panel panel-royal-outline">
+      <h3 class="panel-title sparkle">💰 Calculadora de Custos</h3>
+      <div class="calculadora-form">
+        <input type="number" id="valorOrdem" class="rb-input" placeholder="Valor da ordem (R$)" step="0.01">
+        <button class="btn-royal" onclick="calcularCustos()">Calcular Custos</button>
+      </div>
+      <div id="custosResult" class="custos-result"></div>
+    </section>
+
+    <!-- RANKING DE USUÁRIOS -->
+    <section class="panel panel-royal-outline">
+      <h3 class="panel-title sparkle">🏆 Top Traders da Semana</h3>
+      <div id="rankingUsuarios" class="ranking-usuarios"></div>
     </section>
 
     <footer class="footer">
@@ -260,17 +371,74 @@
       <button class="modal-x" onclick="hideModal('modalSenha')" aria-label="Fechar">×</button>
     </div>
     <div class="modal-body">
-      <div class="boleta-row">
-        <span class="senha-wrapper" style="flex:1">
-          <input type="password" id="novaSenhaModal" class="rb-input input-royal-focus" placeholder="Nova senha (mín. 6, 1 letra e 1 número)">
-          <button type="button" class="toggleSenha" onclick="toggleSenha('novaSenhaModal', this)" aria-label="Mostrar/ocultar senha">👁️</button>
-        </span>
-        <button class="btn-royal" onclick="alterarSenha('modal')">Salvar Nova Senha</button>
-      </div>
-      <div id="senhaMsgModal" class="success"></div>
+      <form onsubmit="event.preventDefault(); alterarSenha();" class="rb-form lefted single-col">
+        <label>Nova senha
+          <input type="password" id="novaSenhaModal" class="rb-input input-royal-focus" placeholder="mín. 8 caracteres" required oninput="validarCampoSenhaModal(this)">
+          <div class="senha-regras" id="senhaRegrasModal">
+            <div class="senha-regra invalida" id="regraTamanhoModal">• Mínimo 8 e máximo 12 caracteres</div>
+            <div class="senha-regra invalida" id="regraMinusculaModal">• Pelo menos 1 letra minúscula</div>
+            <div class="senha-regra invalida" id="regraMaiusculaModal">• Pelo menos 1 letra maiúscula</div>
+            <div class="senha-regra invalida" id="regraNumeroModal">• Pelo menos 1 número</div>
+            <div class="senha-regra invalida" id="regraEspecialModal">• Pelo menos 1 caractere especial (!@#$%^&*)</div>
+          </div>
+        </label>
+        <label>Confirmar senha
+          <input type="password" id="confSenhaModal" class="rb-input input-royal-focus" placeholder="repita a senha" required oninput="validarConfirmacaoSenhaModal(this)">
+          <small class="hint" id="confSenhaHintModal"></small>
+        </label>
+        <div class="hint">Não é permitido reutilizar nenhuma das <strong>últimas 4 senhas</strong>.</div>
+        <button class="btn-royal rb-enter" type="submit">Salvar nova senha</button>
+        <div id="senhaMsgModal" class="error" role="alert"></div>
+      </form>
     </div>
   </div>
 
   <script src="script.js"></script>
+  <script>
+    // Validação em tempo real para senha no modal
+    function validarCampoSenhaModal(campo) {
+      const senha = campo.value;
+      const validacao = validarSenha(senha);
+      
+      // Atualiza as regras visuais
+      document.getElementById('regraTamanhoModal').className = `senha-regra ${validacao.regras.tamanho ? 'valida' : 'invalida'}`;
+      document.getElementById('regraMinusculaModal').className = `senha-regra ${validacao.regras.minuscula ? 'valida' : 'invalida'}`;
+      document.getElementById('regraMaiusculaModal').className = `senha-regra ${validacao.regras.maiuscula ? 'valida' : 'invalida'}`;
+      document.getElementById('regraNumeroModal').className = `senha-regra ${validacao.regras.numero ? 'valida' : 'invalida'}`;
+      document.getElementById('regraEspecialModal').className = `senha-regra ${validacao.regras.especial ? 'valida' : 'invalida'}`;
+      
+      // Atualiza a cor da borda do campo
+      if (validacao.valido) {
+        campo.style.borderColor = '#39d98a';
+      } else {
+        campo.style.borderColor = '#ff6b6b';
+      }
+      
+      // Valida confirmação de senha se houver
+      validarConfirmacaoSenhaModal(document.getElementById('confSenhaModal'));
+    }
+    
+    // Validação de confirmação de senha no modal
+    function validarConfirmacaoSenhaModal(campo) {
+      const senha = document.getElementById('novaSenhaModal').value;
+      const confSenha = campo.value;
+      const hint = document.getElementById('confSenhaHintModal');
+      
+      if (!confSenha) {
+        hint.textContent = '';
+        return;
+      }
+      
+      if (senha === confSenha) {
+        hint.textContent = '✓ Senhas coincidem';
+        hint.style.color = '#39d98a';
+        campo.style.borderColor = '#39d98a';
+      } else {
+        hint.textContent = '✗ As senhas não coincidem';
+        hint.style.color = '#ff6b6b';
+        campo.style.borderColor = '#ff6b6b';
+      }
+    }
+  </script>
 </body>
 </html>

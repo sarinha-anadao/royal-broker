@@ -9,12 +9,18 @@
 <body class="login-body">
   <main class="login-center">
     <div class="login-card cascade login-compact hover-expand">
-      <a class="close-x in-card" href="login.html" aria-label="Voltar ao login">×</a>
+      <a class="close-x in-card" href="login.html" onclick="navegarPara('login.html')" aria-label="Voltar ao login">×</a>
       <img src="img/royal-logo.png" alt="Royal Broker" class="login-logo small">
       <h2 class="rb-login-title rb-gold-strong">RECUPERAR SENHA</h2>
       <form onsubmit="event.preventDefault(); recuperarSenha();" class="rb-form lefted single-col">
-        <label>CPF<input type="text" id="recCpf" class="rb-input input-royal-focus" placeholder="Digite seu CPF"></label>
-        <label>E-mail cadastrado<input type="email" id="recEmail" class="rb-input input-royal-focus" placeholder="Digite seu e-mail cadastrado"></label>
+        <label>CPF
+          <input type="text" id="recCpf" class="rb-input input-royal-focus" placeholder="Digite seu CPF" required onblur="validarCampoCPFRec(this)">
+          <small class="hint" id="cpfHintRec"></small>
+        </label>
+        <label>E-mail cadastrado
+          <input type="email" id="recEmail" class="rb-input input-royal-focus" placeholder="Digite seu e-mail cadastrado" required onblur="validarCampoEmailRec(this)">
+          <small class="hint" id="emailHintRec"></small>
+        </label>
         <button class="btn-gold rb-enter" type="submit">Enviar instruções</button>
       </form>
       <p class="rb-bottom"><a class="navy" href="login.html">Voltar ao login</a></p>
@@ -22,5 +28,50 @@
     </div>
   </main>
   <script src="script.js"></script>
+  <script>
+    // Validação em tempo real para CPF na recuperação
+    function validarCampoCPFRec(campo) {
+      const cpf = campo.value;
+      const hint = document.getElementById('cpfHintRec');
+      
+      if (!cpf) {
+        hint.textContent = '';
+        return;
+      }
+      
+      const validacao = validarCPF(cpf);
+      if (validacao.valido) {
+        hint.textContent = '✓ CPF válido';
+        hint.style.color = '#39d98a';
+        campo.style.borderColor = '#39d98a';
+      } else {
+        hint.textContent = '✗ ' + validacao.mensagem;
+        hint.style.color = '#ff6b6b';
+        campo.style.borderColor = '#ff6b6b';
+      }
+    }
+    
+    // Validação em tempo real para e-mail na recuperação
+    function validarCampoEmailRec(campo) {
+      const email = campo.value;
+      const hint = document.getElementById('emailHintRec');
+      
+      if (!email) {
+        hint.textContent = '';
+        return;
+      }
+      
+      const validacao = validarEmail(email);
+      if (validacao.valido) {
+        hint.textContent = '✓ E-mail válido';
+        hint.style.color = '#39d98a';
+        campo.style.borderColor = '#39d98a';
+      } else {
+        hint.textContent = '✗ ' + validacao.mensagem;
+        hint.style.color = '#ff6b6b';
+        campo.style.borderColor = '#ff6b6b';
+      }
+    }
+  </script>
 </body>
 </html>

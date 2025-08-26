@@ -45,19 +45,189 @@
     <canvas id="kChart" width="900" height="380" class="rt-canvas" aria-label="Gráfico"></canvas>
     <div class="hint">Passe o mouse para ver data/hora, abertura, máxima, mínima e fechamento.</div>
 
-    <div class="mini-wallet panel panel-royal-outline">
-      <h3 class="panel-title">Minha carteira</h3>
-      <table id="miniWallet" class="rb-table">
-        <thead><tr><th>Logo</th><th>Ativo</th><th>Qtd</th><th>Preço Médio</th></tr></thead>
-        <tbody></tbody>
-      </table>
+    <div class="analise-tools panel panel-royal-outline">
+      <h3 class="panel-title">Ferramentas de Análise</h3>
+      <div class="tools-grid">
+        <div class="tool-card">
+          <div class="tool-icon">📊</div>
+          <h4>Indicadores Técnicos</h4>
+          <p>RSI, MACD, Médias Móveis e mais</p>
+          <button class="btn-royal small" onclick="abrirIndicadores()">Ver Indicadores</button>
+        </div>
+        <div class="tool-card">
+          <div class="tool-icon">🎯</div>
+          <h4>Níveis de Suporte/Resistência</h4>
+          <p>Identificação automática de níveis importantes</p>
+          <button class="btn-royal small" onclick="abrirNiveis()">Ver Níveis</button>
+        </div>
+        <div class="tool-card">
+          <div class="tool-icon">📈</div>
+          <h4>Padrões de Candlestick</h4>
+          <p>Reconhecimento de padrões de reversão</p>
+          <button class="btn-royal small" onclick="abrirPadroes()">Ver Padrões</button>
+        </div>
+      </div>
+      
+      <!-- MINI CARTEIRA -->
+      <div class="mini-carteira">
+        <h4>📊 Minha Carteira</h4>
+        <div id="miniCarteiraList" class="mini-carteira-list"></div>
+      </div>
+      
       <div class="ana-actions">
-        <button class="btn-buy" id="btnBuy">Comprar</button>
-        <button class="btn-sell" id="btnSell">Vender</button>
+        <button class="btn-buy" onclick="abrirOperacao('Compra')">Comprar</button>
+        <button class="btn-sell" onclick="abrirOperacao('Venda')">Vender</button>
       </div>
     </div>
   </div>
 
+  <!-- Modal de Operação -->
+  <div id="modalOperacao" class="rb-modal" role="dialog" aria-modal="true" aria-labelledby="modalOperacaoTitle">
+    <div class="modal-head">
+      <h3 id="modalOperacaoTitle">Operação de <span id="tipoOperacao">Compra</span></h3>
+      <button class="modal-x" onclick="hideModal('modalOperacao')" aria-label="Fechar">×</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="event.preventDefault(); executarOperacaoAnalise();" class="rb-form lefted single-col">
+        <div class="operacao-info">
+          <img id="operacaoLogo" src="img/petr4.png" alt="Logo" class="logo-mini">
+          <div>
+            <h4 id="operacaoAtivo">PETR4</h4>
+            <p>Preço atual: R$ <span id="operacaoPreco">0,00</span></p>
+          </div>
+        </div>
+        
+        <label>Quantidade (múltiplos de 100)
+          <input type="number" id="operacaoQuantidade" class="rb-input input-royal-focus" placeholder="100, 200, 300..." required min="100" step="100">
+        </label>
+        
+        <label>Valor por lote (R$)
+          <input type="number" id="operacaoValor" class="rb-input input-royal-focus" placeholder="0,00" required step="0.01" min="0.01">
+        </label>
+        
+        <div class="operacao-total">
+          <strong>Total da operação: R$ <span id="operacaoTotal">0,00</span></strong>
+        </div>
+        
+        <button class="btn-royal rb-enter" type="submit" id="btnExecutarOperacao">Executar <span id="tipoOperacaoBtn">Compra</span></button>
+        <div id="operacaoMsg" class="error" role="alert"></div>
+      </form>
+    </div>
+  </div>
+
   <script src="analise.js"></script>
+  <script>
+    // Atualizar total da operação
+    document.getElementById('operacaoQuantidade')?.addEventListener('input', calcularTotalOperacao);
+    document.getElementById('operacaoValor')?.addEventListener('input', calcularTotalOperacao);
+    
+    function calcularTotalOperacao() {
+      const quantidade = parseInt(document.getElementById('operacaoQuantidade')?.value || 0);
+      const valor = parseFloat(document.getElementById('operacaoValor')?.value || 0);
+      const total = quantidade * valor;
+      document.getElementById('operacaoTotal').textContent = total.toFixed(2);
+    }
+    
+    function abrirOperacao(tipo) {
+      const ativo = document.getElementById('anaSymbol')?.value || 'PETR4';
+      const preco = ativosB3[ativo] || 0;
+      
+      document.getElementById('tipoOperacao').textContent = tipo;
+      document.getElementById('tipoOperacaoBtn').textContent = tipo;
+      document.getElementById('operacaoAtivo').textContent = ativo;
+      document.getElementById('operacaoLogo').src = logos[ativo] || 'img/royal-logo.png';
+      document.getElementById('operacaoPreco').textContent = preco.toFixed(2);
+      document.getElementById('operacaoValor').value = preco.toFixed(2);
+      document.getElementById('operacaoQuantidade').value = '';
+      document.getElementById('operacaoTotal').textContent = '0,00';
+      document.getElementById('operacaoMsg').textContent = '';
+      
+      showModal('modalOperacao');
+    }
+    
+    function executarOperacaoAnalise() {
+      const tipo = document.getElementById('tipoOperacao').textContent;
+      const ativo = document.getElementById('operacaoAtivo').textContent;
+      const quantidade = parseInt(document.getElementById('operacaoQuantidade').value);
+      const valor = parseFloat(document.getElementById('operacaoValor').value);
+      const msg = document.getElementById('operacaoMsg');
+      
+      if (!quantidade || !valor) {
+        msg.className = 'error';
+        msg.textContent = 'Preencha todos os campos obrigatórios.';
+        return;
+      }
+      
+      if (quantidade % 100 !== 0) {
+        msg.className = 'error';
+        msg.textContent = 'Quantidade deve ser múltipla de 100.';
+        return;
+      }
+      
+      // Simular execução da operação
+      const cotacao = ativosB3[ativo] || 0;
+      const diferenca = Math.abs(valor - cotacao);
+      
+      if (diferenca <= 5) {
+        // Operação executada ou aceita
+        const status = diferenca === 0 ? 'Executada' : 'Aceita';
+        
+        // Adicionar ao extrato se executada
+        if (status === 'Executada') {
+          const operacao = {
+            date: new Date(),
+            tipo: tipo,
+            ativo: ativo,
+            qtd: quantidade,
+            price: valor,
+            total: quantidade * valor
+          };
+          
+          // Atualizar carteira e saldo
+          if (tipo === 'Compra') {
+            if (usuarioAtual.saldo >= quantidade * valor) {
+              usuarioAtual.saldo -= quantidade * valor;
+              usuarioAtual.carteira[ativo] = (usuarioAtual.carteira[ativo] || 0) + quantidade;
+              usuarioAtual.precoMedio[ativo] = valor;
+              extrato.unshift(operacao);
+              savePortfolioForUser(cpfAtual);
+            } else {
+              msg.className = 'error';
+              msg.textContent = 'Saldo insuficiente para esta operação.';
+              return;
+            }
+          } else if (tipo === 'Venda') {
+            if (usuarioAtual.carteira[ativo] >= quantidade) {
+              usuarioAtual.saldo += quantidade * valor;
+              usuarioAtual.carteira[ativo] -= quantidade;
+              if (usuarioAtual.carteira[ativo] === 0) {
+                delete usuarioAtual.carteira[ativo];
+                delete usuarioAtual.precoMedio[ativo];
+              }
+              extrato.unshift(operacao);
+              savePortfolioForUser(cpfAtual);
+            } else {
+              msg.className = 'error';
+              msg.textContent = 'Quantidade insuficiente na carteira para venda.';
+              return;
+            }
+          }
+        }
+        
+        msg.className = 'success';
+        msg.textContent = `Ordem ${status.toLowerCase()} com sucesso!`;
+        
+        setTimeout(() => {
+          hideModal('modalOperacao');
+          // Atualizar carteira na tela
+          montarMiniWallet();
+        }, 1500);
+        
+      } else {
+        msg.className = 'error';
+        msg.textContent = 'Ordem rejeitada. Diferença muito grande em relação à cotação atual.';
+      }
+    }
+  </script>
 </body>
 </html>

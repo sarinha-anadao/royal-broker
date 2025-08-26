@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Debug Login — Royal Broker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .debug-section {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    .debug-info {
+      background-color: #f8f9fa;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Debug do Login - Royal Broker</h1>
+    
+    <div class="debug-section">
+      <h2>1. Verificar Usuários Cadastrados</h2>
+      <button onclick="verificarUsuarios()" style="background: #007bff; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer;">Verificar Usuários</button>
+      <div id="usuariosInfo"></div>
+    </div>
+    
+    <div class="debug-section">
+      <h2>2. Testar Função getUser()</h2>
+      <button onclick="testarGetUser()" style="background: #28a745; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer;">Testar getUser</button>
+      <div id="getUserInfo"></div>
+    </div>
+    
+    <div class="debug-section">
+      <h2>3. Testar Função limparCPF()</h2>
+      <button onclick="testarLimparCPF()" style="background: #ffc107; color: black; border: none; padding: 10px; border-radius: 4px; cursor: pointer;">Testar limparCPF</button>
+      <div id="limparCPFInfo"></div>
+    </div>
+    
+    <div class="debug-section">
+      <h2>4. Simular Login Completo</h2>
+      <button onclick="simularLogin()" style="background: #dc3545; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer;">Simular Login</button>
+      <div id="loginSimuladoInfo"></div>
+    </div>
+    
+    <div class="debug-section">
+      <h2>5. Criar Usuário de Teste</h2>
+      <button onclick="criarUsuarioTeste()" style="background: #6f42c1; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer;">Criar Usuário Teste</button>
+      <div id="criarUsuarioInfo"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    function verificarUsuarios() {
+      const users = loadUsers();
+      const container = document.getElementById('usuariosInfo');
+      
+      if (Object.keys(users).length === 0) {
+        container.innerHTML = '<div class="debug-info">Nenhum usuário cadastrado no localStorage</div>';
+        return;
+      }
+      
+      let html = '<div class="debug-info">';
+      for (const [cpf, user] of Object.entries(users)) {
+        html += `
+          <strong>CPF:</strong> ${cpf}<br>
+          <strong>Nome:</strong> ${user.nome}<br>
+          <strong>E-mail:</strong> ${user.email}<br>
+          <strong>Senha:</strong> ${user.senha}<br>
+          <hr>
+        `;
+      }
+      html += '</div>';
+      container.innerHTML = html;
+    }
+    
+    function testarGetUser() {
+      const cpfs = ["45323517805", "453.235.178-05"];
+      const container = document.getElementById('getUserInfo');
+      
+      let html = '<div class="debug-info">';
+      cpfs.forEach(cpf => {
+        const user = getUser(cpf);
+        html += `
+          <strong>CPF:</strong> ${cpf}<br>
+          <strong>Usuário encontrado:</strong> ${user ? 'Sim' : 'Não'}<br>
+          ${user ? `<strong>Nome:</strong> ${user.nome}<br>` : ''}
+          <hr>
+        `;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    }
+    
+    function testarLimparCPF() {
+      const cpfs = ["453.235.178-05", "45323517805", "453.235.178.05"];
+      const container = document.getElementById('limparCPFInfo');
+      
+      let html = '<div class="debug-info">';
+      cpfs.forEach(cpf => {
+        const limpo = limparCPF(cpf);
+        html += `
+          <strong>Original:</strong> ${cpf}<br>
+          <strong>Limpo:</strong> ${limpo}<br>
+          <strong>Comprimento:</strong> ${limpo.length}<br>
+          <hr>
+        `;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    }
+    
+    function simularLogin() {
+      const cpfs = ["453.235.178-05", "45323517805"];
+      const senha = "Senha123!";
+      const container = document.getElementById('loginSimuladoInfo');
+      
+      let html = '<div class="debug-info">';
+      cpfs.forEach(cpf => {
+        const cpfLimpo = limparCPF(cpf);
+        const user = getUser(cpfLimpo);
+        const senhaCorreta = user && user.senha === senha;
+        
+        html += `
+          <strong>CPF Original:</strong> ${cpf}<br>
+          <strong>CPF Limpo:</strong> ${cpfLimpo}<br>
+          <strong>Usuário encontrado:</strong> ${user ? 'Sim' : 'Não'}<br>
+          <strong>Senha correta:</strong> ${senhaCorreta ? 'Sim' : 'Não'}<br>
+          <strong>Login possível:</strong> ${senhaCorreta ? 'Sim' : 'Não'}<br>
+          <hr>
+        `;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    }
+    
+    function criarUsuarioTeste() {
+      const cpf = "45323517805";
+      const nome = "João Silva Teste";
+      const email = "joao.teste@exemplo.com";
+      const zap = "(11) 99999-9999";
+      const senha = "Senha123!";
+      
+      // Verificar se já existe
+      if (userExists(cpf)) {
+        document.getElementById('criarUsuarioInfo').innerHTML = '<div class="debug-info">Usuário já existe!</div>';
+        return;
+      }
+      
+      // Criar usuário
+      setUser(cpf, {
+        senha: senha,
+        conta: "A",
+        historicoSenhas: [senha],
+        nome: nome,
+        email: email,
+        zap: zap,
+        plano: "Premium"
+      });
+      
+      document.getElementById('criarUsuarioInfo').innerHTML = '<div class="debug-info">Usuário criado com sucesso! CPF: 45323517805, Senha: Senha123!</div>';
+    }
+  </script>
+</body>
+</html>
+

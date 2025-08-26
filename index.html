@@ -23,14 +23,26 @@
       <a class="navlink" href="#sec-suporte">Suporte</a>
     </nav>
     <div class="nav-cta">
+      <button class="btn-dark-mode" onclick="toggleDarkMode()" id="darkModeBtn">
+        <span id="darkModeIcon">🌙</span>
+      </button>
       <!-- sem target _blank -->
-      <a class="btn-turq small expand" href="login.html">Login</a>
-      <a class="btn-turq small expand" href="cadastro.html">Abrir Conta</a>
+      <a class="btn-turq small expand" href="login.html" onclick="navegarPara('login.html')">Login</a>
+      <a class="btn-turq small expand" href="cadastro.html" onclick="navegarPara('cadastro.html')">Abrir Conta</a>
     </div>
   </header>
 
-  <!-- TICKER -->
-  <div class="tickerbar"><div class="ticker" id="ticker"></div></div>
+  <!-- NOVO TICKER PREMIUM -->
+  <div class="tickerbar-premium">
+    <div class="ticker-content">
+      <div class="ticker-label">📈 Mercado em Alta</div>
+      <div class="ticker-stats">
+        <span class="stat-item">IBOV: +2.3%</span>
+        <span class="stat-item">Dólar: R$ 4,85</span>
+        <span class="stat-item">Ouro: R$ 350,00</span>
+      </div>
+    </div>
+  </div>
 
   <div class="container">
     <!-- HERO -->
@@ -62,39 +74,153 @@
         </div>
       </div>
 
-      <div class="trustbar">
-        <button class="trust-badge action-blue">
-          <span class="badge-ico">🛡️</span>
-          <span class="badge-title">Infra Estável</span>
-          <span class="badge-sub">Alta disponibilidade</span>
-        </button>
-        <button class="trust-badge action-blue">
-          <span class="badge-ico">⚡</span>
-          <span class="badge-title">Execução Ágil</span>
-          <span class="badge-sub">Milissegundos</span>
-        </button>
-        <button class="trust-badge action-blue">
-          <span class="badge-ico">📊</span>
-          <span class="badge-title">Relatórios Smart</span>
-          <span class="badge-sub">Export & Share</span>
-        </button>
+      <!-- NOVA SEÇÃO DE DIFERENCIAIS -->
+      <div class="diferenciais-section">
+        <div class="diferencial-card">
+          <div class="diferencial-icon">🚀</div>
+          <div class="diferencial-content">
+            <h3>Performance Excepcional</h3>
+            <p>Execução em 35ms com tecnologia de ponta</p>
+            <div class="diferencial-stats">
+              <span class="stat">99.9%</span>
+              <span class="stat-label">Uptime</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="diferencial-card">
+          <div class="diferencial-icon">💎</div>
+          <div class="diferencial-content">
+            <h3>Experiência Premium</h3>
+            <p>Interface elegante e intuitiva para investidores exigentes</p>
+            <div class="diferencial-stats">
+              <span class="stat">4.9★</span>
+              <span class="stat-label">Avaliação</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="diferencial-card">
+          <div class="diferencial-icon">🎯</div>
+          <div class="diferencial-content">
+            <h3>Ferramentas Avançadas</h3>
+            <p>Análise técnica profissional e relatórios inteligentes</p>
+            <div class="diferencial-stats">
+              <span class="stat">50+</span>
+              <span class="stat-label">Indicadores</span>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
     <section id="sec-mercados" class="section">
       <h2 class="section-title sparkle">Mercados</h2>
       <p class="section-punch">Vitrine com logos oficiais, nomes e preços ao vivo.</p>
-      <div class="carousel-wrap"><div id="carouselTrack" class="carousel-track"></div></div>
+      
+      <!-- NOVO CARROSSEL DE ATIVOS -->
+      <div class="ativos-carousel">
+        <div class="carousel-container">
+          <div class="carousel-track" id="ativosCarousel">
+            <!-- Ativos serão inseridos via JavaScript -->
+          </div>
+        </div>
+      </div>
+      
       <div class="panel growth">
         <h3 class="panel-title">Histórias de crescimento</h3>
-        <div class="stories-wrap" id="storiesWrap"></div>
+        <div class="stories-carousel">
+          <button class="carousel-btn prev" onclick="moverCarrossel(-1)">‹</button>
+          <div class="stories-container">
+            <div class="stories-wrap" id="storiesWrap"></div>
+          </div>
+          <button class="carousel-btn next" onclick="moverCarrossel(1)">›</button>
+        </div>
+        <div class="carousel-dots" id="carouselDots"></div>
       </div>
     </section>
 
     <section id="sec-produtos" class="section">
       <h2 class="section-title sparkle">Produtos</h2>
       <div class="panel panel-royal-outline">
-        <p class="produtos-resumo">Home Broker completo, gráficos, extratos e exportações — tudo no padrão Royal.</p>
+        <div class="produtos-grid">
+          <div class="produto-card">
+            <div class="produto-ico">📈</div>
+            <h3>Home Broker Avançado</h3>
+            <p>Plataforma completa com execução em milissegundos, gráficos em tempo real e análise técnica profissional.</p>
+          </div>
+          <div class="produto-card">
+            <div class="produto-ico">📊</div>
+            <h3>Relatórios Inteligentes</h3>
+            <p>Extratos detalhados, relatórios de performance e exportação em múltiplos formatos (XLSX, JSON, PDF).</p>
+          </div>
+          <div class="produto-card">
+            <div class="produto-ico">🎯</div>
+            <h3>Análise Técnica</h3>
+            <p>Ferramentas avançadas para análise de carteira, indicadores técnicos e tomada de decisões informadas.</p>
+          </div>
+          <div class="produto-card">
+            <div class="produto-ico">🛡️</div>
+            <h3>Segurança Premium</h3>
+            <p>Infraestrutura robusta com alta disponibilidade, criptografia avançada e proteção de dados.</p>
+          </div>
+          <div class="produto-card">
+            <div class="produto-ico">⚡</div>
+            <h3>Execução Ultra-Rápida</h3>
+            <p>Execução de ordens em milissegundos com tecnologia de ponta e conectividade direta com a B3.</p>
+          </div>
+          <div class="produto-card">
+            <div class="produto-ico">📱</div>
+            <h3>App Mobile</h3>
+            <p>Aplicativo móvel completo para acompanhar seus investimentos e executar operações de qualquer lugar.</p>
+          </div>
+        </div>
+        <p class="produtos-resumo">Tudo que você precisa para investir com confiança, no padrão de excelência Royal.</p>
+      </div>
+    </section>
+
+    <!-- RANKING DO DIA -->
+    <section class="section">
+      <h2 class="section-title sparkle">🔥 Ranking do Dia</h2>
+      <div class="ranking-grid">
+        <div class="ranking-card gainers">
+          <h3 class="ranking-title">📈 Maiores Altas</h3>
+          <div id="topGainers" class="ranking-list"></div>
+        </div>
+        <div class="ranking-card losers">
+          <h3 class="ranking-title">📉 Maiores Quedas</h3>
+          <div id="topLosers" class="ranking-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CALCULADORA DE RISCO -->
+    <section class="section">
+      <h2 class="section-title sparkle">🎯 Perfil de Investidor</h2>
+      <div class="panel panel-royal-outline">
+        <div id="quizContainer">
+          <h3>Descubra seu perfil de investidor</h3>
+          <p>Responda 5 perguntas rápidas para descobrir se você é Conservador, Moderado ou Arrojado.</p>
+          <button class="btn-royal" onclick="iniciarQuiz()">Começar Quiz</button>
+        </div>
+        <div id="quizQuestions" style="display: none;"></div>
+        <div id="quizResult" style="display: none;"></div>
+      </div>
+    </section>
+
+    <!-- FEED DE NOTÍCIAS -->
+    <section class="section">
+      <h2 class="section-title sparkle">📰 Últimas Notícias</h2>
+      <div class="panel panel-royal-outline">
+        <div id="newsFeed" class="news-feed"></div>
+      </div>
+    </section>
+
+    <!-- RANKING DE SETORES -->
+    <section class="section">
+      <h2 class="section-title sparkle">🏭 Performance por Setor</h2>
+      <div class="panel panel-royal-outline">
+        <div id="rankingSetores" class="setores-grid"></div>
       </div>
     </section>
 

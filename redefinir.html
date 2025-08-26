@@ -5,22 +5,96 @@
   <title>Redefinir Senha — Royal Broker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="style.css"/>
+  <style>
+    .senha-regras {
+      margin-top: 10px;
+      font-size: 12px;
+    }
+    .senha-regra {
+      margin: 2px 0;
+      transition: color 0.3s;
+    }
+    .senha-regra.valida {
+      color: #39d98a;
+    }
+    .senha-regra.invalida {
+      color: #ff6b6b;
+    }
+  </style>
 </head>
 <body class="login-body">
   <main class="login-center">
     <div class="login-card cascade login-compact hover-expand">
-      <a class="close-x in-card" href="login.html" aria-label="Voltar ao login">×</a>
+      <a class="close-x in-card" href="login.html" onclick="navegarPara('login.html')" aria-label="Voltar ao login">×</a>
       <img src="img/royal-logo.png" alt="Royal Broker" class="login-logo small">
       <h2 class="rb-login-title rb-gold-strong">REDEFINIR SENHA</h2>
       <form onsubmit="event.preventDefault(); salvarNovaSenha();" class="rb-form lefted single-col">
-        <label>Nova senha<input type="password" id="novaSenhaRec" class="rb-input input-royal-focus" placeholder="mín. 6 caracteres"></label>
-        <label>Confirmar senha<input type="password" id="confirmarSenhaRec" class="rb-input input-royal-focus" placeholder="repita a senha"></label>
-        <div class="hint">Mínimo 6 caracteres, com pelo menos 1 letra e 1 número. Não é permitido reutilizar nenhuma das <strong>últimas 4 senhas</strong>.</div>
+        <label>Nova senha
+          <input type="password" id="novaSenhaRec" class="rb-input input-royal-focus" placeholder="mín. 8 caracteres" required oninput="validarCampoSenhaRec(this)">
+          <div class="senha-regras" id="senhaRegrasRec">
+            <div class="senha-regra invalida" id="regraTamanhoRec">• Mínimo 8 e máximo 12 caracteres</div>
+            <div class="senha-regra invalida" id="regraMinusculaRec">• Pelo menos 1 letra minúscula</div>
+            <div class="senha-regra invalida" id="regraMaiusculaRec">• Pelo menos 1 letra maiúscula</div>
+            <div class="senha-regra invalida" id="regraNumeroRec">• Pelo menos 1 número</div>
+            <div class="senha-regra invalida" id="regraEspecialRec">• Pelo menos 1 caractere especial (!@#$%^&*)</div>
+          </div>
+        </label>
+        <label>Confirmar senha
+          <input type="password" id="confirmarSenhaRec" class="rb-input input-royal-focus" placeholder="repita a senha" required oninput="validarConfirmacaoSenhaRec(this)">
+          <small class="hint" id="confSenhaHintRec"></small>
+        </label>
+        <div class="hint">Não é permitido reutilizar nenhuma das <strong>últimas 4 senhas</strong>.</div>
         <button class="btn-royal rb-enter" type="submit">Salvar nova senha</button>
       </form>
       <div id="msgRedefinicao" class="error" role="alert"></div>
     </div>
   </main>
   <script src="script.js"></script>
+  <script>
+    // Validação em tempo real para senha na redefinição
+    function validarCampoSenhaRec(campo) {
+      const senha = campo.value;
+      const validacao = validarSenha(senha);
+      
+      // Atualiza as regras visuais
+      document.getElementById('regraTamanhoRec').className = `senha-regra ${validacao.regras.tamanho ? 'valida' : 'invalida'}`;
+      document.getElementById('regraMinusculaRec').className = `senha-regra ${validacao.regras.minuscula ? 'valida' : 'invalida'}`;
+      document.getElementById('regraMaiusculaRec').className = `senha-regra ${validacao.regras.maiuscula ? 'valida' : 'invalida'}`;
+      document.getElementById('regraNumeroRec').className = `senha-regra ${validacao.regras.numero ? 'valida' : 'invalida'}`;
+      document.getElementById('regraEspecialRec').className = `senha-regra ${validacao.regras.especial ? 'valida' : 'invalida'}`;
+      
+      // Atualiza a cor da borda do campo
+      if (validacao.valido) {
+        campo.style.borderColor = '#39d98a';
+      } else {
+        campo.style.borderColor = '#ff6b6b';
+      }
+      
+      // Valida confirmação de senha se houver
+      validarConfirmacaoSenhaRec(document.getElementById('confirmarSenhaRec'));
+    }
+    
+    // Validação de confirmação de senha na redefinição
+    function validarConfirmacaoSenhaRec(campo) {
+      const senha = document.getElementById('novaSenhaRec').value;
+      const confSenha = campo.value;
+      const hint = document.getElementById('confSenhaHintRec');
+      
+      if (!confSenha) {
+        hint.textContent = '';
+        return;
+      }
+      
+      if (senha === confSenha) {
+        hint.textContent = '✓ Senhas coincidem';
+        hint.style.color = '#39d98a';
+        campo.style.borderColor = '#39d98a';
+      } else {
+        hint.textContent = '✗ As senhas não coincidem';
+        hint.style.color = '#ff6b6b';
+        campo.style.borderColor = '#ff6b6b';
+      }
+    }
+  </script>
 </body>
 </html>

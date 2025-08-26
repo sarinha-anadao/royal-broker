@@ -9,28 +9,64 @@
 <body class="login-body">
   <main class="login-center">
     <div class="login-card cascade login-compact hover-expand">
-      <a class="close-x in-card" href="index.html" aria-label="Voltar à Home">×</a>
+      <a class="close-x in-card" href="index.html" onclick="navegarPara('index.html')" aria-label="Voltar à Home">×</a>
 
       <img src="img/royal-logo.png" alt="Royal Broker" class="login-logo small">
       <h2 class="rb-login-title rb-gold-strong">ACESSO LOGIN</h2>
 
       <form onsubmit="event.preventDefault(); loginApp();" class="rb-form lefted single-col" autocomplete="on">
         <label>CPF
-          <input type="text" id="cpf" class="rb-input input-royal-focus rb-input-dark" placeholder="Digite seu CPF" autocomplete="username" inputmode="numeric" pattern="[0-9]*" autocapitalize="off" autocorrect="off" spellcheck="false">
+          <input type="text" id="cpf" class="rb-input input-royal-focus rb-input-dark" placeholder="000.000.000-00" autocomplete="username" inputmode="numeric" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="14" required oninput="formatarCampoCPFLogin(this)" onblur="validarCampoCPFLogin(this)">
+          <small class="hint" id="cpfHintLogin"></small>
         </label>
         <label>Senha
           <span class="senha-wrapper">
-            <input type="password" id="senha" class="rb-input input-royal-focus rb-input-dark" placeholder="Digite sua senha" autocomplete="current-password">
+            <input type="password" id="senha" class="rb-input input-royal-focus rb-input-dark" placeholder="Digite sua senha" autocomplete="current-password" required>
             <button type="button" class="toggleSenha" onclick="toggleSenha('senha', this)" aria-label="Mostrar/ocultar senha">👁️</button>
           </span>
         </label>
-        <a class="forgot-link light-blue" href="recuperar.html" rel="noopener">Esqueci minha senha</a>
+        <a class="forgot-link light-blue" href="recuperar.html" onclick="navegarPara('recuperar.html')">Esqueci minha senha</a>
         <button class="btn-turq expand rb-enter" type="submit">Entrar</button>
-        <p class="rb-bottom"><span class="light-blue">Não tem conta?</span><a class="btn-inline btn-turq expand" href="cadastro.html" rel="noopener">Cadastre-se</a></p>
+        <p class="rb-bottom"><span class="light-blue">Não tem conta?</span><a class="btn-inline btn-turq expand" href="cadastro.html" onclick="navegarPara('cadastro.html')">Cadastre-se</a></p>
         <div id="loginMsg" class="error" role="alert"></div>
       </form>
     </div>
   </main>
   <script src="script.js"></script>
+  <script>
+    // Formatação em tempo real para CPF no login
+    function formatarCampoCPFLogin(campo) {
+      const valor = campo.value.replace(/\D/g, '');
+      if (valor.length > 11) {
+        campo.value = valor.substring(0, 11);
+      }
+      campo.value = formatarCPF(campo.value);
+    }
+    
+
+    
+    // Validação em tempo real para CPF no login
+    function validarCampoCPFLogin(campo) {
+      const cpf = campo.value;
+      const hint = document.getElementById('cpfHintLogin');
+      
+      if (!cpf) {
+        hint.textContent = '';
+        return;
+      }
+      
+      // Validação básica para login (apenas verifica se tem 11 dígitos)
+      const cpfLimpo = limparCPF(cpf);
+      if (cpfLimpo.length === 11) {
+        hint.textContent = '✓ CPF válido';
+        hint.style.color = '#39d98a';
+        campo.style.borderColor = '#39d98a';
+      } else {
+        hint.textContent = '✗ CPF deve ter 11 dígitos';
+        hint.style.color = '#ff6b6b';
+        campo.style.borderColor = '#ff6b6b';
+      }
+    }
+  </script>
 </body>
 </html>

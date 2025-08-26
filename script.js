@@ -18,6 +18,118 @@ const DEFAULT_USERS = {
 };
 
 function limparCPF(v){ return (v||"").replace(/\D/g,''); }
+
+// ========= FUNÇÕES DE VALIDAÇÃO =========
+function validarNomeCompleto(nome) {
+  const nomeLimpo = (nome || "").trim();
+  
+  // Verifica se está vazio
+  if (!nomeLimpo) {
+    return { valido: false, mensagem: "Digite o nome completo." };
+  }
+  
+  // Verifica se tem pelo menos 2 palavras (nome e sobrenome)
+  const palavras = nomeLimpo.split(' ').filter(palavra => palavra.length > 0);
+  if (palavras.length < 2) {
+    return { valido: false, mensagem: "Digite o nome completo (nome e sobrenome)." };
+  }
+  
+  // Verifica se cada palavra tem pelo menos 2 caracteres
+  for (let palavra of palavras) {
+    if (palavra.length < 2) {
+      return { valido: false, mensagem: "Cada nome deve ter pelo menos 2 caracteres." };
+    }
+  }
+  
+  return { valido: true, mensagem: "" };
+}
+
+function validarCPF(cpf) {
+  cpf = limparCPF(cpf);
+  
+  // Verifica se tem 11 dígitos
+  if (cpf.length !== 11) {
+    return { valido: false, mensagem: "CPF deve ter 11 dígitos." };
+  }
+  
+  // Verifica se todos os dígitos são iguais
+  if (/^(\d)\1{10}$/.test(cpf)) {
+    return { valido: false, mensagem: "CPF inválido." };
+  }
+  
+  // Para este sistema, aceitamos qualquer CPF com 11 dígitos diferentes
+  // que não seja composto apenas por dígitos iguais
+  return { valido: true, mensagem: "" };
+}
+
+function formatarCPF(cpf) {
+  const limpo = limparCPF(cpf);
+  if (limpo.length <= 3) return limpo;
+  if (limpo.length <= 6) return limpo.replace(/(\d{3})(\d)/, '$1.$2');
+  if (limpo.length <= 9) return limpo.replace(/(\d{3})(\d{3})(\d)/, '$1.$2.$3');
+  return limpo.replace(/(\d{3})(\d{3})(\d{3})(\d)/, '$1.$2.$3-$4');
+}
+
+function validarTelefone(telefone) {
+  const limpo = (telefone || "").replace(/\D/g, '');
+  
+  // Verifica se tem exatamente 11 dígitos (DDD + 9 + número)
+  if (limpo.length !== 11) {
+    return { valido: false, mensagem: "Telefone deve ter 11 dígitos (DDD + 9 + número)." };
+  }
+  
+  // Verifica se começa com DDD válido (11-99)
+  const ddd = parseInt(limpo.substring(0, 2));
+  if (ddd < 11 || ddd > 99) {
+    return { valido: false, mensagem: "DDD inválido." };
+  }
+  
+  // Verifica se o 9º dígito é 9 (celular)
+  if (limpo.charAt(2) !== '9') {
+    return { valido: false, mensagem: "Número deve começar com 9 após o DDD." };
+  }
+  
+  // Verifica se o número não é composto apenas por dígitos iguais
+  if (/^(\d)\1{10}$/.test(limpo)) {
+    return { valido: false, mensagem: "Número de telefone inválido." };
+  }
+  
+  return { valido: true, mensagem: "" };
+}
+
+function formatarTelefone(telefone) {
+  const limpo = (telefone || "").replace(/\D/g, '');
+  if (limpo.length <= 2) return limpo;
+  if (limpo.length <= 7) return limpo.replace(/(\d{2})(\d)/, '($1) $2');
+  return limpo.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+}
+
+function validarEmail(email) {
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  if (!emailRegex.test(email)) {
+    return { valido: false, mensagem: "E-mail inválido." };
+  }
+  return { valido: true, mensagem: "" };
+}
+
+function validarSenha(senha) {
+  const regras = {
+    tamanho: senha.length >= 8 && senha.length <= 12,
+    minuscula: /[a-z]/.test(senha),
+    maiuscula: /[A-Z]/.test(senha),
+    numero: /[0-9]/.test(senha),
+    especial: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(senha)
+  };
+  
+  const todasRegras = Object.values(regras).every(regra => regra);
+  
+  return {
+    valido: todasRegras,
+    mensagem: todasRegras ? "" : "Senha não atende aos requisitos.",
+    regras: regras
+  };
+}
+
 function loadUsers(){
   try{ return JSON.parse(localStorage.getItem(USERS_KEY) || "{}"); }
   catch{ return {}; }
@@ -96,19 +208,95 @@ function montarTicker(){
   el.innerHTML = Object.entries(ativosB3).map(([k,v])=>
     `<span><span class="sym">${k}</span><span class="price">${v.toFixed(2)}</span></span>`).join("");
 }
+let currentStoryIndex = 0;
+const storiesPerView = 3;
+
 function buildStories(){
   const el = $("#storiesWrap"); if(!el) return;
   const depo = [
     {who:"Carla • Campinas", text:"Comecei com R$ 300/mês e hoje invisto com disciplina. Faça como a Carla e mude de vida!"},
     {who:"Rafael • Recife", text:"Uso a boleta da Royal todo mês. Consistência faz diferença."},
     {who:"Aline • Floripa", text:"Diversifiquei entre ações e renda fixa. Dormi em paz e vi o patrimônio crescer."},
-    {who:"Pedro • São Paulo", text:"Segui o plano com VALE3 e colhi resultado com o tempo."}
+    {who:"Pedro • São Paulo", text:"Segui o plano com VALE3 e colhi resultado com o tempo."},
+    {who:"Mariana • Belo Horizonte", text:"A plataforma Royal me deu confiança para investir. Resultados surpreendentes!"},
+    {who:"Lucas • Porto Alegre", text:"Comecei do zero e hoje tenho uma carteira diversificada graças à Royal."}
   ];
+  
   el.innerHTML = depo.map(d=>`
     <article class="story">
       <div class="who">${d.who}</div>
       <div class="text">${d.text}</div>
     </article>`).join("");
+  
+  // Criar dots
+  const dotsContainer = $("#carouselDots");
+  if (dotsContainer) {
+    const totalPages = Math.ceil(depo.length / storiesPerView);
+    dotsContainer.innerHTML = Array.from({length: totalPages}, (_, i) => 
+      `<div class="carousel-dot ${i === 0 ? 'active' : ''}" onclick="irParaPagina(${i})"></div>`
+    ).join("");
+  }
+  
+  atualizarCarrossel();
+}
+
+function moverCarrossel(direction) {
+  const el = $("#storiesWrap");
+  if (!el) return;
+  
+  const depo = [
+    {who:"Carla • Campinas", text:"Comecei com R$ 300/mês e hoje invisto com disciplina. Faça como a Carla e mude de vida!"},
+    {who:"Rafael • Recife", text:"Uso a boleta da Royal todo mês. Consistência faz diferença."},
+    {who:"Aline • Floripa", text:"Diversifiquei entre ações e renda fixa. Dormi em paz e vi o patrimônio crescer."},
+    {who:"Pedro • São Paulo", text:"Segui o plano com VALE3 e colhi resultado com o tempo."},
+    {who:"Mariana • Belo Horizonte", text:"A plataforma Royal me deu confiança para investir. Resultados surpreendentes!"},
+    {who:"Lucas • Porto Alegre", text:"Comecei do zero e hoje tenho uma carteira diversificada graças à Royal."}
+  ];
+  
+  const totalPages = Math.ceil(depo.length / storiesPerView);
+  currentStoryIndex = Math.max(0, Math.min(currentStoryIndex + direction, totalPages - 1));
+  
+  atualizarCarrossel();
+}
+
+function irParaPagina(pagina) {
+  currentStoryIndex = pagina;
+  atualizarCarrossel();
+}
+
+function atualizarCarrossel() {
+  const el = $("#storiesWrap");
+  const dotsContainer = $("#carouselDots");
+  if (!el) return;
+  
+  const translateX = -currentStoryIndex * (100 / storiesPerView);
+  el.style.transform = `translateX(${translateX}%)`;
+  
+  // Atualizar dots
+  if (dotsContainer) {
+    const dots = dotsContainer.querySelectorAll('.carousel-dot');
+    dots.forEach((dot, index) => {
+      dot.classList.toggle('active', index === currentStoryIndex);
+    });
+  }
+  
+  // Atualizar botões
+  const prevBtn = document.querySelector('.carousel-btn.prev');
+  const nextBtn = document.querySelector('.carousel-btn.next');
+  
+  if (prevBtn) prevBtn.disabled = currentStoryIndex === 0;
+  if (nextBtn) {
+    const depo = [
+      {who:"Carla • Campinas", text:"Comecei com R$ 300/mês e hoje invisto com disciplina. Faça como a Carla e mude de vida!"},
+      {who:"Rafael • Recife", text:"Uso a boleta da Royal todo mês. Consistência faz diferença."},
+      {who:"Aline • Floripa", text:"Diversifiquei entre ações e renda fixa. Dormi em paz e vi o patrimônio crescer."},
+      {who:"Pedro • São Paulo", text:"Segui o plano com VALE3 e colhi resultado com o tempo."},
+      {who:"Mariana • Belo Horizonte", text:"A plataforma Royal me deu confiança para investir. Resultados surpreendentes!"},
+      {who:"Lucas • Porto Alegre", text:"Comecei do zero e hoje tenho uma carteira diversificada graças à Royal."}
+    ];
+    const totalPages = Math.ceil(depo.length / storiesPerView);
+    nextBtn.disabled = currentStoryIndex === totalPages - 1;
+  }
 }
 function buildCarousel(){
   const track=$("#carouselTrack"); if(!track) return;
@@ -126,22 +314,91 @@ function buildCarousel(){
 }
 function countUp(){ document.querySelectorAll("[data-countup]").forEach(el=>{ const t=+el.getAttribute("data-countup"); let c=0; const s=Math.max(1,Math.floor(t/120)); (function tick(){ c+=s; if(c>=t)c=t; el.textContent=t>=1000?c.toLocaleString("pt-BR"):c; if(c<t) requestAnimationFrame(tick); })(); }); }
 
-/* Gráfico do hero */
-(function drawHero(){ const c=$("#canvasHero"); if(!c) return; const ctx=c.getContext("2d"); const W=c.width,H=c.height,p=28; const months=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"]; function step(){ ctx.fillStyle="#0b1b26"; ctx.fillRect(0,0,W,H);
-  ctx.strokeStyle="#123a5a"; for(let i=0;i<=4;i++){ const y=p+((H-p*1.6)*i/4); ctx.beginPath(); ctx.moveTo(p,y); ctx.lineTo(W-p,y); ctx.stroke(); }
-  ctx.fillStyle="#7aa6c2"; months.slice(0,6).forEach((m,i)=>{ const x=p+((W-p*2)/5)*i; ctx.fillText(m, x-8, H-8); });
-  const t = Date.now()/650; const colors = ["#3fd0ff","#6ce36c","#ffd261"];
-  [0,1,2].forEach(si=>{
-    ctx.beginPath();
-    for(let i=0;i<=60;i++){
-      const x=p+i*((W-p*2)/60);
-      const base = H - p - (i* (6 + si*2));
-      const y = base + Math.sin((t+i*0.25)+si)*6;
-      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+/* Gráfico do hero melhorado */
+(function drawHero(){ 
+  const c=$("#canvasHero"); 
+  if(!c) return; 
+  const ctx=c.getContext("2d"); 
+  const W=c.width,H=c.height,p=28; 
+  const months=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"]; 
+  
+  function step(){ 
+    // Fundo com gradiente
+    const gradient = ctx.createLinearGradient(0, 0, 0, H);
+    gradient.addColorStop(0, "#0b1b26");
+    gradient.addColorStop(1, "#0f1821");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0,0,W,H);
+    
+    // Grid mais suave
+    ctx.strokeStyle="#1a2f3d"; 
+    ctx.lineWidth = 0.5;
+    for(let i=0;i<=4;i++){ 
+      const y=p+((H-p*1.6)*i/4); 
+      ctx.beginPath(); 
+      ctx.moveTo(p,y); 
+      ctx.lineTo(W-p,y); 
+      ctx.stroke(); 
     }
-    ctx.strokeStyle=colors[si]; ctx.lineWidth=1.6; ctx.stroke();
-  });
-  requestAnimationFrame(step);} step(); })();
+    
+    // Meses com melhor posicionamento
+    ctx.fillStyle="#7aa6c2"; 
+    ctx.font = "12px Arial";
+    months.slice(0,6).forEach((m,i)=>{ 
+      const x=p+((W-p*2)/5)*i; 
+      ctx.fillText(m, x-12, H-8); 
+    });
+    
+    const t = Date.now()/800; 
+    const colors = ["#39d98a","#3fd0ff","#ffd261"];
+    const gradients = [
+      ctx.createLinearGradient(0, 0, 0, H),
+      ctx.createLinearGradient(0, 0, 0, H),
+      ctx.createLinearGradient(0, 0, 0, H)
+    ];
+    
+    // Configurar gradientes
+    gradients[0].addColorStop(0, "rgba(57, 217, 138, 0.8)");
+    gradients[0].addColorStop(1, "rgba(57, 217, 138, 0.1)");
+    gradients[1].addColorStop(0, "rgba(63, 208, 255, 0.8)");
+    gradients[1].addColorStop(1, "rgba(63, 208, 255, 0.1)");
+    gradients[2].addColorStop(0, "rgba(255, 210, 97, 0.8)");
+    gradients[2].addColorStop(1, "rgba(255, 210, 97, 0.1)");
+    
+    [0,1,2].forEach(si=>{
+      ctx.beginPath();
+      for(let i=0;i<=60;i++){
+        const x=p+i*((W-p*2)/60);
+        // Linha crescente com oscilação
+        const base = H - p - (i* (8 + si*3)) - Math.sin(t*0.5)*10;
+        const y = base + Math.sin((t+i*0.3)+si)*8 + Math.cos(t*0.3+i*0.1)*4;
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      
+      // Preencher área sob a linha
+      ctx.lineTo(W-p, H-p);
+      ctx.lineTo(p, H-p);
+      ctx.closePath();
+      ctx.fillStyle = gradients[si];
+      ctx.fill();
+      
+      // Linha principal
+      ctx.beginPath();
+      for(let i=0;i<=60;i++){
+        const x=p+i*((W-p*2)/60);
+        const base = H - p - (i* (8 + si*3)) - Math.sin(t*0.5)*10;
+        const y = base + Math.sin((t+i*0.3)+si)*8 + Math.cos(t*0.3+i*0.1)*4;
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.strokeStyle=colors[si]; 
+      ctx.lineWidth=2.5; 
+      ctx.stroke();
+    });
+    
+    requestAnimationFrame(step);
+  } 
+  step(); 
+})();
 
 window.addEventListener("load", ()=>{ montarTicker(); buildCarousel(); buildStories(); countUp(); });
 setInterval(()=>{ for (const k in ativosB3){ ativosB3[k]=+(ativosB3[k] + (Math.random()-0.5)*0.3).toFixed(2); } montarTicker(); buildCarousel(); }, 8000);
@@ -182,15 +439,34 @@ function toggleSenha(id, el){ const f=document.getElementById(id); if(!f) return
 
 function loginApp(){
   const cpf = limparCPF($("#cpf")?.value), senha=$("#senha")?.value;
-  const user = getUser(cpf);
   const msg=$("#loginMsg");
+  
+  // Validação de campos vazios
+  if(!cpf || !senha){
+    if(msg){ 
+      msg.className="error"; 
+      msg.textContent="Preencha todos os campos obrigatórios."; 
+    }
+    return;
+  }
+  
+  // Validação básica de CPF para login (apenas verifica se tem 11 dígitos)
+  if(cpf.length !== 11){
+    if(msg){ 
+      msg.className="error"; 
+      msg.textContent="CPF deve ter 11 dígitos."; 
+    }
+    return;
+  }
+  
+  const user = getUser(cpf);
   if(user && user.senha===senha){
     localStorage.setItem("rb_cpf", cpf);
     localStorage.setItem("rb_last_login_"+cpf, new Date().toISOString());
     window.open("portal.html","_blank","noopener");
     if(msg){ msg.className="success"; msg.textContent="Login efetuado! Portal aberto em nova aba."; }
   } else {
-    if(msg){ msg.className="error"; msg.textContent="CPF ou senha inválidos."; }
+    if(msg){ msg.className="error"; msg.textContent="CPF ou senha incorretos."; }
   }
 }
 
@@ -200,10 +476,66 @@ function salvarCadastro(){
         zap=$("#cadZap")?.value?.trim(),
         email=$("#cadEmail")?.value?.trim(),
         s=$("#cadSenha")?.value, c=$("#cadConfSenha")?.value, msg=$("#cadMsg");
-  if(!nome || !cpf || !zap || !email || !s || !c){ msg.textContent="Preencha todos os campos."; return; }
-  if(userExists(cpf)){ msg.textContent="CPF já cadastrado."; return; }
-  if(s!==c){ msg.textContent="As senhas não coincidem."; return; }
-  if(s.length<6 || !/[A-Za-z]/.test(s) || !/[0-9]/.test(s)){ msg.textContent="Senha fraca."; return; }
+  
+  // Validação de campos vazios
+  if(!nome || !cpf || !zap || !email || !s || !c){ 
+    msg.className="error";
+    msg.textContent="Preencha todos os campos obrigatórios."; 
+    return; 
+  }
+  
+  // Validação de nome completo
+  const validacaoNome = validarNomeCompleto(nome);
+  if(!validacaoNome.valido){
+    msg.className="error";
+    msg.textContent=validacaoNome.mensagem;
+    return;
+  }
+  
+  // Validação de CPF
+  const validacaoCPF = validarCPF(cpf);
+  if(!validacaoCPF.valido){
+    msg.className="error";
+    msg.textContent=validacaoCPF.mensagem;
+    return;
+  }
+  
+  // Validação de telefone
+  const validacaoTelefone = validarTelefone(zap);
+  if(!validacaoTelefone.valido){
+    msg.className="error";
+    msg.textContent=validacaoTelefone.mensagem;
+    return;
+  }
+  
+  // Validação de e-mail
+  const validacaoEmail = validarEmail(email);
+  if(!validacaoEmail.valido){
+    msg.className="error";
+    msg.textContent=validacaoEmail.mensagem;
+    return;
+  }
+  
+  // Verificar se CPF já existe
+  if(userExists(cpf)){ 
+    msg.className="error";
+    msg.textContent="CPF já cadastrado."; 
+    return; 
+  }
+  
+  // Validação de senhas
+  if(s!==c){ 
+    msg.className="error";
+    msg.textContent="As senhas não coincidem."; 
+    return; 
+  }
+  
+  const validacaoSenha = validarSenha(s);
+  if(!validacaoSenha.valido){ 
+    msg.className="error";
+    msg.textContent=validacaoSenha.mensagem; 
+    return; 
+  }
 
   setUser(cpf, {senha:s, conta:"A", historicoSenhas:[s], nome, email, zap, plano:"Premium"});
   // cria estado inicial desta conta
@@ -221,8 +553,52 @@ function salvarCadastro(){
 }
 
 function recuperarSenha(){
-  const msg=$("#recMsg"); if(!msg) return;
-  msg.className="success"; msg.textContent="Enviamos instruções para o email cadastrado.";
+  const cpf = limparCPF($("#recCpf")?.value);
+  const email = $("#recEmail")?.value?.trim();
+  const msg=$("#recMsg"); 
+  
+  if(!msg) return;
+  
+  // Validação de campos vazios
+  if(!cpf || !email){
+    msg.className="error";
+    msg.textContent="Preencha todos os campos obrigatórios.";
+    return;
+  }
+  
+  // Validação de CPF
+  const validacaoCPF = validarCPF(cpf);
+  if(!validacaoCPF.valido){
+    msg.className="error";
+    msg.textContent=validacaoCPF.mensagem;
+    return;
+  }
+  
+  // Validação de e-mail
+  const validacaoEmail = validarEmail(email);
+  if(!validacaoEmail.valido){
+    msg.className="error";
+    msg.textContent=validacaoEmail.mensagem;
+    return;
+  }
+  
+  // Verificar se o usuário existe e se o e-mail corresponde
+  const user = getUser(cpf);
+  if(!user){
+    msg.className="error";
+    msg.textContent="CPF não encontrado no sistema.";
+    return;
+  }
+  
+  if(user.email !== email){
+    msg.className="error";
+    msg.textContent="E-mail não corresponde ao CPF cadastrado.";
+    return;
+  }
+  
+  // Se chegou até aqui, as credenciais são válidas
+  msg.className="success"; 
+  msg.textContent="Enviamos instruções para o email cadastrado.";
   setTimeout(()=>{ window.open("redefinir.html","_blank","noopener"); }, 700);
 }
 
@@ -230,19 +606,57 @@ function salvarNovaSenha(){
   const nova = $("#novaSenhaRec")?.value;
   const conf = $("#confirmarSenhaRec")?.value;
   const msg = $("#msgRedefinicao");
-  const cpf = localStorage.getItem("rb_cpf") || "11111111111";
-  if(!nova || !conf){ msg.className="error"; msg.textContent="Preencha os dois campos."; return; }
-  if(nova!==conf){ msg.className="error"; msg.textContent="As senhas não coincidem."; return; }
-  if(nova.length<6 || !/[A-Za-z]/.test(nova) || !/[0-9]/.test(nova)){ msg.className="error"; msg.textContent="A senha precisa de 6+ caracteres, 1 letra e 1 número."; return; }
+  const cpf = localStorage.getItem("rb_cpf");
+  
+  // Verificar se há um CPF válido (usuário logado ou em processo de recuperação)
+  if(!cpf){
+    msg.className="error"; 
+    msg.textContent="Sessão inválida. Tente novamente o processo de recuperação."; 
+    return; 
+  }
+  
+  // Validação de campos vazios
+  if(!nova || !conf){ 
+    msg.className="error"; 
+    msg.textContent="Preencha os dois campos."; 
+    return; 
+  }
+  
+  // Validação de senhas
+  if(nova!==conf){ 
+    msg.className="error"; 
+    msg.textContent="As senhas não coincidem."; 
+    return; 
+  }
+  
+  const validacaoSenha = validarSenha(nova);
+  if(!validacaoSenha.valido){ 
+    msg.className="error"; 
+    msg.textContent=validacaoSenha.mensagem; 
+    return; 
+  }
 
-  const u = getUser(cpf) || {conta:"A", historicoSenhas:[]};
+  // Verificar se o usuário existe
+  const u = getUser(cpf);
+  if(!u){
+    msg.className="error"; 
+    msg.textContent="Usuário não encontrado. Tente novamente o processo de recuperação."; 
+    return; 
+  }
+  
   const hist = u.historicoSenhas || [];
-  if(hist.slice(0,4).includes(nova)){ msg.className="error"; msg.textContent="Não é permitido reutilizar nenhuma das últimas 4 senhas."; return; }
+  if(hist.slice(0,4).includes(nova)){ 
+    msg.className="error"; 
+    msg.textContent="Não é permitido reutilizar nenhuma das últimas 4 senhas."; 
+    return; 
+  }
+  
   u.senha = nova;
   u.historicoSenhas = [nova, ...hist].slice(0,4);
   setUser(cpf, u);
 
-  msg.className="success"; msg.textContent="Senha redefinida com sucesso. Redirecionando para o login...";
+  msg.className="success"; 
+  msg.textContent="Senha redefinida com sucesso. Redirecionando para o login...";
   setTimeout(()=>{ window.location.href="login.html"; }, 1200);
 }
 
@@ -327,7 +741,21 @@ function salvarMinhaConta(){
     return;
   }
 
-  setUser(cpf, { nome, zap, email });                 // salva
+  // Verificar se houve alterações
+  const houveAlteracao = (nome !== u.nome) || (zap !== u.zap) || (email !== u.email);
+  
+  if (!houveAlteracao) {
+    if(msg){ msg.className="error"; msg.textContent="Nenhuma alteração foi feita."; }
+    return;
+  }
+
+  // Atualizar apenas os campos que mudaram
+  const dadosAtualizados = { ...u };
+  if (nome !== u.nome) dadosAtualizados.nome = nome;
+  if (zap !== u.zap) dadosAtualizados.zap = zap;
+  if (email !== u.email) dadosAtualizados.email = email;
+
+  setUser(cpf, dadosAtualizados);
   if(document.getElementById("username")) document.getElementById("username").innerText = nome; // reflete no header
 
   if(msg){ msg.className="success"; msg.textContent="Dados atualizados com sucesso!"; }
@@ -337,29 +765,49 @@ function salvarMinhaConta(){
 
 /* Alterar senha (modal ou seção antiga) */
 function alterarSenha(){
-  const nova = $("#novaSenhaModal")?.value || $("#novaSenha")?.value;
-  const conf = $("#confSenhaModal")?.value || $("#novaSenha")?.value;
-  const msg = $("#senhaMsgModal") || $("#senhaMsg");
+  const nova = $("#novaSenhaModal")?.value;
+  const conf = $("#confSenhaModal")?.value;
+  const msg = $("#senhaMsgModal");
   const cpf = cpfAtual || localStorage.getItem("rb_cpf");
 
-  if(!nova || !conf){ if(msg){ msg.className="error"; msg.textContent="Preencha os campos de senha."; } return; }
-  if(nova!==conf){ if(msg){ msg.className="error"; msg.textContent="As senhas não coincidem."; } return; }
-  if(nova.length<6 || !/[A-Za-z]/.test(nova) || !/[0-9]/.test(nova)){
-    if(msg){ msg.className="error"; msg.textContent="A senha precisa de 6+ caracteres, 1 letra e 1 número."; }
+  // Validação de campos vazios
+  if(!nova || !conf){ 
+    if(msg){ msg.className="error"; msg.textContent="Preencha todos os campos obrigatórios."; } 
+    return; 
+  }
+  
+  // Validação de senhas
+  if(nova !== conf){ 
+    if(msg){ msg.className="error"; msg.textContent="As senhas não coincidem."; } 
+    return; 
+  }
+  
+  // Validação de senha com regras específicas
+  const validacaoSenha = validarSenha(nova);
+  if(!validacaoSenha.valido){
+    if(msg){ msg.className="error"; msg.textContent=validacaoSenha.mensagem; }
     return;
   }
 
   const u = getUser(cpf);
-  if(!u){ if(msg){ msg.className="error"; msg.textContent="Sessão expirada. Faça login novamente."; } return; }
+  if(!u){ 
+    if(msg){ msg.className="error"; msg.textContent="Sessão expirada. Faça login novamente."; } 
+    return; 
+  }
+  
   const hist = u.historicoSenhas || [];
-  if(hist.slice(0,4).includes(nova)){ if(msg){ msg.className="error"; msg.textContent="Não é permitido reutilizar nenhuma das últimas 4 senhas."; } return; }
+  if(hist.slice(0,4).includes(nova)){ 
+    if(msg){ msg.className="error"; msg.textContent="Não é permitido reutilizar nenhuma das últimas 4 senhas."; } 
+    return; 
+  }
 
+  // Atualizar senha
   u.senha = nova;
   u.historicoSenhas = [nova, ...hist].slice(0,4);
   setUser(cpf, u);
 
   if(msg){ msg.className="success"; msg.textContent="Senha alterada com sucesso!"; }
-  if($("#senhaMsgModal")) setTimeout(()=> hideModal("modalSenha"), 900);
+  setTimeout(()=> hideModal("modalSenha"), 900);
 }
 
 /* ========= PORTAL ========= */
@@ -426,7 +874,7 @@ function portalInit(){
   }
 
   preencherSelectAtivos(); preencherRtSelect();
-  atualizarCarteira(); atualizarBook(); atualizarExtrato(); atualizarOrdens();
+  atualizarCarteira(); montarBook(); atualizarExtrato(); atualizarOrdens();
   startRtChart(); startSpark();
 
   // MENU (≡) ao lado do 📈
@@ -699,20 +1147,53 @@ function atualizarExtrato(){
 }
 
 function filtrarExtrato(){
-  // Implementação simples: se existirem selects com id extratoTipo/extratoAtivo, filtra;
-  // senão, apenas re-renderiza tudo.
-  const selTipo  = document.getElementById("extratoTipo");
-  const selAtivo = document.getElementById("extratoAtivo");
-  const tipo  = selTipo  ? (selTipo.value || "")  : "";
-  const ativo = selAtivo ? (selAtivo.value || "") : "";
+  const dataInicial = document.getElementById("dataInicial")?.value;
+  const dataFinal = document.getElementById("dataFinal")?.value;
+  const ordenacao = document.getElementById("ordenacao")?.value || "desc";
+  const msg = document.getElementById("filtroMsg");
 
   let lista = extrato.slice();
-  if(tipo)  lista = lista.filter(e => String(e.tipo).toLowerCase() === tipo.toLowerCase());
-  if(ativo) lista = lista.filter(e => String(e.ativo).toUpperCase() === ativo.toUpperCase());
+
+  // Filtro por data
+  if (dataInicial || dataFinal) {
+    lista = lista.filter(e => {
+      const dataOperacao = e.date instanceof Date ? e.date : new Date(e.date);
+      const dataOp = new Date(dataOperacao.getFullYear(), dataOperacao.getMonth(), dataOperacao.getDate());
+      
+      if (dataInicial && dataFinal) {
+        const inicio = new Date(dataInicial);
+        const fim = new Date(dataFinal);
+        return dataOp >= inicio && dataOp <= fim;
+      } else if (dataInicial) {
+        const inicio = new Date(dataInicial);
+        return dataOp >= inicio;
+      } else if (dataFinal) {
+        const fim = new Date(dataFinal);
+        return dataOp <= fim;
+      }
+      return true;
+    });
+  }
+
+  // Ordenação
+  lista.sort((a, b) => {
+    const dataA = a.date instanceof Date ? a.date : new Date(a.date);
+    const dataB = b.date instanceof Date ? b.date : new Date(b.date);
+    return ordenacao === "desc" ? dataB - dataA : dataA - dataB;
+  });
 
   const t = document.querySelector("#extrato tbody");
   if(!t) return;
   t.innerHTML = "";
+
+  if (lista.length === 0) {
+    t.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--muted);">Nenhuma operação encontrada no período selecionado</td></tr>';
+    if (msg) {
+      msg.className = "error";
+      msg.textContent = "Nenhuma operação encontrada no período selecionado.";
+    }
+    return;
+  }
 
   lista.forEach(e=>{
     const dt = e.date instanceof Date ? e.date : new Date(e.date);
@@ -729,6 +1210,11 @@ function filtrarExtrato(){
       </tr>
     `);
   });
+
+  if (msg) {
+    msg.className = "success";
+    msg.textContent = `${lista.length} operação(ões) encontrada(s).`;
+  }
 }
 
 /* ========= GRÁFICO RT ========= */
@@ -782,6 +1268,94 @@ function exportarJSON(qual){
 }
 function tableToSpreadsheetML(tableId, sheet){ const t=document.getElementById(tableId); let rows=''; for(const tr of t.querySelectorAll('tr')){ rows+='<Row>'; for(const cell of tr.children){ const v=(cell.textContent||'').replace(/&/g,'&amp;').replace(/</g,'&lt;'); rows+=`<Cell><Data ss:Type="String">${v}</Data></Cell>`; } rows+='</Row>'; } return `<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Worksheet ss:Name="${sheet}"><Table>${rows}</Table></Worksheet></Workbook>`; }
 function exportarXLS(qual){ const map={carteira:'carteira',book:'book',extrato:'extrato',ordens:'ordens'}; const id=map[qual]; if(!id) return; const xml=tableToSpreadsheetML(id,qual.toUpperCase()); download(`${qual}.xls`,'application/vnd.ms-excel',xml); }
+
+function exportarPDF(qual){
+  let data = [];
+  let titulo = '';
+  
+  if(qual==='carteira'){ 
+    data = Object.keys(usuarioAtual.carteira).map(k=>({ativo:k, quantidade:usuarioAtual.carteira[k], precoMedio:+(usuarioAtual.precoMedio[k]||0).toFixed(2), valorMercado:+(usuarioAtual.carteira[k]*(ativosB3[k]||0)).toFixed(2)})); 
+    titulo = 'Carteira de Investimentos';
+  }
+  else if(qual==='book'){ 
+    data = Object.keys(ativosB3).map(k=>({ativo:k, preco:ativosB3[k]})); 
+    titulo = 'Book de Ofertas';
+  }
+  else if(qual==='extrato'){ 
+    data = extrato.map(e=>({data:e.date, tipo:e.tipo, ativo:e.ativo, qtd:e.qtd, preco:(e.price||e.valor), total:(e.total||e.qtd*(e.price||e.valor))})); 
+    titulo = 'Extrato de Operações';
+  }
+  else if(qual==='ordens'){ 
+    data = ordens.map(o=>({tipo:o.tipo, ativo:o.ativo, qtd:o.qtd, precoLimite:o.valor, filled:o.filled, status:o.status})); 
+    titulo = 'Book de Ordens';
+  }
+  
+  // Gerar HTML para PDF
+  let html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>${titulo} - Royal Broker</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #123a5a; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; font-weight: bold; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>${titulo}</h1>
+        <p>Royal Broker - Relatório gerado em ${new Date().toLocaleDateString('pt-BR')}</p>
+      </div>
+      <table>
+        <thead>
+          <tr>
+  `;
+  
+  // Cabeçalhos baseados no tipo
+  if(qual === 'carteira') {
+    html += '<th>Ativo</th><th>Quantidade</th><th>Preço Médio (R$)</th><th>Valor Mercado (R$)</th>';
+  } else if(qual === 'book') {
+    html += '<th>Ativo</th><th>Preço Atual (R$)</th>';
+  } else if(qual === 'extrato') {
+    html += '<th>Data</th><th>Tipo</th><th>Ativo</th><th>Quantidade</th><th>Preço (R$)</th><th>Total (R$)</th>';
+  } else if(qual === 'ordens') {
+    html += '<th>Tipo</th><th>Ativo</th><th>Quantidade</th><th>Preço Limite (R$)</th><th>Executado</th><th>Status</th>';
+  }
+  
+  html += '</tr></thead><tbody>';
+  
+  // Dados
+  data.forEach(item => {
+    html += '<tr>';
+    Object.values(item).forEach(value => {
+      html += `<td>${value}</td>`;
+    });
+    html += '</tr>';
+  });
+  
+  html += `
+        </tbody>
+      </table>
+      <div class="footer">
+        <p>© 2025 Royal Broker - Todos os direitos reservados</p>
+      </div>
+    </body>
+    </html>
+  `;
+  
+  // Usar jsPDF ou similar para gerar PDF
+  // Por enquanto, vamos usar uma abordagem simples com print
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(html);
+  printWindow.document.close();
+  printWindow.print();
+}
 
 /* ========= LOGOUT ========= */
 function logout(){ usuarioAtual=null; extrato=[]; ordens=[]; cpfAtual=""; localStorage.removeItem("rb_cpf"); window.location.href="index.html"; }
@@ -897,8 +1471,36 @@ function montarMiniWallet(){
   t.innerHTML = Object.keys(baseCarteira).map(k=>{
     const logo = logos[k] ? `<img src="${logos[k]}" class="logo-mini big">` : '';
     const pm = (basePM[k] ?? ativosB3[k] ?? 0).toFixed(2);
-    return `<tr><td>${logo}</td><td>${k}</td><td>${baseCarteira[k]}</td><td>${pm}</td></tr>`;
+    return `<tr onclick="selecionarAtivoCarteira('${k}')" style="cursor: pointer;" class="carteira-row">
+      <td>${logo}</td>
+      <td>${k}</td>
+      <td>${baseCarteira[k]}</td>
+      <td>${pm}</td>
+    </tr>`;
   }).join("");
+}
+
+function selecionarAtivoCarteira(ativo) {
+  // Atualizar o select de ativo na análise técnica
+  const selectAtivo = document.getElementById('anaSymbol');
+  if (selectAtivo) {
+    selectAtivo.value = ativo;
+    // Disparar evento de change para atualizar o gráfico
+    selectAtivo.dispatchEvent(new Event('change'));
+  }
+  
+  // Mostrar feedback visual
+  const rows = document.querySelectorAll('.carteira-row');
+  rows.forEach(row => {
+    row.style.backgroundColor = '';
+    row.style.borderColor = '';
+  });
+  
+  const selectedRow = document.querySelector(`tr[onclick*="${ativo}"]`);
+  if (selectedRow) {
+    selectedRow.style.backgroundColor = 'rgba(57, 217, 138, 0.1)';
+    selectedRow.style.borderColor = '#39d98a';
+  }
 }
 function voltarPortal(){ window.location.href="portal.html"; }
 
@@ -939,9 +1541,72 @@ function guardNoAutofillBoleta(){
 
 /* ========= AUTO INIT ========= */
 window.addEventListener("DOMContentLoaded", ()=>{
-  if(document.body.classList.contains("portal")) portalInit();
-  if(document.body.classList.contains("analise")) anaInit();
+  if(document.body.classList.contains("portal")) {
+    portalInit();
+    // Inicializar funcionalidades do portal
+    setTimeout(() => {
+      atualizarConquistas();
+      atualizarCalendario();
+      atualizarAlertasList();
+      preencherSelectsComparador();
+      atualizarRankingUsuarios();
+    }, 1000);
+  }
+  if(document.body.classList.contains("analise")) {
+    anaInit();
+    // Inicializar mini carteira
+    setTimeout(() => {
+      if (typeof atualizarMiniCarteira === 'function') atualizarMiniCarteira();
+    }, 1000);
+  }
+  if(document.body.classList.contains("home")) {
+    criarCarrosselAtivos();
+    // Auto-play do carrossel
+    setInterval(() => moverAtivosCarousel(1), 5000);
+    
+    // Inicializar todas as funcionalidades da página inicial
+    atualizarRanking();
+    atualizarRankingUsuarios();
+    atualizarConquistas();
+    atualizarNewsFeed();
+    atualizarCalendario();
+    atualizarRankingSetores();
+    atualizarAlertasList();
+    
+    // Preencher selects do comparador
+    preencherSelectsComparador();
+    
+    // Atualizar rankings a cada minuto
+    setInterval(atualizarRanking, 60000);
+    setInterval(atualizarNewsFeed, 30000);
+  }
+  
+  // Verificar dark mode globalmente
+  if (localStorage.getItem('royal_dark_mode') === 'true') {
+    document.body.classList.add('dark-mode');
+    const icon = document.getElementById('darkModeIcon');
+    if (icon) icon.textContent = '☀️';
+  }
 });
+
+function preencherSelectsComparador() {
+  const select1 = document.getElementById('ativo1');
+  const select2 = document.getElementById('ativo2');
+  
+  if (select1 && select2) {
+    Object.keys(ativosB3).forEach(ativo => {
+      const option1 = document.createElement('option');
+      option1.value = ativo;
+      option1.textContent = ativo;
+      select1.appendChild(option1);
+      
+      const option2 = document.createElement('option');
+      option2.value = ativo;
+      option2.textContent = ativo;
+      select2.appendChild(option2);
+    });
+  }
+}
 
 /* ========= EXPOSE ========= */
 window.toggleSenha=toggleSenha;
@@ -968,3 +1633,1034 @@ window.abrirMinhaConta=abrirMinhaConta;
 window.abrirAlterarSenha=abrirAlterarSenha;
 window.showModal=showModal;
 window.hideModal=hideModal;
+window.validarCPF=validarCPF;
+window.validarTelefone=validarTelefone;
+window.validarEmail=validarEmail;
+window.validarNomeCompleto=validarNomeCompleto;
+window.validarSenha=validarSenha;
+window.formatarCPF=formatarCPF;
+window.formatarTelefone=formatarTelefone;
+window.selecionarAtivoCarteira=selecionarAtivoCarteira;
+window.moverAtivosCarousel=moverAtivosCarousel;
+window.toggleFavorito=toggleFavorito;
+window.toggleFavoritos=toggleFavoritos;
+window.montarBook=montarBook;
+window.abrirIndicadores=abrirIndicadores;
+window.abrirNiveis=abrirNiveis;
+window.abrirPadroes=abrirPadroes;
+window.mostrarFavoritos=mostrarFavoritos;
+window.removerFavorito=removerFavorito;
+window.toggleDarkMode=toggleDarkMode;
+window.iniciarQuiz=iniciarQuiz;
+window.selecionarOpcao=selecionarOpcao;
+window.reiniciarQuiz=reiniciarQuiz;
+window.compararAtivos=compararAtivos;
+window.criarAlerta=criarAlerta;
+window.removerAlerta=removerAlerta;
+window.calcularCustos=calcularCustos;
+window.mostrarDetalhesEvento=mostrarDetalhesEvento;
+window.abrirOperacao=abrirOperacao;
+window.executarOperacaoAnalise=executarOperacaoAnalise;
+window.atualizarMiniCarteira=atualizarMiniCarteira;
+window.limparBoleta=limparBoleta;
+window.navegarPara=navegarPara;
+window.voltarPortal=voltarPortal;
+
+// ========= FUNÇÃO VOLTAR PORTAL =========
+function voltarPortal() {
+  window.location.href = 'portal.html';
+}
+
+// ========= FUNÇÃO LIMPAR BOLETA =========
+function limparBoleta() {
+  document.getElementById('quantidade').value = '';
+  document.getElementById('valor').value = '';
+  document.getElementById('tipo').value = 'Compra';
+  document.getElementById('ativo').value = '';
+}
+
+// ========= FUNÇÃO DE NAVEGAÇÃO =========
+function navegarPara(pagina) {
+  event.preventDefault();
+  window.location.href = pagina;
+}
+
+// ========= FUNÇÕES DAS FERRAMENTAS DE ANÁLISE =========
+function abrirIndicadores() {
+  const ativo = document.getElementById('anaSymbol')?.value || 'PETR4';
+  const modal = document.createElement('div');
+  modal.className = 'modal-indicadores';
+  modal.innerHTML = `
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>📊 Indicadores Técnicos - ${ativo}</h3>
+        <button onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="indicadores-grid">
+          <div class="indicador-card">
+            <h4>RSI (14)</h4>
+            <div class="indicador-valor">65.4</div>
+            <div class="indicador-status neutral">Neutro</div>
+            <div class="indicador-desc">Índice de Força Relativa - Não está em sobrecompra nem sobrevenda</div>
+          </div>
+          <div class="indicador-card">
+            <h4>MACD</h4>
+            <div class="indicador-valor">+0.23</div>
+            <div class="indicador-status positive">Compra</div>
+            <div class="indicador-desc">Convergência/Divergência - Sinal de compra ativo</div>
+          </div>
+          <div class="indicador-card">
+            <h4>Média Móvel (21)</h4>
+            <div class="indicador-valor">R$ 32.15</div>
+            <div class="indicador-status positive">Suporte</div>
+            <div class="indicador-desc">Preço está acima da média móvel - Tendência de alta</div>
+          </div>
+          <div class="indicador-card">
+            <h4>Bandas de Bollinger</h4>
+            <div class="indicador-valor">Centro</div>
+            <div class="indicador-status neutral">Neutro</div>
+            <div class="indicador-desc">Preço está no centro das bandas - Volatilidade normal</div>
+          </div>
+          <div class="indicador-card">
+            <h4>Estocástico</h4>
+            <div class="indicador-valor">45.2</div>
+            <div class="indicador-status neutral">Neutro</div>
+            <div class="indicador-desc">Oscilador estocástico - Não indica reversão</div>
+          </div>
+          <div class="indicador-card">
+            <h4>Williams %R</h4>
+            <div class="indicador-valor">-55.8</div>
+            <div class="indicador-status positive">Compra</div>
+            <div class="indicador-desc">Não está em sobrevenda - Possível oportunidade</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  modal.style.cssText = `
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.8); z-index: 10000; display: flex; 
+    align-items: center; justify-content: center;
+  `;
+  document.body.appendChild(modal);
+}
+
+function abrirNiveis() {
+  const ativo = document.getElementById('anaSymbol')?.value || 'PETR4';
+  const preco = ativosB3[ativo] || 0;
+  
+  const modal = document.createElement('div');
+  modal.className = 'modal-niveis';
+  modal.innerHTML = `
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>🎯 Níveis de Suporte/Resistência - ${ativo}</h3>
+        <button onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="niveis-container">
+          <div class="nivel-item resistencia">
+            <span class="nivel-tipo">Resistência</span>
+            <span class="nivel-preco">R$ ${(preco * 1.08).toFixed(2)}</span>
+            <span class="nivel-forca">Forte</span>
+          </div>
+          <div class="nivel-item resistencia">
+            <span class="nivel-tipo">Resistência</span>
+            <span class="nivel-preco">R$ ${(preco * 1.05).toFixed(2)}</span>
+            <span class="nivel-forca">Média</span>
+          </div>
+          <div class="nivel-item suporte">
+            <span class="nivel-tipo">Suporte</span>
+            <span class="nivel-preco">R$ ${(preco * 0.95).toFixed(2)}</span>
+            <span class="nivel-forca">Forte</span>
+          </div>
+          <div class="nivel-item suporte">
+            <span class="nivel-preco">R$ ${(preco * 0.92).toFixed(2)}</span>
+            <span class="nivel-forca">Média</span>
+          </div>
+          <div class="nivel-item psicologico">
+            <span class="nivel-tipo">Psicológico</span>
+            <span class="nivel-preco">R$ ${Math.round(preco)}</span>
+            <span class="nivel-forca">Médio</span>
+          </div>
+        </div>
+        <div class="niveis-info">
+          <p><strong>Análise:</strong> O ativo está próximo ao suporte forte em R$ ${(preco * 0.95).toFixed(2)}. 
+          Se romper esse nível, pode cair para R$ ${(preco * 0.92).toFixed(2)}.</p>
+        </div>
+      </div>
+    </div>
+  `;
+  modal.style.cssText = `
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.8); z-index: 10000; display: flex; 
+    align-items: center; justify-content: center;
+  `;
+  document.body.appendChild(modal);
+}
+
+function abrirPadroes() {
+  const ativo = document.getElementById('anaSymbol')?.value || 'PETR4';
+  
+  const modal = document.createElement('div');
+  modal.className = 'modal-padroes';
+  modal.innerHTML = `
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>📈 Padrões de Candlestick - ${ativo}</h3>
+        <button onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="padroes-container">
+          <div class="padrao-item positivo">
+            <div class="padrao-icon">🟢</div>
+            <div class="padrao-info">
+              <h4>Martelo</h4>
+              <p>Sinal de reversão de alta - Ocorreu há 2 sessões</p>
+            </div>
+            <div class="padrao-confianca">85%</div>
+          </div>
+          <div class="padrao-item negativo">
+            <div class="padrao-icon">🔴</div>
+            <div class="padrao-info">
+              <h4>Estrela da Noite</h4>
+              <p>Sinal de reversão de baixa - Ocorreu há 1 sessão</p>
+            </div>
+            <div class="padrao-confianca">78%</div>
+          </div>
+          <div class="padrao-item neutro">
+            <div class="padrao-icon">⚪</div>
+            <div class="padrao-info">
+              <h4>Doji</h4>
+              <p>Indecisão do mercado - Ocorreu hoje</p>
+            </div>
+            <div class="padrao-confianca">60%</div>
+          </div>
+          <div class="padrao-item positivo">
+            <div class="padrao-icon">🟢</div>
+            <div class="padrao-info">
+              <h4>Três Soldados Brancos</h4>
+              <p>Forte tendência de alta - Ocorreu há 3 sessões</p>
+            </div>
+            <div class="padrao-confianca">92%</div>
+          </div>
+        </div>
+        <div class="padroes-info">
+          <p><strong>Análise:</strong> O ativo mostra sinais mistos. O Martelo e Três Soldados Brancos indicam força, 
+          mas o Doji de hoje sugere indecisão. Aguarde confirmação.</p>
+        </div>
+      </div>
+    </div>
+  `;
+  modal.style.cssText = `
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.8); z-index: 10000; display: flex; 
+    align-items: center; justify-content: center;
+  `;
+  document.body.appendChild(modal);
+}
+
+// ========= FUNÇÕES DO CARROSSEL DE ATIVOS =========
+let ativosCarouselIndex = 0;
+const ativosCarouselItems = Object.keys(ativosB3);
+
+function moverAtivosCarousel(direction) {
+  const track = document.getElementById('ativosCarousel');
+  if (!track) return;
+  
+  ativosCarouselIndex += direction;
+  
+  if (ativosCarouselIndex < 0) {
+    ativosCarouselIndex = ativosCarouselItems.length - 1;
+  } else if (ativosCarouselIndex >= ativosCarouselItems.length) {
+    ativosCarouselIndex = 0;
+  }
+  
+  const translateX = -ativosCarouselIndex * 280; // 260px (card width) + 20px (gap)
+  track.style.transform = `translateX(${translateX}px)`;
+}
+
+function criarCarrosselAtivos() {
+  const track = document.getElementById('ativosCarousel');
+  if (!track) return;
+  
+  track.innerHTML = '';
+  
+  ativosCarouselItems.forEach(ativo => {
+    const preco = ativosB3[ativo];
+    const logo = logos[ativo];
+    const variacao = (Math.random() * 10 - 5).toFixed(2); // Variação aleatória entre -5% e +5%
+    const isPositive = parseFloat(variacao) >= 0;
+    
+    const card = document.createElement('div');
+    card.className = 'ativo-card';
+    card.innerHTML = `
+      <div class="ativo-header">
+        <img src="${logo}" alt="${ativo}" class="ativo-logo">
+        <div class="ativo-info">
+          <h4>${ativo}</h4>
+          <span class="ativo-preco">R$ ${preco.toFixed(2)}</span>
+        </div>
+      </div>
+      <div class="ativo-variacao ${isPositive ? 'positive' : 'negative'}">
+        ${isPositive ? '▲' : '▼'} ${Math.abs(variacao)}%
+      </div>
+    `;
+    
+    track.appendChild(card);
+  });
+}
+
+// ========= FUNÇÕES DE FAVORITOS =========
+let favoritos = JSON.parse(localStorage.getItem('royal_favoritos') || '[]');
+let mostrarApenasFavoritos = false;
+
+function toggleFavorito(ativo) {
+  const index = favoritos.indexOf(ativo);
+  if (index > -1) {
+    favoritos.splice(index, 1);
+  } else {
+    favoritos.push(ativo);
+  }
+  
+  localStorage.setItem('royal_favoritos', JSON.stringify(favoritos));
+  montarBook();
+}
+
+function toggleFavoritos() {
+  mostrarApenasFavoritos = !mostrarApenasFavoritos;
+  const btn = document.getElementById('btnFavoritos');
+  const icon = document.getElementById('favoritosIcon');
+  
+  if (mostrarApenasFavoritos) {
+    btn.style.background = 'linear-gradient(135deg, var(--gold) 0%, var(--gold-2) 100%)';
+    btn.style.color = '#0a0f14';
+    icon.textContent = '⭐';
+  } else {
+    btn.style.background = 'linear-gradient(135deg, var(--turq) 0%, var(--turq-2) 100%)';
+    btn.style.color = '#082027';
+    icon.textContent = '⭐';
+  }
+  
+  montarBook();
+}
+
+function montarBook() {
+  const tbody = document.querySelector('#book tbody');
+  if (!tbody) return;
+  
+  tbody.innerHTML = '';
+  
+  const ativosParaMostrar = mostrarApenasFavoritos ? favoritos : Object.keys(ativosB3);
+  
+  ativosParaMostrar.forEach(ativo => {
+    const preco = ativosB3[ativo];
+    const logo = logos[ativo];
+    const variacao = (Math.random() * 10 - 5).toFixed(2);
+    const isPositive = parseFloat(variacao) >= 0;
+    const isFavorito = favoritos.includes(ativo);
+    
+    const row = document.createElement('tr');
+    row.className = 'book-row';
+    row.onclick = () => preencherBoleta(ativo);
+    
+    row.innerHTML = `
+      <td>
+        <button class="favorito-btn ${isFavorito ? 'favoritado' : 'nao-favoritado'}" 
+                onclick="event.stopPropagation(); toggleFavorito('${ativo}')">
+          ${isFavorito ? '⭐' : '☆'}
+        </button>
+      </td>
+      <td><img src="${logo}" alt="${ativo}" class="logo-mini"></td>
+      <td><strong>${ativo}</strong></td>
+      <td>R$ ${preco.toFixed(2)}</td>
+      <td class="${isPositive ? 'positive' : 'negative'}">
+        ${isPositive ? '▲' : '▼'} ${Math.abs(variacao)}%
+      </td>
+    `;
+    
+    tbody.appendChild(row);
+  });
+}
+
+// ========= FUNÇÕES DAS FERRAMENTAS DE ANÁLISE =========
+function abrirIndicadores() {
+  alert('Indicadores Técnicos:\n\n• RSI (Índice de Força Relativa)\n• MACD (Convergência/Divergência)\n• Médias Móveis (9, 21, 50, 200)\n• Bandas de Bollinger\n• Estocástico\n• Williams %R\n\nFuncionalidade em desenvolvimento!');
+}
+
+function abrirNiveis() {
+  alert('Níveis de Suporte/Resistência:\n\n• Identificação automática de níveis importantes\n• Análise de volume por preço\n• Níveis psicológicos\n• Fibonacci retracements\n\nFuncionalidade em desenvolvimento!');
+}
+
+// ========= FUNÇÕES DE FAVORITOS MELHORADAS =========
+function mostrarFavoritos() {
+  const section = document.getElementById('favoritosSection');
+  const btn = document.getElementById('btnFavoritosCarteira');
+  const icon = document.getElementById('favoritosIconCarteira');
+  
+  if (section.style.display === 'none') {
+    section.style.display = 'block';
+    btn.style.background = 'linear-gradient(135deg, var(--gold) 0%, var(--gold-2) 100%)';
+    btn.style.color = '#0a0f14';
+    icon.textContent = '⭐';
+    montarFavoritosList();
+  } else {
+    section.style.display = 'none';
+    btn.style.background = 'linear-gradient(135deg, var(--turq) 0%, var(--turq-2) 100%)';
+    btn.style.color = '#082027';
+    icon.textContent = '⭐';
+  }
+}
+
+// ========= FUNÇÕES DE OPERAÇÕES =========
+function abrirOperacao(tipo) {
+  const ativo = document.getElementById('anaSymbol')?.value || 'PETR4';
+  const preco = ativosB3[ativo] || 32.50; // Preço padrão se não existir
+  
+  const modal = document.createElement('div');
+  modal.className = 'modal-operacao';
+  modal.innerHTML = `
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>${tipo} ${ativo}</h3>
+        <button onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="operacao-info">
+          <div class="info-item">
+            <span class="info-label">Ativo:</span>
+            <span class="info-valor">${ativo}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Preço Atual:</span>
+            <span class="info-valor">R$ ${preco.toFixed(2)}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Tipo:</span>
+            <span class="info-valor">${tipo}</span>
+          </div>
+        </div>
+        
+        <div class="operacao-form">
+          <label>Quantidade (múltiplos de 100):
+            <input type="number" id="qtdOperacao" class="rb-input" placeholder="100, 200, 300..." min="100" step="100" value="100">
+          </label>
+          <label>Preço por ação (R$):
+            <input type="number" id="precoOperacao" class="rb-input" placeholder="0,00" step="0.01" value="${preco.toFixed(2)}">
+          </label>
+        </div>
+        
+        <div class="operacao-actions">
+          <button class="btn-royal" onclick="executarOperacaoAnalise('${tipo}', '${ativo}')">Confirmar ${tipo}</button>
+          <button class="btn-turq ghost" onclick="this.parentElement.parentElement.parentElement.parentElement.remove()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  `;
+  modal.style.cssText = `
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.8); z-index: 10000; display: flex; 
+    align-items: center; justify-content: center;
+  `;
+  document.body.appendChild(modal);
+}
+
+function executarOperacaoAnalise(tipo, ativo) {
+  const quantidade = parseInt(document.getElementById('qtdOperacao')?.value) || 0;
+  const preco = parseFloat(document.getElementById('precoOperacao')?.value) || 0;
+  
+  if (!quantidade || quantidade < 100 || quantidade % 100 !== 0) {
+    alert('Quantidade deve ser múltipla de 100');
+    return;
+  }
+  
+  if (!preco || preco <= 0) {
+    alert('Preço deve ser maior que zero');
+    return;
+  }
+  
+  // Simular execução da operação
+  const ordem = {
+    id: Date.now(),
+    data: new Date().toLocaleDateString('pt-BR'),
+    tipo: tipo,
+    ativo: ativo,
+    quantidade: quantidade,
+    preco: preco,
+    valorTotal: quantidade * preco
+  };
+  
+  // Adicionar à lista de ordens (se existir)
+  if (typeof ordens !== 'undefined') {
+    ordens.unshift(ordem);
+    if (typeof atualizarOrdens === 'function') atualizarOrdens();
+    if (typeof atualizarCarteira === 'function') atualizarCarteira();
+    if (typeof atualizarExtrato === 'function') atualizarExtrato();
+  }
+  
+  // Fechar modal
+  const modal = document.querySelector('.modal-operacao');
+  if (modal) modal.remove();
+  
+  // Mostrar confirmação
+  alert(`${tipo} de ${quantidade} ações de ${ativo} por R$ ${preco.toFixed(2)} executada com sucesso!`);
+  
+  // Atualizar mini carteira
+  setTimeout(() => {
+    if (typeof atualizarMiniCarteira === 'function') atualizarMiniCarteira();
+  }, 500);
+}
+
+// ========= FUNÇÃO PARA ATUALIZAR MINI CARTEIRA =========
+function atualizarMiniCarteira() {
+  const container = document.getElementById('miniCarteiraList');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  if (!usuarioAtual || !usuarioAtual.carteira) {
+    container.innerHTML = '<p style="color: var(--muted); text-align: center;">Nenhum ativo na carteira</p>';
+    return;
+  }
+  
+  Object.keys(usuarioAtual.carteira).forEach(ativo => {
+    const quantidade = usuarioAtual.carteira[ativo];
+    const precoMedio = usuarioAtual.precoMedio[ativo] || 0;
+    const precoAtual = ativosB3[ativo] || 0;
+    const variacao = ((precoAtual - precoMedio) / precoMedio * 100);
+    
+    const div = document.createElement('div');
+    div.className = 'mini-carteira-item';
+    div.innerHTML = `
+      <div class="mini-carteira-header">
+        <img src="${logos[ativo] || 'img/royal-logo.png'}" alt="${ativo}" class="mini-logo">
+        <div class="mini-info">
+          <div class="mini-ativo">${ativo}</div>
+          <div class="mini-qtd">${quantidade} ações</div>
+        </div>
+      </div>
+      <div class="mini-carteira-footer">
+        <div class="mini-preco">R$ ${precoMedio.toFixed(2)}</div>
+        <div class="mini-variacao ${variacao >= 0 ? 'positive' : 'negative'}">
+          ${variacao >= 0 ? '▲' : '▼'} ${Math.abs(variacao).toFixed(2)}%
+        </div>
+      </div>
+    `;
+    
+    container.appendChild(div);
+  });
+}
+
+function montarFavoritosList() {
+  const container = document.getElementById('favoritosList');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  if (favoritos.length === 0) {
+    container.innerHTML = '<p style="color: var(--muted); text-align: center;">Nenhum ativo favoritado ainda. Clique nas estrelas no Book de Ofertas para favoritar!</p>';
+    return;
+  }
+  
+  favoritos.forEach(ativo => {
+    const preco = ativosB3[ativo] || 0;
+    const logo = logos[ativo] || 'img/royal-logo.png';
+    
+    const item = document.createElement('div');
+    item.className = 'favorito-item';
+    item.innerHTML = `
+      <img src="${logo}" alt="${ativo}">
+      <div class="ativo-info">
+        <div class="ativo-nome">${ativo}</div>
+        <div class="ativo-preco">R$ ${preco.toFixed(2)}</div>
+      </div>
+      <button class="remove-btn" onclick="removerFavorito('${ativo}')">×</button>
+    `;
+    
+    container.appendChild(item);
+  });
+}
+
+function removerFavorito(ativo) {
+  const index = favoritos.indexOf(ativo);
+  if (index > -1) {
+    favoritos.splice(index, 1);
+    localStorage.setItem('royal_favoritos', JSON.stringify(favoritos));
+    montarFavoritosList();
+    montarBook();
+  }
+}
+
+// ========= DARK MODE =========
+function toggleDarkMode() {
+  const body = document.body;
+  const btn = document.getElementById('darkModeBtn');
+  const icon = document.getElementById('darkModeIcon');
+  
+  if (body.classList.contains('dark-mode')) {
+    body.classList.remove('dark-mode');
+    icon.textContent = '🌙';
+    localStorage.setItem('royal_dark_mode', 'false');
+  } else {
+    body.classList.add('dark-mode');
+    icon.textContent = '☀️';
+    localStorage.setItem('royal_dark_mode', 'true');
+  }
+}
+
+// ========= RANKING DO DIA =========
+function atualizarRanking() {
+  const gainers = document.getElementById('topGainers');
+  const losers = document.getElementById('topLosers');
+  
+  if (gainers) {
+    gainers.innerHTML = '';
+    const topGainers = Object.keys(ativosB3)
+      .map(ativo => ({
+        ativo,
+        variacao: (Math.random() * 8 + 2).toFixed(2) // 2% a 10%
+      }))
+      .sort((a, b) => parseFloat(b.variacao) - parseFloat(a.variacao))
+      .slice(0, 5);
+    
+    topGainers.forEach((item, index) => {
+      const div = document.createElement('div');
+      div.className = 'ranking-item';
+      div.innerHTML = `
+        <span class="ativo">${item.ativo}</span>
+        <span class="variacao positive">▲ ${item.variacao}%</span>
+      `;
+      gainers.appendChild(div);
+    });
+  }
+  
+  if (losers) {
+    losers.innerHTML = '';
+    const topLosers = Object.keys(ativosB3)
+      .map(ativo => ({
+        ativo,
+        variacao: (Math.random() * 8 + 2).toFixed(2) // 2% a 10%
+      }))
+      .sort((a, b) => parseFloat(a.variacao) - parseFloat(b.variacao))
+      .slice(0, 5);
+    
+    topLosers.forEach((item, index) => {
+      const div = document.createElement('div');
+      div.className = 'ranking-item';
+      div.innerHTML = `
+        <span class="ativo">${item.ativo}</span>
+        <span class="variacao negative">▼ ${item.variacao}%</span>
+      `;
+      losers.appendChild(div);
+    });
+  }
+}
+
+// ========= QUIZ PERFIL =========
+const quizQuestions = [
+  {
+    question: "Qual é sua experiência com investimentos?",
+    options: [
+      { text: "Iniciante - Nunca investi", points: 1 },
+      { text: "Intermediário - Já investi algumas vezes", points: 2 },
+      { text: "Avançado - Tenho experiência significativa", points: 3 }
+    ]
+  },
+  {
+    question: "Por quanto tempo você pretende manter seus investimentos?",
+    options: [
+      { text: "Menos de 1 ano", points: 1 },
+      { text: "1 a 5 anos", points: 2 },
+      { text: "Mais de 5 anos", points: 3 }
+    ]
+  },
+  {
+    question: "Como você reagiria se seus investimentos caíssem 20%?",
+    options: [
+      { text: "Venderia tudo imediatamente", points: 1 },
+      { text: "Aguardaria para ver se recupera", points: 2 },
+      { text: "Compraria mais aproveitando a queda", points: 3 }
+    ]
+  },
+  {
+    question: "Qual percentual do seu patrimônio você investiria?",
+    options: [
+      { text: "Até 10%", points: 1 },
+      { text: "10% a 30%", points: 2 },
+      { text: "Mais de 30%", points: 3 }
+    ]
+  },
+  {
+    question: "Qual tipo de retorno você busca?",
+    options: [
+      { text: "Segurança acima de tudo", points: 1 },
+      { text: "Equilíbrio entre risco e retorno", points: 2 },
+      { text: "Máximo retorno possível", points: 3 }
+    ]
+  }
+];
+
+let currentQuestion = 0;
+let quizScore = 0;
+
+function iniciarQuiz() {
+  document.getElementById('quizContainer').style.display = 'none';
+  document.getElementById('quizQuestions').style.display = 'block';
+  mostrarQuestao();
+}
+
+function mostrarQuestao() {
+  const container = document.getElementById('quizQuestions');
+  const question = quizQuestions[currentQuestion];
+  
+  container.innerHTML = `
+    <div class="quiz-question">
+      <h4>${question.question}</h4>
+      <div class="quiz-options">
+        ${question.options.map((option, index) => `
+          <div class="quiz-option" onclick="selecionarOpcao(${index})">
+            ${option.text}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function selecionarOpcao(index) {
+  quizScore += quizQuestions[currentQuestion].options[index].points;
+  currentQuestion++;
+  
+  if (currentQuestion < quizQuestions.length) {
+    mostrarQuestao();
+  } else {
+    mostrarResultado();
+  }
+}
+
+function mostrarResultado() {
+  const container = document.getElementById('quizQuestions');
+  let perfil, descricao, cor;
+  
+  if (quizScore <= 8) {
+    perfil = 'Conservador';
+    descricao = 'Você prefere segurança e estabilidade. Recomendamos investimentos de baixo risco como renda fixa e fundos conservadores.';
+    cor = 'conservador';
+  } else if (quizScore <= 12) {
+    perfil = 'Moderado';
+    descricao = 'Você busca equilíbrio entre risco e retorno. Uma carteira diversificada com ações e renda fixa é ideal para você.';
+    cor = 'moderado';
+  } else {
+    perfil = 'Arrojado';
+    descricao = 'Você está disposto a assumir mais riscos por maiores retornos. Ações e fundos de alto risco podem ser adequados.';
+    cor = 'arrojado';
+  }
+  
+  container.innerHTML = `
+    <div class="quiz-result ${cor}">
+      <h3>Seu perfil é: ${perfil}</h3>
+      <p>${descricao}</p>
+      <button class="btn-royal" onclick="reiniciarQuiz()">Fazer novamente</button>
+    </div>
+  `;
+}
+
+function reiniciarQuiz() {
+  currentQuestion = 0;
+  quizScore = 0;
+  document.getElementById('quizContainer').style.display = 'block';
+  document.getElementById('quizQuestions').style.display = 'none';
+  document.getElementById('quizResult').style.display = 'none';
+}
+
+// ========= COMPARADOR DE ATIVOS =========
+function compararAtivos() {
+  const ativo1 = document.getElementById('ativo1').value;
+  const ativo2 = document.getElementById('ativo2').value;
+  
+  if (!ativo1 || !ativo2) {
+    alert('Selecione dois ativos para comparar');
+    return;
+  }
+  
+  const preco1 = ativosB3[ativo1] || 0;
+  const preco2 = ativosB3[ativo2] || 0;
+  const variacao1 = (Math.random() * 10 - 5).toFixed(2);
+  const variacao2 = (Math.random() * 10 - 5).toFixed(2);
+  
+  const container = document.getElementById('comparadorResult');
+  container.innerHTML = `
+    <div class="comparador-card">
+      <h4>${ativo1}</h4>
+      <div class="preco">R$ ${preco1.toFixed(2)}</div>
+      <div class="variacao ${parseFloat(variacao1) >= 0 ? 'positive' : 'negative'}">
+        ${parseFloat(variacao1) >= 0 ? '▲' : '▼'} ${Math.abs(variacao1)}%
+      </div>
+    </div>
+    <div class="comparador-card">
+      <h4>${ativo2}</h4>
+      <div class="preco">R$ ${preco2.toFixed(2)}</div>
+      <div class="variacao ${parseFloat(variacao2) >= 0 ? 'positive' : 'negative'}">
+        ${parseFloat(variacao2) >= 0 ? '▲' : '▼'} ${Math.abs(variacao2)}%
+      </div>
+    </div>
+  `;
+}
+
+// ========= ALERTAS PERSONALIZADOS =========
+let alertas = JSON.parse(localStorage.getItem('royal_alertas') || '[]');
+
+function criarAlerta() {
+  const ativo = document.getElementById('alertaAtivo').value.toUpperCase();
+  const condicao = document.getElementById('alertaCondicao').value;
+  const preco = parseFloat(document.getElementById('alertaPreco').value);
+  
+  if (!ativo || !preco) {
+    alert('Preencha todos os campos');
+    return;
+  }
+  
+  const alerta = {
+    id: Date.now(),
+    ativo,
+    condicao,
+    preco,
+    ativo: false
+  };
+  
+  alertas.push(alerta);
+  localStorage.setItem('royal_alertas', JSON.stringify(alertas));
+  
+  document.getElementById('alertaAtivo').value = '';
+  document.getElementById('alertaPreco').value = '';
+  
+  atualizarAlertasList();
+}
+
+function atualizarAlertasList() {
+  const container = document.getElementById('alertasList');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  alertas.forEach(alerta => {
+    const div = document.createElement('div');
+    div.className = 'alerta-item';
+    div.innerHTML = `
+      <div class="alerta-info">
+        <div class="alerta-texto">
+          ${alerta.ativo} ${alerta.condicao === 'acima' ? 'subir acima' : 'cair abaixo'} de R$ ${alerta.preco.toFixed(2)}
+        </div>
+      </div>
+      <button class="remove-alerta" onclick="removerAlerta(${alerta.id})">×</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function removerAlerta(id) {
+  alertas = alertas.filter(alerta => alerta.id !== id);
+  localStorage.setItem('royal_alertas', JSON.stringify(alertas));
+  atualizarAlertasList();
+}
+
+// ========= RANKING DE USUÁRIOS =========
+function atualizarRankingUsuarios() {
+  const container = document.getElementById('rankingUsuarios');
+  if (!container) return;
+  
+  const usuarios = [
+    { nome: 'Trader Pro', resultado: '+R$ 45.230' },
+    { nome: 'Investidor Elite', resultado: '+R$ 32.150' },
+    { nome: 'Mestre do Mercado', resultado: '+R$ 28.900' },
+    { nome: 'Estrategista Royal', resultado: '+R$ 25.400' },
+    { nome: 'Analista Premium', resultado: '+R$ 22.100' }
+  ];
+  
+  container.innerHTML = '';
+  usuarios.forEach((usuario, index) => {
+    const div = document.createElement('div');
+    div.className = 'usuario-item';
+    div.innerHTML = `
+      <div class="posicao">${index + 1}</div>
+      <div class="nome">${usuario.nome}</div>
+      <div class="resultado">${usuario.resultado}</div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+// ========= SISTEMA DE CONQUISTAS =========
+const conquistas = [
+  { id: 'primeira_operacao', titulo: 'Trader Iniciante', desc: 'Primeira operação realizada', icon: '🎯', desbloqueada: true, progresso: 1, maximo: 1 },
+  { id: 'dez_operacoes', titulo: 'Trader Ativo', desc: '10 operações realizadas', icon: '⚡', desbloqueada: true, progresso: 7, maximo: 10 },
+  { id: 'cinquenta_operacoes', titulo: 'Tubarão do Mercado', desc: '50 operações realizadas', icon: '🦈', desbloqueada: false, progresso: 23, maximo: 50 },
+  { id: 'primeiro_lucro', titulo: 'Primeiro Lucro', desc: 'Primeira operação lucrativa', icon: '💰', desbloqueada: true, progresso: 1, maximo: 1 },
+  { id: 'diversificacao', titulo: 'Diversificador', desc: 'Investiu em 5 ativos diferentes', icon: '📊', desbloqueada: true, progresso: 4, maximo: 5 },
+  { id: 'primeira_analise', titulo: 'Analista Técnico', desc: 'Primeira análise técnica realizada', icon: '📈', desbloqueada: true, progresso: 1, maximo: 1 },
+  { id: 'primeiro_alerta', titulo: 'Vigilante', desc: 'Primeiro alerta configurado', icon: '🔔', desbloqueada: true, progresso: 1, maximo: 1 },
+  { id: 'primeiro_favorito', titulo: 'Favoritos', desc: 'Primeiro ativo favoritado', icon: '⭐', desbloqueada: true, progresso: 1, maximo: 1 }
+];
+
+function atualizarConquistas() {
+  const container = document.getElementById('conquistasList');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  conquistas.forEach(conquista => {
+    const div = document.createElement('div');
+    div.className = `conquista-card ${conquista.desbloqueada ? '' : 'bloqueada'}`;
+    
+    if (conquista.desbloqueada) {
+      const percentual = Math.round((conquista.progresso / conquista.maximo) * 100);
+      div.innerHTML = `
+        <div class="conquista-icon">${conquista.icon}</div>
+        <div class="conquista-titulo">${conquista.titulo}</div>
+        <div class="conquista-desc">${conquista.desc}</div>
+        <div class="conquista-progresso">
+          <div class="progresso-bar">
+            <div class="progresso-fill" style="width: ${percentual}%"></div>
+          </div>
+          <span class="progresso-texto">${conquista.progresso}/${conquista.maximo}</span>
+        </div>
+        <div class="conquista-status">✅ Desbloqueada</div>
+      `;
+    } else {
+      div.innerHTML = `
+        <div class="conquista-icon">${conquista.icon}</div>
+        <div class="conquista-titulo">${conquista.titulo}</div>
+        <div class="conquista-desc">${conquista.desc}</div>
+        <div class="conquista-progresso">
+          <div class="progresso-bar">
+            <div class="progresso-fill" style="width: ${Math.round((conquista.progresso / conquista.maximo) * 100)}%"></div>
+          </div>
+          <span class="progresso-texto">${conquista.progresso}/${conquista.maximo}</span>
+        </div>
+        <div class="conquista-status bloqueada">🔒 Bloqueada</div>
+      `;
+    }
+    
+    container.appendChild(div);
+  });
+}
+
+// ========= FEED DE NOTÍCIAS =========
+const noticias = [
+  'Petrobras anuncia novo plano de investimentos',
+  'Banco Central mantém taxa de juros em 13,75%',
+  'Vale divulga resultados do terceiro trimestre',
+  'Itaú lidera ranking de bancos mais rentáveis',
+  'B3 registra recorde de volume de negociações',
+  'Dólar opera em queda frente ao real',
+  'Ações de tecnologia lideram alta na bolsa',
+  'Fundos imobiliários registram forte valorização'
+];
+
+function atualizarNewsFeed() {
+  const container = document.getElementById('newsFeed');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  // Mostrar 5 notícias aleatórias
+  const noticiasAleatorias = noticias.sort(() => 0.5 - Math.random()).slice(0, 5);
+  
+  noticiasAleatorias.forEach(noticia => {
+    const div = document.createElement('div');
+    div.className = 'news-item';
+    div.innerHTML = `
+      <div class="news-time">${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
+      <div class="news-texto">${noticia}</div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+// ========= CALCULADORA DE CUSTOS =========
+function calcularCustos() {
+  const valor = parseFloat(document.getElementById('valorOrdem').value);
+  if (!valor) {
+    alert('Digite um valor válido');
+    return;
+  }
+  
+  const taxaCorretagem = valor * 0.005; // 0.5%
+  const taxaB3 = valor * 0.0003; // 0.03%
+  const total = taxaCorretagem + taxaB3;
+  
+  const container = document.getElementById('custosResult');
+  container.innerHTML = `
+    <div class="custo-item">
+      <span>Taxa de Corretagem (0.5%)</span>
+      <span>R$ ${taxaCorretagem.toFixed(2)}</span>
+    </div>
+    <div class="custo-item">
+      <span>Taxa B3 (0.03%)</span>
+      <span>R$ ${taxaB3.toFixed(2)}</span>
+    </div>
+    <div class="custo-item">
+      <span>Total de Custos</span>
+      <span>R$ ${total.toFixed(2)}</span>
+    </div>
+  `;
+}
+
+// ========= CALENDÁRIO DE EVENTOS =========
+const eventos = [
+  { data: '20/01', titulo: 'Divulgação resultado PETR4' },
+  { data: '25/01', titulo: 'Reunião COPOM' },
+  { data: '30/01', titulo: 'Resultado VALE3' },
+  { data: '05/02', titulo: 'Assembleia ITUB4' },
+  { data: '10/02', titulo: 'Relatório inflação' },
+  { data: '15/02', titulo: 'Resultado BBDC4' },
+  { data: '20/02', titulo: 'Resultado ABEV3' },
+  { data: '25/02', titulo: 'Reunião FED' }
+];
+
+function atualizarCalendario() {
+  const container = document.getElementById('calendarioEventos');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  eventos.forEach(evento => {
+    const div = document.createElement('div');
+    div.className = 'evento-card';
+    div.onclick = () => mostrarDetalhesEvento(evento);
+    div.innerHTML = `
+      <div class="evento-data">${evento.data}</div>
+      <div class="evento-titulo">${evento.titulo}</div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function mostrarDetalhesEvento(evento) {
+  alert(`Evento: ${evento.titulo}\nData: ${evento.data}\n\nDetalhes do evento serão exibidos aqui.`);
+}
+
+// ========= RANKING DE SETORES =========
+const setores = [
+  { nome: 'Bancos', variacao: '+3.2%' },
+  { nome: 'Mineração', variacao: '+2.8%' },
+  { nome: 'Varejo', variacao: '+1.5%' },
+  { nome: 'Tecnologia', variacao: '+4.1%' },
+  { nome: 'Energia', variacao: '+0.8%' },
+  { nome: 'Saúde', variacao: '-0.5%' }
+];
+
+function atualizarRankingSetores() {
+  const container = document.getElementById('rankingSetores');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  setores.forEach(setor => {
+    const div = document.createElement('div');
+    div.className = 'setor-card';
+    div.innerHTML = `
+      <div class="setor-nome">${setor.nome}</div>
+      <div class="setor-variacao ${setor.variacao.startsWith('+') ? 'positive' : 'negative'}">${setor.variacao}</div>
+    `;
+    container.appendChild(div);
+  });
+}

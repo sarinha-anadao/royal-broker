@@ -5,42 +5,219 @@
   <title>Abrir Conta — Royal Broker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="style.css"/>
+  <style>
+    .senha-regras {
+      margin-top: 10px;
+      font-size: 12px;
+    }
+    .senha-regra {
+      margin: 2px 0;
+      transition: color 0.3s;
+    }
+    .senha-regra.valida {
+      color: #39d98a;
+    }
+    .senha-regra.invalida {
+      color: #ff6b6b;
+    }
+  </style>
 </head>
 <body class="login-body">
   <main class="login-center">
     <div class="login-card cascade login-compact hover-expand">
-      <a class="close-x in-card" href="index.html" aria-label="Voltar à Home">×</a>
+      <a class="close-x in-card" href="index.html" onclick="navegarPara('index.html')" aria-label="Voltar à Home">×</a>
 
       <img src="img/royal-logo.png" alt="Royal Broker" class="login-logo small">
       <h2 class="rb-login-title rb-gold-strong">ABRIR CONTA</h2>
 
       <form onsubmit="event.preventDefault(); salvarCadastro();" class="rb-form lefted single-col" autocomplete="on">
         <label>Nome Completo
-          <input type="text" id="cadNome" class="rb-input input-royal-focus" placeholder="Digite seu nome completo" autocomplete="name" autocapitalize="words">
+          <input type="text" id="cadNome" class="rb-input input-royal-focus" placeholder="Digite seu nome completo" autocomplete="name" autocapitalize="words" required onblur="validarCampoNome(this)">
+          <small class="hint" id="nomeHint"></small>
         </label>
         <label>WhatsApp
-          <input type="text" id="cadZap" class="rb-input input-royal-focus" placeholder="Digite seu celular com DDD" autocomplete="tel" inputmode="tel" pattern="[0-9\s()+-]*">
+          <input type="text" id="cadZap" class="rb-input input-royal-focus" placeholder="(11) 99999-9999" autocomplete="tel" inputmode="tel" maxlength="15" required oninput="formatarCampoTelefone(this)" onblur="validarCampoTelefone(this)">
+          <small class="hint" id="zapHint"></small>
         </label>
         <label>E-mail
-          <input type="email" id="cadEmail" class="rb-input input-royal-focus" placeholder="Digite seu e-mail válido" autocomplete="email">
+          <input type="email" id="cadEmail" class="rb-input input-royal-focus" placeholder="Digite seu e-mail válido" autocomplete="email" required onblur="validarCampoEmail(this)">
+          <small class="hint" id="emailHint"></small>
         </label>
         <label>CPF
-          <input type="text" id="cadCpf" class="rb-input input-royal-focus" placeholder="Digite seu CPF" autocomplete="off" inputmode="numeric" pattern="[0-9]*" autocapitalize="off" autocorrect="off" spellcheck="false">
+          <input type="text" id="cadCpf" class="rb-input input-royal-focus" placeholder="000.000.000-00" autocomplete="off" inputmode="numeric" maxlength="14" required oninput="formatarCampoCPF(this)" onblur="validarCampoCPF(this)">
+          <small class="hint" id="cpfHint"></small>
         </label>
         <label>Senha
-          <input type="password" id="cadSenha" class="rb-input input-royal-focus" placeholder="Crie uma senha segura" autocomplete="new-password">
+          <input type="password" id="cadSenha" class="rb-input input-royal-focus" placeholder="Crie uma senha segura" autocomplete="new-password" required oninput="validarCampoSenha(this)">
+          <div class="senha-regras" id="senhaRegras">
+            <div class="senha-regra invalida" id="regraTamanho">• Mínimo 8 e máximo 12 caracteres</div>
+            <div class="senha-regra invalida" id="regraMinuscula">• Pelo menos 1 letra minúscula</div>
+            <div class="senha-regra invalida" id="regraMaiuscula">• Pelo menos 1 letra maiúscula</div>
+            <div class="senha-regra invalida" id="regraNumero">• Pelo menos 1 número</div>
+            <div class="senha-regra invalida" id="regraEspecial">• Pelo menos 1 caractere especial (!@#$%^&*)</div>
+          </div>
         </label>
         <label>Confirmar senha
-          <input type="password" id="cadConfSenha" class="rb-input input-royal-focus" placeholder="Repita a mesma senha criada" autocomplete="new-password">
+          <input type="password" id="cadConfSenha" class="rb-input input-royal-focus" placeholder="Repita a mesma senha criada" autocomplete="new-password" required oninput="validarConfirmacaoSenha(this)">
+          <small class="hint" id="confSenhaHint"></small>
         </label>
 
-        <div class="hint">Mínimo 6 caracteres, com pelo menos 1 letra e 1 número.</div>
         <button class="btn-turq expand rb-enter" type="submit">Criar conta</button>
-        <p class="rb-bottom light-blue">Já tem conta? <a class="btn-inline btn-turq expand" href="login.html" rel="noopener">Entrar</a></p>
+        <p class="rb-bottom light-blue">Já tem conta? <a class="btn-inline btn-turq expand" href="login.html" onclick="navegarPara('login.html')">Entrar</a></p>
         <div id="cadMsg" class="error" role="alert"></div>
       </form>
     </div>
   </main>
   <script src="script.js"></script>
+  <script>
+    // Validação em tempo real para nome completo
+    function validarCampoNome(campo) {
+      const nome = campo.value;
+      const hint = document.getElementById('nomeHint');
+      
+      if (!nome) {
+        hint.textContent = '';
+        return;
+      }
+      
+      const validacao = validarNomeCompleto(nome);
+      if (validacao.valido) {
+        hint.textContent = '✓ Nome completo válido';
+        hint.style.color = '#39d98a';
+        campo.style.borderColor = '#39d98a';
+      } else {
+        hint.textContent = '✗ ' + validacao.mensagem;
+        hint.style.color = '#ff6b6b';
+        campo.style.borderColor = '#ff6b6b';
+      }
+    }
+    
+    // Validação em tempo real para e-mail
+    function validarCampoEmail(campo) {
+      const email = campo.value;
+      const hint = document.getElementById('emailHint');
+      
+      if (!email) {
+        hint.textContent = '';
+        return;
+      }
+      
+      const validacao = validarEmail(email);
+      if (validacao.valido) {
+        hint.textContent = '✓ E-mail válido';
+        hint.style.color = '#39d98a';
+        campo.style.borderColor = '#39d98a';
+      } else {
+        hint.textContent = '✗ ' + validacao.mensagem;
+        hint.style.color = '#ff6b6b';
+        campo.style.borderColor = '#ff6b6b';
+      }
+    }
+    
+    // Formatação e validação em tempo real para CPF
+    function formatarCampoCPF(campo) {
+      const valor = campo.value.replace(/\D/g, '');
+      if (valor.length > 11) {
+        campo.value = valor.substring(0, 11);
+      }
+      campo.value = formatarCPF(campo.value);
+    }
+    
+    function validarCampoCPF(campo) {
+      const cpf = campo.value;
+      const hint = document.getElementById('cpfHint');
+      
+      if (!cpf) {
+        hint.textContent = '';
+        return;
+      }
+      
+      const validacao = validarCPF(cpf);
+      if (validacao.valido) {
+        hint.textContent = '✓ CPF válido';
+        hint.style.color = '#39d98a';
+        campo.style.borderColor = '#39d98a';
+      } else {
+        hint.textContent = '✗ ' + validacao.mensagem;
+        hint.style.color = '#ff6b6b';
+        campo.style.borderColor = '#ff6b6b';
+      }
+    }
+    
+    // Formatação e validação em tempo real para telefone
+    function formatarCampoTelefone(campo) {
+      const valor = campo.value.replace(/\D/g, '');
+      if (valor.length > 11) {
+        campo.value = valor.substring(0, 11);
+      }
+      campo.value = formatarTelefone(campo.value);
+    }
+    
+    function validarCampoTelefone(campo) {
+      const telefone = campo.value;
+      const hint = document.getElementById('zapHint');
+      
+      if (!telefone) {
+        hint.textContent = '';
+        return;
+      }
+      
+      const validacao = validarTelefone(telefone);
+      if (validacao.valido) {
+        hint.textContent = '✓ Telefone válido';
+        hint.style.color = '#39d98a';
+        campo.style.borderColor = '#39d98a';
+      } else {
+        hint.textContent = '✗ ' + validacao.mensagem;
+        hint.style.color = '#ff6b6b';
+        campo.style.borderColor = '#ff6b6b';
+      }
+    }
+    
+    // Validação em tempo real para senha
+    function validarCampoSenha(campo) {
+      const senha = campo.value;
+      const validacao = validarSenha(senha);
+      
+      // Atualiza as regras visuais
+      document.getElementById('regraTamanho').className = `senha-regra ${validacao.regras.tamanho ? 'valida' : 'invalida'}`;
+      document.getElementById('regraMinuscula').className = `senha-regra ${validacao.regras.minuscula ? 'valida' : 'invalida'}`;
+      document.getElementById('regraMaiuscula').className = `senha-regra ${validacao.regras.maiuscula ? 'valida' : 'invalida'}`;
+      document.getElementById('regraNumero').className = `senha-regra ${validacao.regras.numero ? 'valida' : 'invalida'}`;
+      document.getElementById('regraEspecial').className = `senha-regra ${validacao.regras.especial ? 'valida' : 'invalida'}`;
+      
+      // Atualiza a cor da borda do campo
+      if (validacao.valido) {
+        campo.style.borderColor = '#39d98a';
+      } else {
+        campo.style.borderColor = '#ff6b6b';
+      }
+      
+      // Valida confirmação de senha se houver
+      validarConfirmacaoSenha(document.getElementById('cadConfSenha'));
+    }
+    
+    // Validação de confirmação de senha
+    function validarConfirmacaoSenha(campo) {
+      const senha = document.getElementById('cadSenha').value;
+      const confSenha = campo.value;
+      const hint = document.getElementById('confSenhaHint');
+      
+      if (!confSenha) {
+        hint.textContent = '';
+        return;
+      }
+      
+      if (senha === confSenha) {
+        hint.textContent = '✓ Senhas coincidem';
+        hint.style.color = '#39d98a';
+        campo.style.borderColor = '#39d98a';
+      } else {
+        hint.textContent = '✗ As senhas não coincidem';
+        hint.style.color = '#ff6b6b';
+        campo.style.borderColor = '#ff6b6b';
+      }
+    }
+  </script>
 </body>
 </html>

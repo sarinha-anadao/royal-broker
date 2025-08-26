@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Teste de Validações — Royal Broker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .test-section {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    .test-result {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .test-success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .test-error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Teste de Validações - Royal Broker</h1>
+    
+    <div class="test-section">
+      <h2>Teste de Validação de Nome Completo</h2>
+      <div id="nomeTests"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2>Teste de Validação de CPF</h2>
+      <div id="cpfTests"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2>Teste de Validação de Telefone</h2>
+      <div id="telefoneTests"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2>Teste de Validação de E-mail</h2>
+      <div id="emailTests"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2>Teste de Validação de Senha</h2>
+      <div id="senhaTests"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2>Links para Testes Manuais</h2>
+      <ul>
+        <li><a href="cadastro.html" target="_blank">Teste de Cadastro</a></li>
+        <li><a href="login.html" target="_blank">Teste de Login</a></li>
+        <li><a href="recuperar.html" target="_blank">Teste de Recuperação de Senha</a></li>
+        <li><a href="redefinir.html" target="_blank">Teste de Redefinição de Senha</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    // Testes de nome completo
+    const nomeTests = [
+      { input: "João Silva", expected: true, description: "Nome completo válido" },
+      { input: "João", expected: false, description: "Apenas nome (sem sobrenome)" },
+      { input: "J S", expected: false, description: "Iniciais muito curtas" },
+      { input: "", expected: false, description: "Nome vazio" },
+      { input: "João da Silva Santos", expected: true, description: "Nome completo com múltiplos sobrenomes" }
+    ];
+
+    // Testes de CPF
+    const cpfTests = [
+      { input: "11111111111", expected: false, description: "CPF com todos os dígitos iguais" },
+      { input: "12345678901", expected: false, description: "CPF inválido" },
+      { input: "111.444.777-35", expected: true, description: "CPF válido formatado" },
+      { input: "11144477735", expected: true, description: "CPF válido sem formatação" },
+      { input: "453.235.178-05", expected: true, description: "CPF válido (exemplo do usuário)" },
+      { input: "123", expected: false, description: "CPF muito curto" },
+      { input: "12345678901234567890", expected: false, description: "CPF muito longo" },
+      { input: "", expected: false, description: "CPF vazio" }
+    ];
+
+    // Testes de telefone
+    const telefoneTests = [
+      { input: "11999999999", expected: true, description: "Telefone válido (11 dígitos)" },
+      { input: "(11) 99999-9999", expected: true, description: "Telefone válido formatado" },
+      { input: "1199999999", expected: false, description: "Telefone sem o 9 (10 dígitos)" },
+      { input: "119999999", expected: false, description: "Telefone muito curto" },
+      { input: "119999999999", expected: false, description: "Telefone muito longo" },
+      { input: "00999999999", expected: false, description: "DDD inválido (00)" },
+      { input: "99999999999", expected: false, description: "DDD inválido (99)" },
+      { input: "11899999999", expected: false, description: "Sem o 9 após DDD" },
+      { input: "11111111111", expected: false, description: "Telefone com todos os dígitos iguais" },
+      { input: "", expected: false, description: "Telefone vazio" }
+    ];
+
+    // Testes de e-mail
+    const emailTests = [
+      { input: "teste@exemplo.com", expected: true, description: "E-mail válido" },
+      { input: "teste@exemplo", expected: false, description: "E-mail sem domínio" },
+      { input: "@exemplo.com", expected: false, description: "E-mail sem usuário" },
+      { input: "teste.com", expected: false, description: "E-mail sem @" },
+      { input: "", expected: false, description: "E-mail vazio" }
+    ];
+
+    // Testes de senha
+    const senhaTests = [
+      { input: "Senha123!", expected: true, description: "Senha válida com todos os requisitos" },
+      { input: "senha123!", expected: false, description: "Senha sem maiúscula" },
+      { input: "SENHA123!", expected: false, description: "Senha sem minúscula" },
+      { input: "SenhaABC!", expected: false, description: "Senha sem número" },
+      { input: "Senha123", expected: false, description: "Senha sem caractere especial" },
+      { input: "Sen1!", expected: false, description: "Senha muito curta" },
+      { input: "Senha123456789!", expected: false, description: "Senha muito longa" },
+      { input: "", expected: false, description: "Senha vazia" }
+    ];
+
+    function runTests() {
+      // Testes de nome completo
+      const nomeContainer = document.getElementById('nomeTests');
+      nomeTests.forEach(test => {
+        const result = validarNomeCompleto(test.input);
+        const success = result.valido === test.expected;
+        const div = document.createElement('div');
+        div.className = `test-result ${success ? 'test-success' : 'test-error'}`;
+        div.innerHTML = `
+          <strong>${test.description}</strong><br>
+          Input: "${test.input}"<br>
+          Esperado: ${test.expected ? 'Válido' : 'Inválido'}<br>
+          Resultado: ${result.valido ? 'Válido' : 'Inválido'}<br>
+          ${result.mensagem ? `Mensagem: ${result.mensagem}` : ''}
+        `;
+        nomeContainer.appendChild(div);
+      });
+
+      // Testes de CPF
+      const cpfContainer = document.getElementById('cpfTests');
+      cpfTests.forEach(test => {
+        const result = validarCPF(test.input);
+        const success = result.valido === test.expected;
+        const div = document.createElement('div');
+        div.className = `test-result ${success ? 'test-success' : 'test-error'}`;
+        div.innerHTML = `
+          <strong>${test.description}</strong><br>
+          Input: "${test.input}"<br>
+          Esperado: ${test.expected ? 'Válido' : 'Inválido'}<br>
+          Resultado: ${result.valido ? 'Válido' : 'Inválido'}<br>
+          ${result.mensagem ? `Mensagem: ${result.mensagem}` : ''}
+        `;
+        cpfContainer.appendChild(div);
+      });
+
+      // Testes de telefone
+      const telefoneContainer = document.getElementById('telefoneTests');
+      telefoneTests.forEach(test => {
+        const result = validarTelefone(test.input);
+        const success = result.valido === test.expected;
+        const div = document.createElement('div');
+        div.className = `test-result ${success ? 'test-success' : 'test-error'}`;
+        div.innerHTML = `
+          <strong>${test.description}</strong><br>
+          Input: "${test.input}"<br>
+          Esperado: ${test.expected ? 'Válido' : 'Inválido'}<br>
+          Resultado: ${result.valido ? 'Válido' : 'Inválido'}<br>
+          ${result.mensagem ? `Mensagem: ${result.mensagem}` : ''}
+        `;
+        telefoneContainer.appendChild(div);
+      });
+
+      // Testes de e-mail
+      const emailContainer = document.getElementById('emailTests');
+      emailTests.forEach(test => {
+        const result = validarEmail(test.input);
+        const success = result.valido === test.expected;
+        const div = document.createElement('div');
+        div.className = `test-result ${success ? 'test-success' : 'test-error'}`;
+        div.innerHTML = `
+          <strong>${test.description}</strong><br>
+          Input: "${test.input}"<br>
+          Esperado: ${test.expected ? 'Válido' : 'Inválido'}<br>
+          Resultado: ${result.valido ? 'Válido' : 'Inválido'}<br>
+          ${result.mensagem ? `Mensagem: ${result.mensagem}` : ''}
+        `;
+        emailContainer.appendChild(div);
+      });
+
+      // Testes de senha
+      const senhaContainer = document.getElementById('senhaTests');
+      senhaTests.forEach(test => {
+        const result = validarSenha(test.input);
+        const success = result.valido === test.expected;
+        const div = document.createElement('div');
+        div.className = `test-result ${success ? 'test-success' : 'test-error'}`;
+        div.innerHTML = `
+          <strong>${test.description}</strong><br>
+          Input: "${test.input}"<br>
+          Esperado: ${test.expected ? 'Válido' : 'Inválido'}<br>
+          Resultado: ${result.valido ? 'Válido' : 'Inválido'}<br>
+          ${result.mensagem ? `Mensagem: ${result.mensagem}` : ''}<br>
+          Regras: Tamanho(${result.regras.tamanho ? '✓' : '✗'}) Minúscula(${result.regras.minuscula ? '✓' : '✗'}) Maiúscula(${result.regras.maiuscula ? '✓' : '✗'}) Número(${result.regras.numero ? '✓' : '✗'}) Especial(${result.regras.especial ? '✓' : '✗'})
+        `;
+        senhaContainer.appendChild(div);
+      });
+    }
+
+    // Executar testes quando a página carregar
+    window.addEventListener('load', runTests);
+  </script>
+</body>
+</html>

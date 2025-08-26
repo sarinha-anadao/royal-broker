@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Teste do Sistema — Royal Broker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .test-section {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    .test-result {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .test-success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .test-error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .user-list {
+      background-color: #f8f9fa;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Teste do Sistema - Royal Broker</h1>
+    
+    <div class="test-section">
+      <h2>Teste de Validações</h2>
+      <div id="validationTests"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2>Usuários Cadastrados</h2>
+      <div id="userList"></div>
+      <button onclick="limparUsuarios()" style="background: #dc3545; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer;">Limpar Todos os Usuários</button>
+    </div>
+    
+    <div class="test-section">
+      <h2>Teste de Cadastro Simulado</h2>
+      <button onclick="testarCadastro()" style="background: #007bff; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer;">Criar Usuário de Teste</button>
+      <div id="cadastroResult"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2>Teste de Login</h2>
+      <button onclick="testarLogin()" style="background: #28a745; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer;">Testar Login</button>
+      <div id="loginResult"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2>Links para Testes Manuais</h2>
+      <ul>
+        <li><a href="cadastro.html" target="_blank">Teste de Cadastro</a></li>
+        <li><a href="login.html" target="_blank">Teste de Login</a></li>
+        <li><a href="recuperar.html" target="_blank">Teste de Recuperação de Senha</a></li>
+        <li><a href="redefinir.html" target="_blank">Teste de Redefinição de Senha</a></li>
+        <li><a href="teste_validacoes.html" target="_blank">Teste de Validações</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    function runValidationTests() {
+      const container = document.getElementById('validationTests');
+      
+      // Teste de CPF
+      const cpfTest = validarCPF("453.235.178-05");
+      const cpfDiv = document.createElement('div');
+      cpfDiv.className = `test-result ${cpfTest.valido ? 'test-success' : 'test-error'}`;
+      cpfDiv.innerHTML = `
+        <strong>Teste CPF 453.235.178-05:</strong><br>
+        Resultado: ${cpfTest.valido ? 'Válido' : 'Inválido'}<br>
+        Mensagem: ${cpfTest.mensagem}
+      `;
+      container.appendChild(cpfDiv);
+      
+      // Teste de e-mail
+      const emailTest = validarEmail("teste@exemplo.com");
+      const emailDiv = document.createElement('div');
+      emailDiv.className = `test-result ${emailTest.valido ? 'test-success' : 'test-error'}`;
+      emailDiv.innerHTML = `
+        <strong>Teste E-mail teste@exemplo.com:</strong><br>
+        Resultado: ${emailTest.valido ? 'Válido' : 'Inválido'}<br>
+        Mensagem: ${emailTest.mensagem}
+      `;
+      container.appendChild(emailDiv);
+      
+      // Teste de telefone
+      const telefoneTest = validarTelefone("(11) 99999-9999");
+      const telefoneDiv = document.createElement('div');
+      telefoneDiv.className = `test-result ${telefoneTest.valido ? 'test-success' : 'test-error'}`;
+      telefoneDiv.innerHTML = `
+        <strong>Teste Telefone (11) 99999-9999:</strong><br>
+        Resultado: ${telefoneTest.valido ? 'Válido' : 'Inválido'}<br>
+        Mensagem: ${telefoneTest.mensagem}
+      `;
+      container.appendChild(telefoneDiv);
+      
+      // Teste de nome
+      const nomeTest = validarNomeCompleto("João Silva");
+      const nomeDiv = document.createElement('div');
+      nomeDiv.className = `test-result ${nomeTest.valido ? 'test-success' : 'test-error'}`;
+      nomeDiv.innerHTML = `
+        <strong>Teste Nome João Silva:</strong><br>
+        Resultado: ${nomeTest.valido ? 'Válido' : 'Inválido'}<br>
+        Mensagem: ${nomeTest.mensagem}
+      `;
+      container.appendChild(nomeDiv);
+      
+      // Teste de senha
+      const senhaTest = validarSenha("Senha123!");
+      const senhaDiv = document.createElement('div');
+      senhaDiv.className = `test-result ${senhaTest.valido ? 'test-success' : 'test-error'}`;
+      senhaDiv.innerHTML = `
+        <strong>Teste Senha Senha123!:</strong><br>
+        Resultado: ${senhaTest.valido ? 'Válido' : 'Inválido'}<br>
+        Mensagem: ${senhaTest.mensagem}
+      `;
+      container.appendChild(senhaDiv);
+    }
+    
+    function mostrarUsuarios() {
+      const container = document.getElementById('userList');
+      const users = loadUsers();
+      
+      if (Object.keys(users).length === 0) {
+        container.innerHTML = '<p>Nenhum usuário cadastrado.</p>';
+        return;
+      }
+      
+      let html = '<div class="user-list">';
+      for (const [cpf, user] of Object.entries(users)) {
+        html += `
+          <div style="margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            <strong>CPF:</strong> ${formatCPFView(cpf)}<br>
+            <strong>Nome:</strong> ${user.nome}<br>
+            <strong>E-mail:</strong> ${user.email}<br>
+            <strong>Telefone:</strong> ${user.zap}<br>
+            <strong>Plano:</strong> ${user.plano}
+          </div>
+        `;
+      }
+      html += '</div>';
+      container.innerHTML = html;
+    }
+    
+    function testarCadastro() {
+      const cpf = "45323517805";
+      const nome = "João Silva Teste";
+      const email = "joao.teste@exemplo.com";
+      const zap = "(11) 99999-9999";
+      const senha = "Senha123!";
+      
+      // Verificar se já existe
+      if (userExists(cpf)) {
+        document.getElementById('cadastroResult').innerHTML = '<div class="test-error">Usuário já existe!</div>';
+        mostrarUsuarios();
+        return;
+      }
+      
+      // Criar usuário
+      setUser(cpf, {
+        senha: senha,
+        conta: "A",
+        historicoSenhas: [senha],
+        nome: nome,
+        email: email,
+        zap: zap,
+        plano: "Premium"
+      });
+      
+      document.getElementById('cadastroResult').innerHTML = '<div class="test-success">Usuário criado com sucesso!</div>';
+      mostrarUsuarios();
+    }
+    
+    function testarLogin() {
+      const cpf = "45323517805";
+      const senha = "Senha123!";
+      
+      const user = getUser(cpf);
+      if (user && user.senha === senha) {
+        document.getElementById('loginResult').innerHTML = '<div class="test-success">Login realizado com sucesso!</div>';
+      } else {
+        document.getElementById('loginResult').innerHTML = '<div class="test-error">Falha no login!</div>';
+      }
+    }
+    
+    function limparUsuarios() {
+      if (confirm('Tem certeza que deseja limpar todos os usuários?')) {
+        localStorage.removeItem(USERS_KEY);
+        mostrarUsuarios();
+        document.getElementById('cadastroResult').innerHTML = '';
+        document.getElementById('loginResult').innerHTML = '';
+      }
+    }
+    
+    function formatCPFView(cpf) {
+      const s = limparCPF(cpf);
+      return s.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+    }
+    
+    // Executar testes quando a página carregar
+    window.addEventListener('load', () => {
+      runValidationTests();
+      mostrarUsuarios();
+    });
+  </script>
+</body>
+</html>
+
