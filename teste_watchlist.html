@@ -110,7 +110,7 @@
             </label>
             
             <label>Ativo
-              <select id="ativo" class="rb-input input-royal-focus"></select>
+              <select id="ativo" class="rb-input input-royal-focus" onchange="preencherValorBoleta()"></select>
             </label>
           </div>
 
@@ -138,6 +138,7 @@
                 autocomplete="off"
                 inputmode="decimal"
                 step="0.01"
+                readonly
               />
             </label>
           </div>
@@ -191,6 +192,44 @@
       alert(`Favoritos no localStorage: ${favoritosLS || '[]'}`);
     }
 
+    // Função para preencher automaticamente o valor da boleta
+    function preencherValorBoleta() {
+      const ativo = document.getElementById('ativo').value;
+      const campoValor = document.getElementById('valor');
+      
+      if (ativo && ativosB3[ativo]) {
+        campoValor.value = ativosB3[ativo].toFixed(2);
+        // Força readonly
+        campoValor.setAttribute('readonly', true);
+      } else {
+        campoValor.value = '';
+      }
+    }
+    
+    // Expor a função globalmente
+    window.preencherValorBoleta = preencherValorBoleta;
+    
+    // Proteção adicional para o campo valor
+    document.addEventListener('DOMContentLoaded', function() {
+      const campoValor = document.getElementById('valor');
+      if (campoValor) {
+        campoValor.addEventListener('input', function(e) {
+          e.preventDefault();
+          return false;
+        });
+        
+        campoValor.addEventListener('keydown', function(e) {
+          e.preventDefault();
+          return false;
+        });
+        
+        campoValor.setAttribute('readonly', true);
+        campoValor.style.cursor = 'not-allowed';
+        // Remove o fundo branco e mantém o estilo original
+        campoValor.style.backgroundColor = '';
+      }
+    });
+    
     // Inicializar quando a página carregar
     document.addEventListener('DOMContentLoaded', function() {
       // Simular dados de ativos para teste

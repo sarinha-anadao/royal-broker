@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Teste de Validação da Boleta - Royal Broker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body class="login-body">
+  <main class="login-center">
+    <div class="login-card cascade login-compact hover-expand">
+      <h2 class="rb-login-title rb-gold-strong">🧪 TESTE DE VALIDAÇÃO DA BOLETA</h2>
+      
+      <div style="margin-bottom: 20px;">
+        <h3>✅ Validação Rigorosa Implementada</h3>
+        <p>Este teste demonstra que o sistema agora bloqueia ordens com valores incorretos:</p>
+        
+        <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; margin: 10px 0;">
+          <h4>📊 Preços Atuais dos Ativos:</h4>
+          <ul style="color: #39d98a; margin: 10px 0;">
+            <li>PETR4: R$ 30,38</li>
+            <li>VALE3: R$ 73,21</li>
+            <li>BBAS3: R$ 49,33</li>
+            <li>ITUB4: R$ 32,33</li>
+          </ul>
+        </div>
+        
+        <div style="background: #ff6b6b20; padding: 15px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #ff6b6b;">
+          <h4>🚫 O que foi corrigido:</h4>
+          <ul style="color: #ff6b6b; margin: 10px 0;">
+            <li>❌ Antes: Sistema aceitava R$ 1,00 para qualquer ativo</li>
+            <li>❌ Antes: Executava ordens pelo preço de mercado</li>
+            <li>✅ Agora: Bloqueia valores incorretos</li>
+            <li>✅ Agora: Só aceita preços exatos dos ativos</li>
+          </ul>
+        </div>
+        
+        <div style="background: #39d9820; padding: 15px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #39d98a;">
+          <h4>✅ Como funciona agora:</h4>
+          <ul style="color: #39d98a; margin: 10px 0;">
+            <li>Campo valor é preenchido automaticamente</li>
+            <li>Campo valor é readonly (não pode ser alterado)</li>
+            <li>Validação rigorosa no backend</li>
+            <li>Múltiplas camadas de proteção</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div style="margin-bottom: 20px;">
+        <h3>🔧 Teste da Validação</h3>
+        <p>Para testar, abra o portal e tente:</p>
+        <ol style="color: #e0e0e0; margin: 10px 0;">
+          <li>Selecionar um ativo na boleta</li>
+          <li>Verificar se o valor é preenchido automaticamente</li>
+          <li>Tentar alterar o valor (deve ser bloqueado)</li>
+          <li>Enviar ordem com valor incorreto (deve ser rejeitada)</li>
+        </ol>
+      </div>
+      
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button class="btn-royal" onclick="window.location.href='portal.html'">Testar no Portal</button>
+        <button class="btn-turq" onclick="window.location.href='teste_watchlist.html'">Testar na Watchlist</button>
+        <button class="btn-json" onclick="window.location.href='index.html'">Voltar à Home</button>
+      </div>
+    </div>
+  </main>
+  
+  <script>
+    // Simular dados de ativos para demonstração
+    const ativosDemo = {
+      'PETR4': 30.38,
+      'VALE3': 73.21,
+      'BBAS3': 49.33,
+      'ITUB4': 32.33
+    };
+    
+    // Demonstrar a validação
+    function demonstrarValidacao() {
+      const ativo = 'BBAS3';
+      const valorIncorreto = 1.00;
+      const valorCorreto = ativosDemo[ativo];
+      
+      console.log(`=== DEMONSTRAÇÃO DA VALIDAÇÃO ===`);
+      console.log(`Ativo: ${ativo}`);
+      console.log(`Valor incorreto tentado: R$ ${valorIncorreto}`);
+      console.log(`Valor correto: R$ ${valorCorreto}`);
+      console.log(`Diferença: R$ ${Math.abs(valorIncorreto - valorCorreto).toFixed(2)}`);
+      console.log(`Resultado: ${Math.abs(valorIncorreto - valorCorreto) > 0.01 ? 'BLOQUEADO' : 'ACEITO'}`);
+      console.log(`Mensagem: Valor inválido! O preço atual de ${ativo} é R$ ${valorCorreto.toFixed(2)}. Apenas valores exatos são aceitos.`);
+    }
+    
+    // Executar demonstração quando a página carregar
+    document.addEventListener('DOMContentLoaded', demonstrarValidacao);
+  </script>
+</body>
+</html>

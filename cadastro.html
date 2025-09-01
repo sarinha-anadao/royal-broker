@@ -32,7 +32,7 @@
 
       <form onsubmit="event.preventDefault(); salvarCadastro();" class="rb-form lefted single-col" autocomplete="on">
         <label>Nome Completo
-          <input type="text" id="cadNome" class="rb-input input-royal-focus" placeholder="Digite seu nome completo" autocomplete="name" autocapitalize="words" required oninput="validarCampoNome(this)" onblur="validarCampoNome(this)">
+          <input type="text" id="cadNome" class="rb-input input-royal-focus" placeholder="Digite seu nome completo" autocomplete="name" autocapitalize="words" required oninput="validarCampoNome(this)" onblur="validarCampoNome(this)" onkeypress="bloquearNumeros(event)">
           <small class="hint" id="nomeHint"></small>
         </label>
         <label>WhatsApp
@@ -221,6 +221,16 @@
         hint.style.color = '#ff6b6b';
         campo.style.borderColor = '#ff6b6b';
       }
+    }
+    
+    // Função para bloquear números no campo nome
+    function bloquearNumeros(event) {
+      const charCode = event.which ? event.which : event.keyCode;
+      if (charCode >= 48 && charCode <= 57) { // Códigos ASCII para números 0-9
+        event.preventDefault();
+        return false;
+      }
+      return true;
     }
   </script>
 </body>

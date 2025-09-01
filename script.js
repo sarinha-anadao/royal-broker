@@ -435,7 +435,8 @@ function countUp(){ document.querySelectorAll("[data-countup]").forEach(el=>{ co
 })();
 
 window.addEventListener("load", ()=>{ montarTicker(); buildCarousel(); buildStories(); countUp(); });
-setInterval(()=>{ for (const k in ativosB3){ ativosB3[k]=+(ativosB3[k] + (Math.random()-0.5)*0.3).toFixed(2); } montarTicker(); buildCarousel(); }, 8000);
+// COMENTADO: Não mudar preços constantemente para manter Book estável
+// setInterval(()=>{ for (const k in ativosB3){ ativosB3[k]=+(ativosB3[k] + (Math.random()-0.5)*0.3).toFixed(2); } montarTicker(); buildCarousel(); }, 8000);
 
 /* ========= CHAT ========= */
 function toggleChat(){
@@ -1050,21 +1051,58 @@ function atualizarBook(){
   const t=$("#book tbody"); if(!t) return; t.innerHTML="";
   for (let ativo in ativosB3){
     const p = ativosB3[ativo];
-    const chg = (Math.random()*6 - 3);
+    // Variação fixa para cada ativo (não muda constantemente)
+    const chg = getVariacaoFixa(ativo);
     const logo = logos[ativo] ? `<img src="${logos[ativo]}" class="logo-mini" alt="${ativo}">` : '';
+    const isFavorito = favoritos.includes(ativo);
+    
     t.innerHTML += `<tr data-ativo="${ativo}">
+      <td>
+        <button class="favorito-btn ${isFavorito ? 'favoritado' : 'nao-favoritado'}" 
+                onclick="event.stopPropagation(); event.preventDefault(); toggleFavorito('${ativo}'); return false;"
+                style="z-index: 1000; position: relative;">
+          ${isFavorito ? '⭐' : '☆'}
+        </button>
+      </td>
       <td>${logo}</td><td>${ativo}</td><td>${p.toFixed(2)}</td>
-      <td style="color:${chg>=0?'#2ecc71':'#ff6b6b'}">${chg>=0?'+':''}${chg.toFixed(2)}%</td>
+      <td style="color:${chg>=0?'#2ecc71':'#ff6b6b'}">${chg>=0?'+':''}${Math.abs(chg).toFixed(2)}%</td>
     </tr>`;
   }
   t.querySelectorAll("tr").forEach(tr=>{
-    tr.addEventListener("click", ()=>{
+    tr.addEventListener("click", (e)=>{
+      // NUNCA executa se clicou no botão de favorito - proteção total
+      if (e.target.closest('.favorito-btn') || e.target.classList.contains('favorito-btn')) {
+        e.stopPropagation();
+        e.preventDefault();
+        return false;
+      }
+      
       const a = tr.getAttribute("data-ativo");
       if($("#ativo")) $("#ativo").value = a;
       if($("#valor")) $("#valor").value = ativosB3[a].toFixed(2);
       const m=$("#mensagem"); if(m){ m.className="msg-inline"; m.textContent="Ao clicar nos ativos, os dados são preenchidos automaticamente na Boleta."; }
+      
+      // Chama a função para preencher o valor da boleta
+      if(typeof preencherValorBoleta === 'function') {
+        preencherValorBoleta();
+      }
     });
   });
+}
+
+// Função para obter variação fixa para cada ativo (não muda)
+function getVariacaoFixa(ativo) {
+  const variacoesFixas = {
+    'PETR4': 2.38,
+    'VALE3': 1.33,
+    'ITUB4': 2.49,
+    'BBDC4': 1.51,
+    'ABEV3': 0.85,
+    'MGLU3': -0.57,
+    'BBAS3': 1.92,
+    'LREN3': 0.78
+  };
+  return variacoesFixas[ativo] || 0;
 }
 
 function preencherRtSelect(){
@@ -1100,9 +1138,16 @@ function executarOperacao(){
     return;
   }
   
-  // Validação do valor
+  // Validação rigorosa do valor - deve corresponder ao preço atual do ativo
   if(isNaN(valor) || valor <= 0){
     msg.textContent="Valor deve ser um número maior que zero.";
+    msg.classList.add("error"); 
+    return;
+  }
+  
+  // Verifica se o valor corresponde ao preço atual do ativo (com tolerância de R$ 0,01)
+  if(Math.abs(valor - cotacao) > 0.01){
+    msg.textContent=`Valor inválido! O preço atual de ${ativo} é R$ ${cotacao.toFixed(2)}. Apenas valores exatos são aceitos.`;
     msg.classList.add("error"); 
     return;
   }
@@ -1321,43 +1366,44 @@ function startRtChart(){
 }
 
 /* ========= ENGINE ========= */
-setInterval(()=>{
-  for (let k in ativosB3){ ativosB3[k] = parseFloat((ativosB3[k] + 0.01).toFixed(2)); }
-      if(usuarioAtual){
-      ordens.forEach(o=>{
-        if(o.status==="Aceita" || o.status.startsWith("Parcial")){
-          // Verificar se a quantidade é válida
-          if(o.qtd < 100 || o.qtd % 100 !== 0){
-            o.status = "Cancelada";
-            o.motivo = "Quantidade inválida";
-            return; // Usar return em vez de continue
-          }
-          
-          // Verificar se o valor é válido
-          if(!o.valor || o.valor <= 0){
-            o.status = "Cancelada";
-            o.motivo = "Valor inválido";
-            return; // Usar return em vez de continue
-          }
-          
-          // Processar apenas ordens válidas
-          if(Math.random() < 0.6){
-          const restante = o.qtd - o.filled;
-          const chunk = Math.max(0, Math.min(restante, Math.round(o.qtd * (0.2 + Math.random()*0.25))));
-          if(chunk>0){
-            const fillPrice = +(o.cotacao + (Math.random()-0.5)*0.6).toFixed(2);
-            aplicarParcial(o, chunk, fillPrice);
-            o.avgFillPrice = ((o.avgFillPrice * o.filled) + (fillPrice * chunk)) / (o.filled + chunk || 1);
-            o.filled += chunk;
-            o.status = o.filled < o.qtd ? `Parcial ${Math.round(o.filled/o.qtd*100)}%` : "Executada";
-            if(o.status==="Executada"){ extrato.unshift({ ...o, price:+(o.avgFillPrice||o.valor), total:o.qtd * +(o.avgFillPrice||o.valor) }); saveState(cpfAtual); }
-          }
-        }
-      }
-    });
-    atualizarBook(); atualizarOrdens(); atualizarCarteira(); atualizarExtrato();
-  }
-}, 10000);
+// COMENTADO: Não mudar preços constantemente para manter Book estável
+// setInterval(()=>{
+//   for (let k in ativosB3){ ativosB3[k] = parseFloat((ativosB3[k] + 0.01).toFixed(2)); }
+//       if(usuarioAtual){
+//       ordens.forEach(o=>{
+//         if(o.status==="Aceita" || o.status.startsWith("Parcial")){
+//           // Verificar se a quantidade é válida
+//           if(o.qtd < 100 || o.qtd % 100 !== 0){
+//             o.status = "Cancelada";
+//             o.motivo = "Quantidade inválida";
+//             return; // Usar return em vez de continue
+//           }
+//           
+//           // Verificar se o valor é válido
+//           if(!o.valor || o.valor <= 0){
+//             o.status = "Cancelada";
+//             o.motivo = "Valor inválido";
+//             return; // Usar return em vez de continue
+//           }
+//           
+//           // Processar apenas ordens válidas
+//           if(Math.random() < 0.6){
+//           const restante = o.qtd - o.filled;
+//           const chunk = Math.max(0, Math.min(restante, Math.round(o.qtd * (0.2 + Math.random()*0.25))));
+//           if(chunk>0){
+//             const fillPrice = +(o.cotacao + (Math.random()-0.5)*0.6).toFixed(2);
+//             aplicarParcial(o, chunk, fillPrice);
+//             o.avgFillPrice = ((o.avgFillPrice * o.filled) + (fillPrice * chunk)) / (o.filled + chunk || 1);
+//             o.filled += chunk;
+//             o.status = o.filled < o.qtd ? `Parcial ${Math.round(o.filled/o.qtd*100)}%` : "Executada";
+//             if(o.status==="Executada"){ extrato.unshift({ ...o, price:+(o.avgFillPrice||o.valor), total:o.qtd * +(o.avgFillPrice||o.valor) }); saveState(cpfAtual); }
+//           }
+//         }
+//       }
+//     });
+//     atualizarBook(); atualizarOrdens(); atualizarCarteira(); atualizarExtrato();
+//   }
+// }, 10000);
 
 /* ========= EXPORTAÇÕES ========= */
 function abrirBaixar(qual){
@@ -1647,6 +1693,34 @@ function guardNoAutofillBoleta(){
     el.addEventListener('change', limparSeParecerCPF);
   });
 }
+
+// ========= PROTEÇÃO ABSOLUTA PARA FAVORITOS =========
+document.addEventListener('DOMContentLoaded', function() {
+  // Garante que os botões de favorito tenham prioridade total
+  setTimeout(() => {
+    const favoritoBtns = document.querySelectorAll('.favorito-btn');
+    favoritoBtns.forEach(btn => {
+      // Remove qualquer evento conflitante
+      btn.replaceWith(btn.cloneNode(true));
+      
+      // Adiciona o evento de favorito com prioridade máxima
+      const newBtn = document.querySelector(`[onclick*="toggleFavorito('${btn.getAttribute('onclick').match(/'([^']+)'/)[1]}')"]`);
+      if (newBtn) {
+        newBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          
+          // Executa a função favoritar
+          const ativo = this.getAttribute('onclick').match(/'([^']+)'/)[1];
+          toggleFavorito(ativo);
+          
+          return false;
+        }, true); // true = capture phase (executa primeiro)
+      }
+    });
+  }, 100);
+});
 
 /* ========= AUTO INIT ========= */
 window.addEventListener("DOMContentLoaded", ()=>{
@@ -2030,15 +2104,36 @@ let favoritos = JSON.parse(localStorage.getItem('royal_favoritos') || '[]');
 let mostrarApenasFavoritos = false;
 
 function toggleFavorito(ativo) {
-  const index = favoritos.indexOf(ativo);
-  if (index > -1) {
-    favoritos.splice(index, 1);
-  } else {
-    favoritos.push(ativo);
+  // Proteção total - sempre executa independente de outros eventos
+  try {
+    const index = favoritos.indexOf(ativo);
+    if (index > -1) {
+      favoritos.splice(index, 1);
+    } else {
+      favoritos.push(ativo);
+    }
+    
+    localStorage.setItem('royal_favoritos', JSON.stringify(favoritos));
+    
+    // Força a atualização do book
+    setTimeout(() => {
+      montarBook();
+    }, 10);
+    
+    // Feedback visual imediato
+    const btn = event.target;
+    if (btn) {
+      btn.style.transform = 'scale(1.2)';
+      setTimeout(() => {
+        btn.style.transform = 'scale(1)';
+      }, 200);
+    }
+  } catch (error) {
+    console.error('Erro ao favoritar:', error);
+    // Fallback: recarrega a página se houver erro
+    alert('Erro ao favoritar. Recarregando...');
+    location.reload();
   }
-  
-  localStorage.setItem('royal_favoritos', JSON.stringify(favoritos));
-  montarBook();
 }
 
 function toggleFavoritos() {
@@ -2070,18 +2165,31 @@ function montarBook() {
   ativosParaMostrar.forEach(ativo => {
     const preco = ativosB3[ativo];
     const logo = logos[ativo];
-    const variacao = (Math.random() * 10 - 5).toFixed(2);
-    const isPositive = parseFloat(variacao) >= 0;
+    // Variação fixa para cada ativo (não muda constantemente)
+    const variacao = getVariacaoFixa(ativo);
+    const isPositive = variacao >= 0;
     const isFavorito = favoritos.includes(ativo);
     
     const row = document.createElement('tr');
     row.className = 'book-row';
-    row.onclick = () => preencherBoleta(ativo);
+    
+    // Adiciona evento de clique para preencher a boleta
+    row.addEventListener('click', (e) => {
+      // NUNCA executa se clicou no botão de favorito - proteção total
+      if (e.target.closest('.favorito-btn') || e.target.classList.contains('favorito-btn')) {
+        e.stopPropagation();
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return false;
+      }
+      preencherBoleta(ativo);
+    });
     
     row.innerHTML = `
       <td>
         <button class="favorito-btn ${isFavorito ? 'favoritado' : 'nao-favoritado'}" 
-                onclick="event.stopPropagation(); toggleFavorito('${ativo}')">
+                onclick="event.stopPropagation(); event.preventDefault(); toggleFavorito('${ativo}'); return false;"
+                style="z-index: 1000; position: relative;">
           ${isFavorito ? '⭐' : '☆'}
         </button>
       </td>
@@ -2089,7 +2197,7 @@ function montarBook() {
       <td><strong>${ativo}</strong></td>
       <td>R$ ${preco.toFixed(2)}</td>
       <td class="${isPositive ? 'positive' : 'negative'}">
-        ${isPositive ? '▲' : '▼'} ${Math.abs(variacao)}%
+        ${isPositive ? '▲' : '▼'} ${Math.abs(variacao).toFixed(2)}%
       </td>
     `;
     
@@ -2107,6 +2215,30 @@ function abrirNiveis() {
 }
 
 // ========= FUNÇÕES DE FAVORITOS MELHORADAS =========
+
+// Proteção global para favoritos - sempre funciona
+window.addEventListener('load', function() {
+  // Garante que a função toggleFavorito seja sempre acessível
+  if (typeof window.toggleFavorito === 'undefined') {
+    window.toggleFavorito = function(ativo) {
+      try {
+        const index = favoritos.indexOf(ativo);
+        if (index > -1) {
+          favoritos.splice(index, 1);
+        } else {
+          favoritos.push(ativo);
+        }
+        
+        localStorage.setItem('royal_favoritos', JSON.stringify(favoritos));
+        montarBook();
+      } catch (error) {
+        console.error('Erro ao favoritar:', error);
+        alert('Erro ao favoritar. Tente novamente.');
+      }
+    };
+  }
+});
+
 function mostrarFavoritos() {
   const section = document.getElementById('favoritosSection');
   const btn = document.getElementById('btnFavoritosCarteira');
@@ -2190,6 +2322,13 @@ function executarOperacaoAnalise(tipo, ativo) {
   
   if (!preco || preco <= 0) {
     alert('Preço deve ser maior que zero');
+    return;
+  }
+  
+  // Verifica se o preço corresponde ao preço atual do ativo
+  const precoAtual = ativosB3[ativo];
+  if (Math.abs(preco - precoAtual) > 0.01) {
+    alert(`Preço inválido! O preço atual de ${ativo} é R$ ${precoAtual.toFixed(2)}. Apenas valores exatos são aceitos.`);
     return;
   }
   

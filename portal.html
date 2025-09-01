@@ -162,7 +162,7 @@
           </label>
           
           <label>Ativo
-            <select id="ativo" class="rb-input input-royal-focus"></select>
+            <select id="ativo" class="rb-input input-royal-focus" onchange="preencherValorBoleta()" oninput="preencherValorBoleta()"></select>
           </label>
         </div>
 
@@ -192,6 +192,7 @@
               autocomplete="off"
               inputmode="decimal"
               step="0.01"
+              readonly
             />
           </label>
         </div>
@@ -241,6 +242,59 @@
         hint.style.color = '#39d98a';
         campo.style.borderColor = '#39d98a';
       }
+      
+      // Função para preencher automaticamente o valor da boleta
+      function preencherValorBoleta() {
+        const ativo = document.getElementById('ativo').value;
+        const campoValor = document.getElementById('valor');
+        
+        if (ativo && ativosB3[ativo]) {
+          campoValor.value = ativosB3[ativo].toFixed(2);
+          // Força o campo a ser readonly após preenchimento
+          campoValor.setAttribute('readonly', true);
+        } else {
+          campoValor.value = '';
+        }
+      }
+      
+      // Função para forçar o preenchimento do valor quando a página carrega
+      function inicializarValorBoleta() {
+        const ativo = document.getElementById('ativo');
+        if (ativo && ativo.value) {
+          preencherValorBoleta();
+        }
+      }
+      
+      // Expor a função globalmente para ser chamada do script.js
+      window.preencherValorBoleta = preencherValorBoleta;
+      
+                // Proteção adicional: garantir que o campo valor nunca possa ser editado
+          document.addEventListener('DOMContentLoaded', function() {
+            const campoValor = document.getElementById('valor');
+            if (campoValor) {
+              // Previne qualquer tentativa de alteração
+              campoValor.addEventListener('input', function(e) {
+                e.preventDefault();
+                return false;
+              });
+              
+              campoValor.addEventListener('keydown', function(e) {
+                e.preventDefault();
+                return false;
+              });
+              
+              campoValor.addEventListener('paste', function(e) {
+                e.preventDefault();
+                return false;
+              });
+              
+              // Força readonly mas mantém o estilo visual
+              campoValor.setAttribute('readonly', true);
+              campoValor.style.cursor = 'not-allowed';
+              // Remove o fundo branco e mantém o estilo original
+              campoValor.style.backgroundColor = '';
+            }
+          });
     </script>
 
     <!-- EXTRATO -->

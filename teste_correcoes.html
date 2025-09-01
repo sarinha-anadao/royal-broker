@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Teste das Correções - Royal Broker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body class="login-body">
+  <main class="login-center">
+    <div class="login-card cascade login-compact hover-expand">
+      <h2 class="rb-login-title rb-gold-strong">🧪 TESTE DAS CORREÇÕES</h2>
+      
+      <div style="margin-bottom: 20px;">
+        <h3>✅ Bug 1 Corrigido: Campo Nome Completo</h3>
+        <p>O campo abaixo deve aceitar apenas letras e bloquear números:</p>
+        <input type="text" id="testeNome" placeholder="Digite seu nome (números serão bloqueados)" 
+               onkeypress="bloquearNumeros(event)" style="width: 100%; padding: 10px; margin: 10px 0;">
+        <small>Teste: tente digitar números - eles devem ser bloqueados</small>
+      </div>
+      
+      <div style="margin-bottom: 20px;">
+        <h3>✅ Bug 2 Corrigido: Boleta com Valor Automático</h3>
+        <p>Selecione um ativo e o valor será preenchido automaticamente:</p>
+        <select id="testeAtivo" onchange="preencherValorTeste()" style="width: 100%; padding: 10px; margin: 10px 0;">
+          <option value="">Selecione um ativo</option>
+          <option value="PETR4">PETR4</option>
+          <option value="VALE3">VALE3</option>
+          <option value="BBAS3">BBAS3</option>
+        </select>
+        <input type="number" id="testeValor" placeholder="Valor será preenchido automaticamente" 
+               readonly style="width: 100%; padding: 10px; margin: 10px 0;">
+        <small>O campo valor está readonly e é preenchido automaticamente</small>
+      </div>
+      
+      <button class="btn-turq expand" onclick="window.location.href='index.html'">Voltar à Home</button>
+    </div>
+  </main>
+  
+  <script>
+    // Dados de teste
+    const ativosTeste = {
+      'PETR4': 30.38,
+      'VALE3': 73.21,
+      'BBAS3': 49.33
+    };
+    
+    // Função para bloquear números (Bug 1 corrigido)
+    function bloquearNumeros(event) {
+      const charCode = event.which ? event.which : event.keyCode;
+      if (charCode >= 48 && charCode <= 57) { // Códigos ASCII para números 0-9
+        event.preventDefault();
+        return false;
+      }
+      return true;
+    }
+    
+    // Função para preencher valor automaticamente (Bug 2 corrigido)
+    function preencherValorTeste() {
+      const ativo = document.getElementById('testeAtivo').value;
+      const campoValor = document.getElementById('testeValor');
+      
+      if (ativo && ativosTeste[ativo]) {
+        campoValor.value = ativosTeste[ativo].toFixed(2);
+      } else {
+        campoValor.value = '';
+      }
+    }
+  </script>
+</body>
+</html>
