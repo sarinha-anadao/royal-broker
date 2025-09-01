@@ -28,6 +28,12 @@ function validarNomeCompleto(nome) {
     return { valido: false, mensagem: "Digite o nome completo." };
   }
   
+  // Verifica se contém apenas letras, espaços e acentos
+  const nomeRegex = /^[a-zA-ZÀ-ÿ\s]+$/;
+  if (!nomeRegex.test(nomeLimpo)) {
+    return { valido: false, mensagem: "Nome deve conter apenas letras." };
+  }
+  
   // Verifica se tem pelo menos 2 palavras (nome e sobrenome)
   const palavras = nomeLimpo.split(' ').filter(palavra => palavra.length > 0);
   if (palavras.length < 2) {
@@ -46,6 +52,11 @@ function validarNomeCompleto(nome) {
 
 function validarCPF(cpf) {
   cpf = limparCPF(cpf);
+  
+  // Verifica se contém apenas números
+  if (!/^\d+$/.test(cpf)) {
+    return { valido: false, mensagem: "CPF deve conter apenas números." };
+  }
   
   // Verifica se tem 11 dígitos
   if (cpf.length !== 11) {
@@ -72,6 +83,11 @@ function formatarCPF(cpf) {
 
 function validarTelefone(telefone) {
   const limpo = (telefone || "").replace(/\D/g, '');
+  
+  // Verifica se contém apenas números
+  if (!/^\d+$/.test(limpo)) {
+    return { valido: false, mensagem: "Telefone deve conter apenas números." };
+  }
   
   // Verifica se tem exatamente 11 dígitos (DDD + 9 + número)
   if (limpo.length !== 11) {
@@ -105,10 +121,28 @@ function formatarTelefone(telefone) {
 }
 
 function validarEmail(email) {
+  // Verifica se está vazio
+  if (!email || email.trim() === '') {
+    return { valido: false, mensagem: "Digite um e-mail válido." };
+  }
+  
+  // Regex mais rigoroso para validação de email
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   if (!emailRegex.test(email)) {
-    return { valido: false, mensagem: "E-mail inválido." };
+    return { valido: false, mensagem: "Formato de e-mail inválido (exemplo: usuario@dominio.com)." };
   }
+  
+  // Verifica se o domínio tem pelo menos 2 caracteres
+  const partes = email.split('@');
+  if (partes.length !== 2) {
+    return { valido: false, mensagem: "E-mail deve conter um @." };
+  }
+  
+  const dominio = partes[1];
+  if (dominio.length < 3 || !dominio.includes('.')) {
+    return { valido: false, mensagem: "Domínio do e-mail inválido." };
+  }
+  
   return { valido: true, mensagem: "" };
 }
 
@@ -186,7 +220,7 @@ function saveState(cpf){
   localStorage.setItem(STATE_KEY_PREFIX + limparCPF(cpf), JSON.stringify(pack));
 }
 
-/* ---- Contas base “mockadas” por perfil A/B ---- */
+/* ---- Contas base "mockadas" por perfil A/B ---- */
 const contas = {
   A:{ nome:"Conta A", saldo:100000, carteira:{ PETR4:300, VALE3:200, ITUB4:100 } },
   B:{ nome:"Conta B", saldo:100000, carteira:{ MGLU3:100, BBAS3:100 } }
@@ -412,13 +446,13 @@ function toggleChat(){
   b.setAttribute("aria-hidden", opened ? "true" : "false");
 }
 const faq = [
-  {k:/abrir|criar conta|cadastro/i, a:"Para abrir sua conta, clique em “Abrir Conta” e preencha seus dados. A aprovação é rápida."},
+  {k:/abrir|criar conta|cadastro/i, a:"Para abrir sua conta, clique em 'Abrir Conta' e preencha seus dados. A aprovação é rápida."},
   {k:/taxa|custodia|corretagem/i, a:"Plano padrão: isenção de custódia e corretagem zero em BDRs/ETFs elegíveis. Em ações à vista, condições promocionais."},
   {k:/suporte|atend|contato/i, a:"Você pode falar por telefone (11) 4000-0000, e-mail atendimento@royalbroker.com ou chat aqui mesmo."},
-  {k:/senha|esqueci|redefin/i, a:"Use “Esqueci minha senha” no login. Enviaremos instruções ao seu e-mail."},
+  {k:/senha|esqueci|redefin/i, a:"Use 'Esqueci minha senha' no login. Enviaremos instruções ao seu e-mail."},
   {k:/dep[oó]sito|pix|transfer/i, a:"Deposite via PIX TED no app do seu banco. O saldo aparece em minutos."},
   {k:/saque|retirada/i, a:"Saque pelo menu > Minha conta > Saques. Transferimos para sua conta cadastrada."},
-  {k:/extrato|relat[oó]rio/i, a:"No Portal, acesse “Extrato de Operações” e use “Baixar Extrato” para XLSX/JSON."},
+  {k:/extrato|relat[oó]rio/i, a:"No Portal, acesse 'Extrato de Operações' e use 'Baixar Extrato' para XLSX/JSON."},
   {k:/hor[aá]rio|preg[aã]o/i, a:"Pregão regular da B3: 10:00–18:00, after-market e pré-abertura conforme calendário."}
 ];
 function enviarChat(){
@@ -484,35 +518,26 @@ function salvarCadastro(){
     return; 
   }
   
-  // Validação de nome completo
-  const validacaoNome = validarNomeCompleto(nome);
-  if(!validacaoNome.valido){
-    msg.className="error";
-    msg.textContent=validacaoNome.mensagem;
-    return;
+  // Forçar validação de todos os campos antes de prosseguir
+  const validacoes = {
+    nome: validarNomeCompleto(nome),
+    cpf: validarCPF(cpf),
+    telefone: validarTelefone(zap),
+    email: validarEmail(email),
+    senha: validarSenha(s)
+  };
+  
+  // Verificar se há algum erro de validação
+  const erros = [];
+  for (const [campo, validacao] of Object.entries(validacoes)) {
+    if (!validacao.valido) {
+      erros.push(validacao.mensagem);
+    }
   }
   
-  // Validação de CPF
-  const validacaoCPF = validarCPF(cpf);
-  if(!validacaoCPF.valido){
+  if (erros.length > 0) {
     msg.className="error";
-    msg.textContent=validacaoCPF.mensagem;
-    return;
-  }
-  
-  // Validação de telefone
-  const validacaoTelefone = validarTelefone(zap);
-  if(!validacaoTelefone.valido){
-    msg.className="error";
-    msg.textContent=validacaoTelefone.mensagem;
-    return;
-  }
-  
-  // Validação de e-mail
-  const validacaoEmail = validarEmail(email);
-  if(!validacaoEmail.valido){
-    msg.className="error";
-    msg.textContent=validacaoEmail.mensagem;
+    msg.textContent=erros[0]; // Mostra o primeiro erro
     return;
   }
   
@@ -722,6 +747,13 @@ function abrirMinhaConta(){
   if(plano) plano.value = u.plano || "Premium";
   if(msg){ msg.textContent = ""; msg.className = "success"; }
 
+  // Inicializa campos em modo de visualização
+  resetarCamposMinhaConta();
+  
+  // Esconde botão de salvar
+  const btnSalvar = document.getElementById("btnSalvarConta");
+  if(btnSalvar) btnSalvar.style.display = "none";
+
   showModal("modalConta");
 }
 
@@ -749,6 +781,25 @@ function salvarMinhaConta(){
     return;
   }
 
+  // Validação dos campos antes de salvar
+  const validacaoNome = validarNomeCompleto(nome);
+  if(!validacaoNome.valido) {
+    if(msg){ msg.className="error"; msg.textContent=validacaoNome.mensagem; }
+    return;
+  }
+
+  const validacaoTelefone = validarTelefone(zap);
+  if(!validacaoTelefone.valido) {
+    if(msg){ msg.className="error"; msg.textContent=validacaoTelefone.mensagem; }
+    return;
+  }
+
+  const validacaoEmail = validarEmail(email);
+  if(!validacaoEmail.valido) {
+    if(msg){ msg.className="error"; msg.textContent=validacaoEmail.mensagem; }
+    return;
+  }
+
   // Atualizar apenas os campos que mudaram
   const dadosAtualizados = { ...u };
   if (nome !== u.nome) dadosAtualizados.nome = nome;
@@ -759,6 +810,14 @@ function salvarMinhaConta(){
   if(document.getElementById("username")) document.getElementById("username").innerText = nome; // reflete no header
 
   if(msg){ msg.className="success"; msg.textContent="Dados atualizados com sucesso!"; }
+  
+  // Resetar campos para modo de visualização após salvar
+  setTimeout(() => {
+    resetarCamposMinhaConta();
+    const btnSalvar = document.getElementById("btnSalvarConta");
+    if(btnSalvar) btnSalvar.style.display = "none";
+  }, 500);
+  
   setTimeout(()=> hideModal("modalConta"), 900);
 }
 
@@ -1022,9 +1081,37 @@ function executarOperacao(){
   const cotacao=ativosB3[ativo], total=qtd*valor, msg=$("#mensagem"); 
   msg.textContent=""; msg.className="msg-inline";
 
-  if(isNaN(qtd)||qtd<=0||qtd%100!==0||isNaN(valor)){
-    msg.textContent="Preencha quantidade válida (múltiplos de 100) e valor.";
-    msg.classList.add("error"); return;
+  // Validação rigorosa da quantidade
+  if(isNaN(qtd) || qtd <= 0){
+    msg.textContent="Quantidade deve ser um número maior que zero.";
+    msg.classList.add("error"); 
+    return;
+  }
+  
+  if(qtd < 100){
+    msg.textContent="Quantidade mínima é 100 ações por ordem.";
+    msg.classList.add("error"); 
+    return;
+  }
+  
+  if(qtd % 100 !== 0){
+    msg.textContent="Quantidade deve ser múltipla de 100 (100, 200, 300, etc.).";
+    msg.classList.add("error"); 
+    return;
+  }
+  
+  // Validação do valor
+  if(isNaN(valor) || valor <= 0){
+    msg.textContent="Valor deve ser um número maior que zero.";
+    msg.classList.add("error"); 
+    return;
+  }
+  
+  // Validação do ativo
+  if(!ativo || ativo.trim() === ''){
+    msg.textContent="Selecione um ativo válido.";
+    msg.classList.add("error"); 
+    return;
   }
   if(tipo==="Compra" && total>usuarioAtual.saldo){
     msg.textContent="Saldo insuficiente para essa compra.";
@@ -1045,13 +1132,13 @@ function executarOperacao(){
     aplicarParcial(ordem, ordem.qtd, valor);
     extrato.unshift({ ...ordem, price: valor, total: ordem.qtd*valor });
 
-    // mensagem neutra (sem “saldo negativo” indevido)
-    msg.textContent = "Ordem executada.";
+    msg.textContent = `Ordem executada com sucesso! ${qtd} ações de ${ativo} por R$ ${valor.toFixed(2)}.`;
     msg.classList.remove("error");
-    msg.classList.add(usuarioAtual.saldo >= 0 ? "success" : "error");
+    msg.classList.add("success");
   } else {
-    msg.textContent="Ordem aceita. Aguardando preenchimentos.";
+    msg.textContent=`Ordem aceita! ${qtd} ações de ${ativo} por R$ ${valor.toFixed(2)}. Aguardando execução no mercado.`;
     msg.classList.remove("error","success");
+    msg.classList.add("info");
   }
 
   ordens.unshift(ordem);
@@ -1097,20 +1184,27 @@ function atualizarOrdens(){
     const filledPct = o.qtd ? Math.round((o.filled || 0) / o.qtd * 100) : 0;
     const podeCancelar = o.status === "Aceita" || (String(o.status).startsWith("Parcial") && (o.filled||0) < o.qtd);
 
-    t.insertAdjacentHTML("beforeend", `
-      <tr>
-        <td>${o.id}</td>
-        <td>${o.tipo}</td>
-        <td>${o.ativo}</td>
-        <td>${o.qtd}</td>
-        <td>${(+o.valor).toFixed(2)}</td>
-        <td>${filledPct}%</td>
-        <td>${escapeHTML(o.status)}</td>
-        <td>
-          ${podeCancelar ? `<button class="btn sm" onclick="cancelarOrdem(${o.id})">Cancelar</button>` : `—`}
-        </td>
-      </tr>
-    `);
+          // Determinar a classe CSS baseada no status
+      let statusClass = '';
+      if(o.status === 'Executada') statusClass = 'success';
+      else if(o.status === 'Cancelada') statusClass = 'error';
+      else if(o.status.startsWith('Parcial')) statusClass = 'warning';
+      else statusClass = 'info';
+
+      t.insertAdjacentHTML("beforeend", `
+        <tr class="${statusClass}">
+          <td>${o.id}</td>
+          <td>${o.tipo}</td>
+          <td>${o.ativo}</td>
+          <td>${o.qtd}</td>
+          <td>${(+o.valor).toFixed(2)}</td>
+          <td>${filledPct}%</td>
+          <td>${escapeHTML(o.status)}${o.motivo ? ` (${o.motivo})` : ''}</td>
+          <td>
+            ${podeCancelar ? `<button class="btn sm" onclick="cancelarOrdem(${o.id})">Cancelar</button>` : `—`}
+          </td>
+        </tr>
+      `);
   });
 }
 
@@ -1229,10 +1323,25 @@ function startRtChart(){
 /* ========= ENGINE ========= */
 setInterval(()=>{
   for (let k in ativosB3){ ativosB3[k] = parseFloat((ativosB3[k] + 0.01).toFixed(2)); }
-  if(usuarioAtual){
-    ordens.forEach(o=>{
-      if(o.status==="Aceita" || o.status.startsWith("Parcial")){
-        if(Math.random() < 0.6){
+      if(usuarioAtual){
+      ordens.forEach(o=>{
+        if(o.status==="Aceita" || o.status.startsWith("Parcial")){
+          // Verificar se a quantidade é válida
+          if(o.qtd < 100 || o.qtd % 100 !== 0){
+            o.status = "Cancelada";
+            o.motivo = "Quantidade inválida";
+            return; // Usar return em vez de continue
+          }
+          
+          // Verificar se o valor é válido
+          if(!o.valor || o.valor <= 0){
+            o.status = "Cancelada";
+            o.motivo = "Valor inválido";
+            return; // Usar return em vez de continue
+          }
+          
+          // Processar apenas ordens válidas
+          if(Math.random() < 0.6){
           const restante = o.qtd - o.filled;
           const chunk = Math.max(0, Math.min(restante, Math.round(o.qtd * (0.2 + Math.random()*0.25))));
           if(chunk>0){
@@ -1631,6 +1740,9 @@ window.abrirBaixar=abrirBaixar;
 window.voltarPortal=voltarPortal;
 window.abrirMinhaConta=abrirMinhaConta;
 window.abrirAlterarSenha=abrirAlterarSenha;
+window.editarCampo=editarCampo;
+window.resetarCamposMinhaConta=resetarCamposMinhaConta;
+window.validarCampoMinhaConta=validarCampoMinhaConta;
 window.showModal=showModal;
 window.hideModal=hideModal;
 window.validarCPF=validarCPF;
@@ -1645,6 +1757,7 @@ window.moverAtivosCarousel=moverAtivosCarousel;
 window.toggleFavorito=toggleFavorito;
 window.toggleFavoritos=toggleFavoritos;
 window.montarBook=montarBook;
+window.preencherBoleta=preencherBoleta;
 window.abrirIndicadores=abrirIndicadores;
 window.abrirNiveis=abrirNiveis;
 window.abrirPadroes=abrirPadroes;
@@ -2663,4 +2776,108 @@ function atualizarRankingSetores() {
     `;
     container.appendChild(div);
   });
+}
+
+// ========= FUNÇÃO PREENCHER BOLETA =========
+function preencherBoleta(ativo) {
+  if($("#ativo")) $("#ativo").value = ativo;
+  if($("#valor")) $("#valor").value = ativosB3[ativo].toFixed(2);
+  const m=$("#mensagem"); 
+  if(m){ 
+    m.className="msg-inline"; 
+    m.textContent="Ativo selecionado! Preencha a quantidade e confirme a ordem."; 
+  }
+}
+
+// ========= FUNÇÕES DO MODAL MINHA CONTA =========
+// Função para resetar campos para modo de visualização
+function resetarCamposMinhaConta(){
+  const campos = ['mcNome', 'mcEmail', 'mcZap'];
+  
+  campos.forEach(campoId => {
+    const campo = document.getElementById(campoId);
+    const errorDiv = document.getElementById(campoId + 'Error');
+    
+    if(campo) {
+      campo.readOnly = true;
+      campo.style.background = '#0b1320';
+      campo.style.borderColor = 'var(--grid)';
+      campo.style.color = 'var(--muted)';
+    }
+    
+    if(errorDiv) {
+      errorDiv.style.display = 'none';
+      errorDiv.textContent = '';
+    }
+  });
+}
+
+// Função para editar um campo específico
+function editarCampo(campoId){
+  const campo = document.getElementById(campoId);
+  const errorDiv = document.getElementById(campoId + 'Error');
+  const btnSalvar = document.getElementById("btnSalvarConta");
+  
+  if(!campo) return;
+  
+  // Habilita edição do campo
+  campo.readOnly = false;
+  campo.style.background = '#0f1821';
+  campo.style.borderColor = 'var(--royal)';
+  campo.style.color = 'var(--ink)';
+  campo.focus();
+  
+  // Limpa mensagem de erro
+  if(errorDiv) {
+    errorDiv.style.display = 'none';
+    errorDiv.textContent = '';
+  }
+  
+  // Mostra botão de salvar
+  if(btnSalvar) btnSalvar.style.display = 'block';
+  
+  // Adiciona validação em tempo real
+  campo.addEventListener('input', function() {
+    validarCampoMinhaConta(campoId, this.value);
+  });
+}
+
+// Função para validar campo específico
+function validarCampoMinhaConta(campoId, valor){
+  const errorDiv = document.getElementById(campoId + 'Error');
+  let valido = true;
+  let mensagem = '';
+  
+  switch(campoId) {
+    case 'mcNome':
+      const validacaoNome = validarNomeCompleto(valor);
+      valido = validacaoNome.valido;
+      mensagem = validacaoNome.mensagem;
+      break;
+      
+    case 'mcEmail':
+      const validacaoEmail = validarEmail(valor);
+      valido = validacaoEmail.valido;
+      mensagem = validacaoEmail.mensagem;
+      break;
+      
+    case 'mcZap':
+      const validacaoTelefone = validarTelefone(valor);
+      valido = validacaoTelefone.valido;
+      mensagem = validacaoTelefone.mensagem;
+      break;
+  }
+  
+  if(errorDiv) {
+    if(!valido && valor.trim()) {
+      errorDiv.textContent = mensagem;
+      errorDiv.style.display = 'block';
+      errorDiv.classList.add('show');
+    } else {
+      errorDiv.style.display = 'none';
+      errorDiv.classList.remove('show');
+    }
+  }
+  
+  return valido;
 }

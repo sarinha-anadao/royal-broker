@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Teste Watchlist - Royal Broker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body class="portal">
+  <header class="topbar">
+    <div class="brand" onclick="goTo('landing')">
+      <img src="img/royal-logo.png" alt="Royal Broker" class="brand-logo">
+      <div class="brand-stack">
+        <span class="brand-royal">ROYAL</span>
+        <span class="brand-broker">BROKER</span>
+      </div>
+    </div>
+    <nav class="main-nav">
+      <a class="navlink" href="#dashboard">Dashboard</a>
+      <a class="navlink" href="#carteira">Carteira</a>
+      <a class="navlink" href="#book">Book</a>
+    </nav>
+    <div class="nav-cta">
+      <button class="btn-dark-mode" onclick="toggleDarkMode()" id="darkModeBtn">
+        <span id="darkModeIcon">☀️</span>
+      </button>
+      <button class="btn-turq small" onclick="logout()">Sair</button>
+    </div>
+  </header>
+
+  <div class="portal-container">
+    <div class="container">
+      <h1>🧪 Teste do Watchlist Favoritos</h1>
+      
+      <!-- SEÇÃO DE FAVORITOS MELHORADA -->
+      <section class="panel panel-royal-outline" id="favoritosPanel">
+        <div class="panel-flex">
+          <h3 class="panel-title sparkle">⭐ Watchlist Favoritos</h3>
+          <div class="favoritos-controls">
+            <span class="favoritos-count" id="favoritosCount">0 ativos</span>
+            <button class="btn-turq small" onclick="toggleFavoritosView()" id="btnToggleFavoritos">
+              <span id="toggleIcon">📊</span> Alternar Visualização
+            </button>
+          </div>
+        </div>
+        
+        <div id="favoritosContainer" class="favoritos-container">
+          <div id="favoritosGrid" class="favoritos-grid-view">
+            <!-- Grid será preenchido via JavaScript -->
+          </div>
+          
+          <div id="favoritosTable" class="favoritos-table-view" style="display: none;">
+            <table class="rb-table with-hover">
+              <thead>
+                <tr>
+                  <th>Logo</th>
+                  <th>Ativo</th>
+                  <th>Preço Atual</th>
+                  <th>Variação</th>
+                  <th>Volume</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="favoritosTableBody">
+                <!-- Tabela será preenchida via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+          
+          <div id="favoritosEmpty" class="favoritos-empty" style="display: none;">
+            <div class="empty-state">
+              <div class="empty-icon">⭐</div>
+              <h4>Nenhum ativo favoritado</h4>
+              <p>Clique nas estrelas no Book de Ofertas para adicionar ativos aos seus favoritos</p>
+              <button class="btn-turq" onclick="irParaBook()">Ver Book de Ofertas</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- BOOK DE OFERTAS PARA TESTE -->
+      <section class="panel panel-royal-outline">
+        <div class="panel-flex">
+          <h3 class="panel-title center">Book de Ofertas</h3>
+          <div class="book-controls">
+            <button class="btn-turq small" onclick="toggleFavoritosFilter()" id="btnFavoritosFilter">
+              <span id="filterIcon">⭐</span> Apenas Favoritos
+            </button>
+          </div>
+        </div>
+
+        <div class="scrollable">
+          <table id="book" class="rb-table with-hover">
+            <thead><tr><th>Favorito</th><th>Logo</th><th>Ativo</th><th>Preço Atual (R$)</th><th>Variação</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="muted tip">Clique na estrela para favoritar. Teste o novo watchlist!</div>
+      </section>
+
+      <!-- BOLETA PARA TESTE -->
+      <section class="panel panel-royal-outline">
+        <h3 class="panel-title sparkle">Boleta de Compra e Venda</h3>
+        <div class="boleta-container">
+          <div class="boleta-row">
+            <label>Tipo de Operação
+              <select id="tipo" class="rb-input input-royal-focus">
+                <option>Compra</option><option>Venda</option>
+              </select>
+            </label>
+            
+            <label>Ativo
+              <select id="ativo" class="rb-input input-royal-focus"></select>
+            </label>
+          </div>
+
+          <div class="boleta-row">
+            <label>Quantidade (múltiplos de 100)
+              <input
+                type="number"
+                id="quantidade"
+                class="rb-input input-royal-focus"
+                placeholder="100, 200, 300..."
+                autocomplete="off"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                min="100"
+                step="100"
+              />
+            </label>
+
+            <label>Valor por lote (R$)
+              <input
+                type="number"
+                id="valor"
+                class="rb-input input-royal-focus"
+                placeholder="0,00"
+                autocomplete="off"
+                inputmode="decimal"
+                step="0.01"
+              />
+            </label>
+          </div>
+
+          <div class="boleta-actions">
+            <button class="btn-royal" onclick="executarOperacao()">Enviar Ordem</button>
+            <button class="btn-turq ghost" onclick="limparBoleta()">Limpar</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONTROLES DE TESTE -->
+      <section class="panel panel-royal-outline">
+        <h3 class="panel-title">🧪 Controles de Teste</h3>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <button class="btn-turq" onclick="adicionarFavoritosTeste()">Adicionar Favoritos de Teste</button>
+          <button class="btn-royal" onclick="limparFavoritos()">Limpar Todos os Favoritos</button>
+          <button class="btn-json" onclick="mostrarFavoritosLocalStorage()">Ver Favoritos no localStorage</button>
+          <button class="btn-pdf" onclick="voltarPortal()">Voltar ao Portal</button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    // Funções de teste específicas
+    function adicionarFavoritosTeste() {
+      const ativosTeste = ['PETR4', 'VALE3', 'ITUB4', 'BBAS3', 'ABEV3'];
+      ativosTeste.forEach(ativo => {
+        if (!favoritos.includes(ativo)) {
+          favoritos.push(ativo);
+        }
+      });
+      localStorage.setItem('royal_favoritos', JSON.stringify(favoritos));
+      atualizarWatchlist();
+      montarBook();
+      alert('Favoritos de teste adicionados!');
+    }
+
+    function limparFavoritos() {
+      favoritos = [];
+      localStorage.setItem('royal_favoritos', JSON.stringify(favoritos));
+      atualizarWatchlist();
+      montarBook();
+      alert('Todos os favoritos foram removidos!');
+    }
+
+    function mostrarFavoritosLocalStorage() {
+      const favoritosLS = localStorage.getItem('royal_favoritos');
+      alert(`Favoritos no localStorage: ${favoritosLS || '[]'}`);
+    }
+
+    // Inicializar quando a página carregar
+    document.addEventListener('DOMContentLoaded', function() {
+      // Simular dados de ativos para teste
+      if (typeof ativosB3 === 'undefined') {
+        window.ativosB3 = {
+          'PETR4': 32.50,
+          'VALE3': 68.90,
+          'ITUB4': 28.75,
+          'BBAS3': 55.20,
+          'ABEV3': 12.80,
+          'LREN3': 18.45,
+          'MGLU3': 2.15,
+          'BBDC4': 15.30
+        };
+      }
+
+      if (typeof logos === 'undefined') {
+        window.logos = {
+          'PETR4': 'img/petr4.png',
+          'VALE3': 'img/vale3.png',
+          'ITUB4': 'img/itub4.png',
+          'BBAS3': 'img/bbas3.png',
+          'ABEV3': 'img/abev3.png',
+          'LREN3': 'img/lren3.png',
+          'MGLU3': 'img/mglu3.png',
+          'BBDC4': 'img/bbdc4.png'
+        };
+      }
+
+      // Inicializar funcionalidades
+      setTimeout(() => {
+        inicializarWatchlist();
+        montarBook();
+      }, 500);
+    });
+  </script>
+</body>
+</html>

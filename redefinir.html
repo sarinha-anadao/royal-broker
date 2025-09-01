@@ -2,95 +2,72 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <title>Redefinir Senha — Royal Broker</title>
+  <title>Recuperar Senha — Royal Broker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="style.css"/>
-  <style>
-    .senha-regras {
-      margin-top: 10px;
-      font-size: 12px;
-    }
-    .senha-regra {
-      margin: 2px 0;
-      transition: color 0.3s;
-    }
-    .senha-regra.valida {
-      color: #39d98a;
-    }
-    .senha-regra.invalida {
-      color: #ff6b6b;
-    }
-  </style>
 </head>
 <body class="login-body">
   <main class="login-center">
     <div class="login-card cascade login-compact hover-expand">
       <a class="close-x in-card" href="login.html" onclick="navegarPara('login.html')" aria-label="Voltar ao login">×</a>
       <img src="img/royal-logo.png" alt="Royal Broker" class="login-logo small">
-      <h2 class="rb-login-title rb-gold-strong">REDEFINIR SENHA</h2>
-      <form onsubmit="event.preventDefault(); salvarNovaSenha();" class="rb-form lefted single-col">
-        <label>Nova senha
-          <input type="password" id="novaSenhaRec" class="rb-input input-royal-focus" placeholder="mín. 8 caracteres" required oninput="validarCampoSenhaRec(this)">
-          <div class="senha-regras" id="senhaRegrasRec">
-            <div class="senha-regra invalida" id="regraTamanhoRec">• Mínimo 8 e máximo 12 caracteres</div>
-            <div class="senha-regra invalida" id="regraMinusculaRec">• Pelo menos 1 letra minúscula</div>
-            <div class="senha-regra invalida" id="regraMaiusculaRec">• Pelo menos 1 letra maiúscula</div>
-            <div class="senha-regra invalida" id="regraNumeroRec">• Pelo menos 1 número</div>
-            <div class="senha-regra invalida" id="regraEspecialRec">• Pelo menos 1 caractere especial (!@#$%^&*)</div>
-          </div>
+      <h2 class="rb-login-title rb-gold-strong">RECUPERAR SENHA</h2>
+      <form onsubmit="event.preventDefault(); recuperarSenha();" class="rb-form lefted single-col">
+        <label>CPF
+          <input type="text" id="recCpf" class="rb-input input-royal-focus" placeholder="Digite seu CPF" required onblur="validarCampoCPFRec(this)">
+          <small class="hint" id="cpfHintRec"></small>
         </label>
-        <label>Confirmar senha
-          <input type="password" id="confirmarSenhaRec" class="rb-input input-royal-focus" placeholder="repita a senha" required oninput="validarConfirmacaoSenhaRec(this)">
-          <small class="hint" id="confSenhaHintRec"></small>
+        <label>E-mail cadastrado
+          <input type="email" id="recEmail" class="rb-input input-royal-focus" placeholder="Digite seu e-mail cadastrado" required onblur="validarCampoEmailRec(this)">
+          <small class="hint" id="emailHintRec"></small>
         </label>
-        <div class="hint">Não é permitido reutilizar nenhuma das <strong>últimas 4 senhas</strong>.</div>
-        <button class="btn-royal rb-enter" type="submit">Salvar nova senha</button>
+        <button class="btn-gold rb-enter" type="submit">Enviar instruções</button>
       </form>
-      <div id="msgRedefinicao" class="error" role="alert"></div>
+      <p class="rb-bottom"><a class="navy" href="login.html">Voltar ao login</a></p>
+      <div id="recMsg" class="error" role="alert"></div>
     </div>
   </main>
   <script src="script.js"></script>
   <script>
-    // Validação em tempo real para senha na redefinição
-    function validarCampoSenhaRec(campo) {
-      const senha = campo.value;
-      const validacao = validarSenha(senha);
+    // Validação em tempo real para CPF na recuperação
+    function validarCampoCPFRec(campo) {
+      const cpf = campo.value;
+      const hint = document.getElementById('cpfHintRec');
       
-      // Atualiza as regras visuais
-      document.getElementById('regraTamanhoRec').className = `senha-regra ${validacao.regras.tamanho ? 'valida' : 'invalida'}`;
-      document.getElementById('regraMinusculaRec').className = `senha-regra ${validacao.regras.minuscula ? 'valida' : 'invalida'}`;
-      document.getElementById('regraMaiusculaRec').className = `senha-regra ${validacao.regras.maiuscula ? 'valida' : 'invalida'}`;
-      document.getElementById('regraNumeroRec').className = `senha-regra ${validacao.regras.numero ? 'valida' : 'invalida'}`;
-      document.getElementById('regraEspecialRec').className = `senha-regra ${validacao.regras.especial ? 'valida' : 'invalida'}`;
-      
-      // Atualiza a cor da borda do campo
-      if (validacao.valido) {
-        campo.style.borderColor = '#39d98a';
-      } else {
-        campo.style.borderColor = '#ff6b6b';
-      }
-      
-      // Valida confirmação de senha se houver
-      validarConfirmacaoSenhaRec(document.getElementById('confirmarSenhaRec'));
-    }
-    
-    // Validação de confirmação de senha na redefinição
-    function validarConfirmacaoSenhaRec(campo) {
-      const senha = document.getElementById('novaSenhaRec').value;
-      const confSenha = campo.value;
-      const hint = document.getElementById('confSenhaHintRec');
-      
-      if (!confSenha) {
+      if (!cpf) {
         hint.textContent = '';
         return;
       }
       
-      if (senha === confSenha) {
-        hint.textContent = '✓ Senhas coincidem';
+      const validacao = validarCPF(cpf);
+      if (validacao.valido) {
+        hint.textContent = '✓ CPF válido';
         hint.style.color = '#39d98a';
         campo.style.borderColor = '#39d98a';
       } else {
-        hint.textContent = '✗ As senhas não coincidem';
+        hint.textContent = '✗ ' + validacao.mensagem;
+        hint.style.color = '#ff6b6b';
+        campo.style.borderColor = '#ff6b6b';
+      }
+    }
+    
+    // Validação em tempo real para e-mail na recuperação
+    function validarCampoEmailRec(campo) {
+      const email = campo.value;
+      const hint = document.getElementById('emailHintRec');
+      
+      if (!email) {
+        hint.textContent = '';
+        return;
+      }
+      
+      const validacao = validarEmail(email);
+      if (validacao.valido) {
+        hint.textContent = '✓ E-mail válido';
+        hint.style.color = '#39d98a';
+        campo.style.borderColor = '#39d98a';
+      } else {
+        hint.textContent = '✗ ' + validacao.mensagem;
         hint.style.color = '#ff6b6b';
         campo.style.borderColor = '#ff6b6b';
       }

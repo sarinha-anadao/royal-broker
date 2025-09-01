@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Debug Index - Royal Broker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body class="home">
+  <div class="container">
+    <h1>Debug Index</h1>
+    
+    <!-- Teste do Gráfico -->
+    <section>
+      <h2>Teste do Gráfico</h2>
+      <canvas id="canvasHero" width="460" height="240" aria-label="Crescimento por classe e meses"></canvas>
+    </section>
+    
+    <!-- Teste do Carrossel -->
+    <section>
+      <h2>Teste do Carrossel de Ativos</h2>
+      <div class="ativos-carousel">
+        <div class="carousel-container">
+          <div class="carousel-track" id="ativosCarousel">
+            <!-- Ativos serão inseridos via JavaScript -->
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Teste das Histórias -->
+    <section>
+      <h2>Teste das Histórias de Crescimento</h2>
+      <div class="stories-carousel">
+        <button class="carousel-btn prev" onclick="moverCarrossel(-1)">‹</button>
+        <div class="stories-container">
+          <div class="stories-wrap" id="storiesWrap"></div>
+        </div>
+        <button class="carousel-btn next" onclick="moverCarrossel(1)">›</button>
+      </div>
+      <div class="carousel-dots" id="carouselDots"></div>
+    </section>
+    
+    <!-- Teste do Ranking -->
+    <section>
+      <h2>Teste do Ranking do Dia</h2>
+      <div class="ranking-grid">
+        <div class="ranking-card gainers">
+          <h3 class="ranking-title">📈 Maiores Altas</h3>
+          <div id="topGainers" class="ranking-list"></div>
+        </div>
+        <div class="ranking-card losers">
+          <h3 class="ranking-title">📉 Maiores Quedas</h3>
+          <div id="topLosers" class="ranking-list"></div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Teste das Notícias -->
+    <section>
+      <h2>Teste das Últimas Notícias</h2>
+      <div id="newsFeed" class="news-feed"></div>
+    </section>
+    
+    <!-- Teste da Performance -->
+    <section>
+      <h2>Teste da Performance por Setor</h2>
+      <div id="rankingSetores" class="setores-grid"></div>
+    </section>
+    
+    <!-- Teste do Login -->
+    <section>
+      <h2>Teste do Login</h2>
+      <a class="btn-turq small expand" href="login.html">Login</a>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    // Debug das funções
+    console.log('Debug iniciado');
+    
+    // Verificar se as funções existem
+    console.log('montarTicker existe:', typeof montarTicker);
+    console.log('buildCarousel existe:', typeof buildCarousel);
+    console.log('buildStories existe:', typeof buildStories);
+    console.log('countUp existe:', typeof countUp);
+    console.log('atualizarRanking existe:', typeof atualizarRanking);
+    console.log('atualizarNewsFeed existe:', typeof atualizarNewsFeed);
+    console.log('atualizarRankingSetores existe:', typeof atualizarRankingSetores);
+    
+    // Testar as funções
+    setTimeout(() => {
+      console.log('Testando funções...');
+      
+      if (typeof montarTicker === 'function') {
+        console.log('Chamando montarTicker...');
+        montarTicker();
+      }
+      
+      if (typeof buildCarousel === 'function') {
+        console.log('Chamando buildCarousel...');
+        buildCarousel();
+      }
+      
+      if (typeof buildStories === 'function') {
+        console.log('Chamando buildStories...');
+        buildStories();
+      }
+      
+      if (typeof countUp === 'function') {
+        console.log('Chamando countUp...');
+        countUp();
+      }
+      
+      if (typeof atualizarRanking === 'function') {
+        console.log('Chamando atualizarRanking...');
+        atualizarRanking();
+      }
+      
+      if (typeof atualizarNewsFeed === 'function') {
+        console.log('Chamando atualizarNewsFeed...');
+        atualizarNewsFeed();
+      }
+      
+      if (typeof atualizarRankingSetores === 'function') {
+        console.log('Chamando atualizarRankingSetores...');
+        atualizarRankingSetores();
+      }
+      
+      console.log('Testes concluídos');
+    }, 1000);
+  </script>
+</body>
+</html>
+

@@ -176,7 +176,11 @@
               autocomplete="off"
               inputmode="numeric"
               pattern="[0-9]*"
+              min="100"
+              step="100"
+              oninput="validarQuantidadeBoleta(this)"
             />
+            <small class="hint" id="quantidadeHint"></small>
           </label>
 
           <label>Valor por lote (R$)
@@ -199,6 +203,45 @@
       </div>
       <div id="mensagem" class="msg-inline"></div>
     </section>
+
+    <script>
+      // Validação em tempo real para quantidade da boleta
+      function validarQuantidadeBoleta(campo) {
+        const quantidade = parseInt(campo.value);
+        const hint = document.getElementById('quantidadeHint');
+        
+        if (!campo.value) {
+          hint.textContent = '';
+          campo.style.borderColor = '';
+          return;
+        }
+        
+        if (isNaN(quantidade) || quantidade <= 0) {
+          hint.textContent = '✗ Quantidade deve ser um número maior que zero';
+          hint.style.color = '#ff6b6b';
+          campo.style.borderColor = '#ff6b6b';
+          return;
+        }
+        
+        if (quantidade < 100) {
+          hint.textContent = '✗ Quantidade mínima é 100 ações';
+          hint.style.color = '#ff6b6b';
+          campo.style.borderColor = '#ff6b6b';
+          return;
+        }
+        
+        if (quantidade % 100 !== 0) {
+          hint.textContent = '✗ Quantidade deve ser múltipla de 100';
+          hint.style.color = '#ff6b6b';
+          campo.style.borderColor = '#ff6b6b';
+          return;
+        }
+        
+        hint.textContent = '✓ Quantidade válida';
+        hint.style.color = '#39d98a';
+        campo.style.borderColor = '#39d98a';
+      }
+    </script>
 
     <!-- EXTRATO -->
     <section class="panel panel-royal-outline" id="sec-extrato">
@@ -335,15 +378,27 @@
     <div class="modal-body">
       <form class="rb-form lefted single-col" onsubmit="event.preventDefault(); salvarMinhaConta();" autocomplete="on">
         <label>Nome completo
-          <input type="text" id="mcNome" class="rb-input input-royal-focus" placeholder="Seu nome" autocomplete="name">
+          <div class="field-with-edit">
+            <input type="text" id="mcNome" class="rb-input input-royal-focus" placeholder="Seu nome" autocomplete="name" readonly>
+            <button type="button" class="edit-btn" onclick="editarCampo('mcNome')" title="Editar nome">✏️</button>
+          </div>
+          <div id="mcNomeError" class="error" style="display: none;"></div>
         </label>
 
         <label>E-mail
-          <input type="email" id="mcEmail" class="rb-input input-royal-focus" placeholder="Seu e-mail" autocomplete="email">
+          <div class="field-with-edit">
+            <input type="email" id="mcEmail" class="rb-input input-royal-focus" placeholder="Seu e-mail" autocomplete="email" readonly>
+            <button type="button" class="edit-btn" onclick="editarCampo('mcEmail')" title="Editar e-mail">✏️</button>
+          </div>
+          <div id="mcEmailError" class="error" style="display: none;"></div>
         </label>
 
         <label>WhatsApp
-          <input type="text" id="mcZap" class="rb-input input-royal-focus" placeholder="Seu celular (DDD)" autocomplete="tel" inputmode="tel" pattern="[0-9\\s()+-]*">
+          <div class="field-with-edit">
+            <input type="text" id="mcZap" class="rb-input input-royal-focus" placeholder="Seu celular (DDD)" autocomplete="tel" inputmode="tel" readonly>
+            <button type="button" class="edit-btn" onclick="editarCampo('mcZap')" title="Editar WhatsApp">✏️</button>
+          </div>
+          <div id="mcZapError" class="error" style="display: none;"></div>
         </label>
 
         <label>CPF
@@ -354,7 +409,7 @@
           <input type="text" id="mcPlano" class="rb-input input-royal-focus" readonly>
         </label>
 
-        <button class="btn-royal" type="submit">Salvar Alterações</button>
+        <button class="btn-royal" type="submit" id="btnSalvarConta" style="display: none;">Salvar Alterações</button>
         <div id="contaMsg" class="success"></div>
       </form>
     </div>

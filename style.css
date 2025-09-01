@@ -234,10 +234,163 @@ select{background:#0f1821 !important; color:var(--ink) !important}
 .portal-container{padding-top:16px}
 .panel-flex{display:flex; align-items:center; justify-content:space-between; gap:12px}
 .book-controls{display:flex; gap:8px; align-items:center}
-.favorito-btn{background:none; border:none; cursor:pointer; font-size:18px; padding:4px; border-radius:6px; transition:all 0.3s ease}
-.favorito-btn:hover{transform:scale(1.2)}
-.favorito-btn.favoritado{color:var(--gold); text-shadow:0 0 8px rgba(255,194,77,0.5)}
-.favorito-btn.nao-favoritado{color:var(--muted); opacity:0.6}
+.favorito-btn{
+  background: none; 
+  border: none; 
+  cursor: pointer; 
+  font-size: 18px; 
+  padding: 6px; 
+  border-radius: 6px; 
+  transition: all 0.3s ease;
+  min-width: 32px;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 10;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.favorito-btn:hover{
+  transform: scale(1.2);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.favorito-btn:active{
+  transform: scale(0.95);
+}
+
+.favorito-btn.favoritado{
+  color: var(--gold); 
+  text-shadow: 0 0 8px rgba(255,194,77,0.5);
+  opacity: 1;
+}
+
+.favorito-btn.nao-favoritado{
+  color: var(--muted); 
+  opacity: 0.7;
+}
+
+.favorito-btn.nao-favoritado:hover{
+  opacity: 1;
+  color: var(--gold);
+}
+
+/* Garantir que os botões de favorito sejam sempre visíveis na tabela */
+#book .favorito-btn {
+  position: relative !important;
+  z-index: 1000 !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: flex !important;
+  background: none !important;
+  border: none !important;
+  cursor: pointer !important;
+  font-size: 18px !important;
+  padding: 6px !important;
+  border-radius: 6px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+#book td:first-child {
+  position: relative;
+  z-index: 50;
+  min-width: 50px;
+}
+
+/* Prevenir que outros elementos sobreponham os botões */
+#book tr:hover .favorito-btn {
+  z-index: 2000 !important;
+}
+
+/* Garantir que a primeira coluna seja sempre visível */
+#book th:first-child,
+#book td:first-child {
+  position: sticky;
+  left: 0;
+  background: var(--bg);
+  z-index: 100;
+}
+
+/* Notificação de favorito */
+.notificacao-favorito {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, var(--royal) 0%, var(--royal-2) 100%);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 10000;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.notificacao-favorito.show {
+  transform: translateX(0);
+}
+
+.notificacao-favorito span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Estilos para mensagens de validação */
+.hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+  display: block;
+  transition: all 0.3s ease;
+}
+
+.hint.error {
+  color: #ff6b6b;
+}
+
+.hint.success {
+  color: #39d98a;
+}
+
+/* Estilos para mensagens da boleta */
+.msg-inline.info {
+  color: #3fd0ff;
+  background: rgba(63, 208, 255, 0.1);
+  border: 1px solid #3fd0ff;
+}
+
+/* Estilos para status das ordens */
+#ordens tr.success {
+  background: rgba(57, 217, 138, 0.1);
+  border-left: 3px solid #39d98a;
+}
+
+#ordens tr.error {
+  background: rgba(255, 107, 107, 0.1);
+  border-left: 3px solid #ff6b6b;
+}
+
+#ordens tr.warning {
+  background: rgba(255, 210, 97, 0.1);
+  border-left: 3px solid #ffd261;
+}
+
+#ordens tr.info {
+  background: rgba(63, 208, 255, 0.1);
+  border-left: 3px solid #3fd0ff;
+}
 .panel-tools{display:flex; align-items:center; gap:8px}
 .export-bar{display:flex; gap:8px}
 .rt-canvas{width:100%; display:block; border:1px solid var(--grid); border-radius:12px; background:#0b1b26}
@@ -425,6 +578,74 @@ select{background:#0f1821 !important; color:var(--ink) !important}
 #modalConta .rb-form.lefted label{ width:100%; }
 #modalConta .rb-form .rb-input{ width:100%; }
 #contaMsg{ margin-top:6px; text-align:center; font-weight:800; }
+
+/* Estilos para campos com botão de edição */
+.field-with-edit{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.field-with-edit .rb-input{
+  flex: 1;
+  background: #0b1320;
+  border: 1px solid var(--grid);
+  color: var(--muted);
+  transition: all 0.2s ease;
+}
+
+.field-with-edit .rb-input:focus{
+  background: #0f1821;
+  border-color: var(--royal);
+  color: var(--ink);
+}
+
+.field-with-edit .rb-input[readonly]{
+  background: #0b1320;
+  border-color: var(--grid);
+  color: var(--muted);
+  cursor: default;
+}
+
+.edit-btn{
+  background: transparent;
+  border: 1px solid var(--grid);
+  color: var(--muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.edit-btn:hover{
+  background: rgba(46, 120, 255, 0.1);
+  border-color: var(--royal);
+  color: var(--royal-bright);
+}
+
+.edit-btn:active{
+  transform: scale(0.95);
+}
+
+/* Mensagens de erro para campos específicos */
+#modalConta .error{
+  color: var(--red);
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: 600;
+  display: none;
+}
+
+#modalConta .error.show{
+  display: block;
+}
 
 /* KV original (mantido se você ainda usar cards) */
 .kv{ display:grid; grid-template-columns:1fr; gap:10px }

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Teste de Funções - Royal Broker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body class="home">
+  <div class="container">
+    <h1>Teste de Funções - Royal Broker</h1>
+    
+    <div id="resultados" style="background: #0f1821; padding: 20px; border-radius: 10px; margin: 20px 0;">
+      <h3>Status das Funções:</h3>
+      <div id="status"></div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+      <!-- Teste do Gráfico -->
+      <div style="background: #0f1821; padding: 20px; border-radius: 10px;">
+        <h3>Teste do Gráfico</h3>
+        <canvas id="canvasHero" width="300" height="150"></canvas>
+        <button onclick="testarGrafico()" class="btn-turq">Testar Gráfico</button>
+      </div>
+      
+      <!-- Teste do Carrossel -->
+      <div style="background: #0f1821; padding: 20px; border-radius: 10px;">
+        <h3>Teste do Carrossel</h3>
+        <div id="ativosCarousel" style="height: 100px; background: #1a2f3d; border-radius: 5px; display: flex; align-items: center; justify-content: center; color: #7aa6c2;">
+          Carrossel será inserido aqui
+        </div>
+        <button onclick="testarCarrossel()" class="btn-turq">Testar Carrossel</button>
+      </div>
+      
+      <!-- Teste das Histórias -->
+      <div style="background: #0f1821; padding: 20px; border-radius: 10px;">
+        <h3>Teste das Histórias</h3>
+        <div id="storiesWrap" style="height: 100px; background: #1a2f3d; border-radius: 5px; display: flex; align-items: center; justify-content: center; color: #7aa6c2;">
+          Histórias serão inseridas aqui
+        </div>
+        <button onclick="testarHistorias()" class="btn-turq">Testar Histórias</button>
+      </div>
+      
+      <!-- Teste do Ranking -->
+      <div style="background: #0f1821; padding: 20px; border-radius: 10px;">
+        <h3>Teste do Ranking</h3>
+        <div id="topGainers" style="height: 100px; background: #1a2f3d; border-radius: 5px; display: flex; align-items: center; justify-content: center; color: #7aa6c2;">
+          Ranking será inserido aqui
+        </div>
+        <button onclick="testarRanking()" class="btn-turq">Testar Ranking</button>
+      </div>
+      
+      <!-- Teste das Notícias -->
+      <div style="background: #0f1821; padding: 20px; border-radius: 10px;">
+        <h3>Teste das Notícias</h3>
+        <div id="newsFeed" style="height: 100px; background: #1a2f3d; border-radius: 5px; display: flex; align-items: center; justify-content: center; color: #7aa6c2;">
+          Notícias serão inseridas aqui
+        </div>
+        <button onclick="testarNoticias()" class="btn-turq">Testar Notícias</button>
+      </div>
+      
+      <!-- Teste da Performance -->
+      <div style="background: #0f1821; padding: 20px; border-radius: 10px;">
+        <h3>Teste da Performance</h3>
+        <div id="rankingSetores" style="height: 100px; background: #1a2f3d; border-radius: 5px; display: flex; align-items: center; justify-content: center; color: #7aa6c2;">
+          Performance será inserida aqui
+        </div>
+        <button onclick="testarPerformance()" class="btn-turq">Testar Performance</button>
+      </div>
+    </div>
+    
+    <!-- Teste do Login -->
+    <div style="background: #0f1821; padding: 20px; border-radius: 10px; margin-top: 20px;">
+      <h3>Teste do Login</h3>
+      <button onclick="testarLogin()" class="btn-turq">Testar Login</button>
+      <a href="login.html" class="btn-royal" style="margin-left: 10px;">Ir para Login</a>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    // Função para verificar se uma função existe
+    function verificarFuncao(nome) {
+      const existe = typeof window[nome] === 'function';
+      return { nome, existe };
+    }
+    
+    // Lista de funções para verificar
+    const funcoesParaVerificar = [
+      'montarTicker',
+      'buildCarousel',
+      'buildStories',
+      'countUp',
+      'atualizarRanking',
+      'atualizarNewsFeed',
+      'atualizarRankingSetores',
+      'criarCarrosselAtivos',
+      'moverAtivosCarousel',
+      'moverCarrossel',
+      'iniciarQuiz',
+      'toggleDarkMode',
+      'goTo',
+      'navegarPara',
+      'loginApp',
+      'toggleSenha',
+      'formatarCPF',
+      'limparCPF',
+      'simularEnvio',
+      'toggleChat',
+      'enviarChat'
+    ];
+    
+    // Verificar todas as funções
+    function verificarTodasFuncoes() {
+      const statusDiv = document.getElementById('status');
+      let html = '';
+      
+      funcoesParaVerificar.forEach(funcao => {
+        const resultado = verificarFuncao(funcao);
+        const status = resultado.existe ? '✅' : '❌';
+        const cor = resultado.existe ? '#39d98a' : '#ff6b6b';
+        html += `<div style="color: ${cor}; margin: 5px 0;">${status} ${resultado.nome}</div>`;
+      });
+      
+      statusDiv.innerHTML = html;
+    }
+    
+    // Funções de teste
+    function testarGrafico() {
+      if (typeof window['montarTicker'] === 'function') {
+        montarTicker();
+        alert('Gráfico testado com sucesso!');
+      } else {
+        alert('Erro: Função montarTicker não encontrada');
+      }
+    }
+    
+    function testarCarrossel() {
+      if (typeof window['buildCarousel'] === 'function') {
+        buildCarousel();
+        alert('Carrossel testado com sucesso!');
+      } else {
+        alert('Erro: Função buildCarousel não encontrada');
+      }
+    }
+    
+    function testarHistorias() {
+      if (typeof window['buildStories'] === 'function') {
+        buildStories();
+        alert('Histórias testadas com sucesso!');
+      } else {
+        alert('Erro: Função buildStories não encontrada');
+      }
+    }
+    
+    function testarRanking() {
+      if (typeof window['atualizarRanking'] === 'function') {
+        atualizarRanking();
+        alert('Ranking testado com sucesso!');
+      } else {
+        alert('Erro: Função atualizarRanking não encontrada');
+      }
+    }
+    
+    function testarNoticias() {
+      if (typeof window['atualizarNewsFeed'] === 'function') {
+        atualizarNewsFeed();
+        alert('Notícias testadas com sucesso!');
+      } else {
+        alert('Erro: Função atualizarNewsFeed não encontrada');
+      }
+    }
+    
+    function testarPerformance() {
+      if (typeof window['atualizarRankingSetores'] === 'function') {
+        atualizarRankingSetores();
+        alert('Performance testada com sucesso!');
+      } else {
+        alert('Erro: Função atualizarRankingSetores não encontrada');
+      }
+    }
+    
+    function testarLogin() {
+      if (typeof window['loginApp'] === 'function') {
+        alert('Função loginApp encontrada!');
+      } else {
+        alert('Erro: Função loginApp não encontrada');
+      }
+    }
+    
+    // Executar verificação quando a página carregar
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Verificando funções...');
+      verificarTodasFuncoes();
+      
+      // Executar funções principais
+      setTimeout(() => {
+        if (typeof montarTicker === 'function') montarTicker();
+        if (typeof buildCarousel === 'function') buildCarousel();
+        if (typeof buildStories === 'function') buildStories();
+        if (typeof countUp === 'function') countUp();
+        if (typeof atualizarRanking === 'function') atualizarRanking();
+        if (typeof atualizarNewsFeed === 'function') atualizarNewsFeed();
+        if (typeof atualizarRankingSetores === 'function') atualizarRankingSetores();
+        if (typeof criarCarrosselAtivos === 'function') criarCarrosselAtivos();
+      }, 1000);
+    });
+  </script>
+</body>
+</html>
+

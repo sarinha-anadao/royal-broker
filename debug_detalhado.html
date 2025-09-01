@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Debug Detalhado</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <div class="container">
+    <h1>Debug Detalhado - Identificação de Problemas</h1>
+    
+    <div class="test-section">
+      <h2>🔍 Verificações Detalhadas</h2>
+      
+      <h3>1. Verificação de Variáveis Globais</h3>
+      <div id="variaveis">
+        <p>Status das variáveis:</p>
+        <ul>
+          <li id="statusAtivosB3">ativosB3: <span>Verificando...</span></li>
+          <li id="statusLogos">logos: <span>Verificando...</span></li>
+          <li id="statusFuncaoDolar">Função $: <span>Verificando...</span></li>
+        </ul>
+      </div>
+      
+      <h3>2. Teste de Funções Específicas</h3>
+      <div id="funcoes">
+        <p>Teste das funções:</p>
+        <ul>
+          <li id="testeBuildCarousel">buildCarousel(): <span>Testando...</span></li>
+          <li id="testeMontarTicker">montarTicker(): <span>Testando...</span></li>
+          <li id="testeBuildStories">buildStories(): <span>Testando...</span></li>
+        </ul>
+      </div>
+      
+      <h3>3. Teste de Elementos HTML</h3>
+      <div id="elementos">
+        <p>Elementos da página inicial:</p>
+        <ul>
+          <li id="statusCanvasHero">canvasHero: <span>Verificando...</span></li>
+          <li id="statusAtivosCarousel">ativosCarousel: <span>Verificando...</span></li>
+          <li id="statusStoriesWrap">storiesWrap: <span>Verificando...</span></li>
+          <li id="statusTickerStats">ticker-stats: <span>Verificando...</span></li>
+          <li id="statusTopGainers">topGainers: <span>Verificando...</span></li>
+          <li id="statusNewsFeed">newsFeed: <span>Verificando...</span></li>
+          <li id="statusRankingSetores">rankingSetores: <span>Verificando...</span></li>
+        </ul>
+      </div>
+      
+      <h3>4. Teste de Campo de Input</h3>
+      <input type="text" class="rb-input input-royal-focus" placeholder="Teste de campo" value="Teste">
+      <p>✅ Campo deve ter fundo azul escuro (#1b2230) e texto branco (#e7f6ff)</p>
+      
+      <h3>5. Console de Erros</h3>
+      <div id="console" style="background: #000; color: #0f0; padding: 10px; font-family: monospace; height: 200px; overflow-y: auto; border: 1px solid #333;">
+        <div>Console de debug...</div>
+      </div>
+    </div>
+    
+    <div class="test-section">
+      <h2>📋 Ações Recomendadas</h2>
+      <ol>
+        <li>Abra o console do navegador (F12)</li>
+        <li>Verifique se há erros JavaScript</li>
+        <li>Compare os resultados com o console acima</li>
+        <li>Se houver diferenças, há um problema de cache ou arquivo</li>
+      </ol>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    // Debug detalhado
+    function log(mensagem) {
+      const console = document.getElementById('console');
+      const timestamp = new Date().toLocaleTimeString();
+      console.innerHTML += `<div>[${timestamp}] ${mensagem}</div>`;
+      console.scrollTop = console.scrollHeight;
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      log('=== INICIANDO DEBUG DETALHADO ===');
+      
+      // 1. Verificar variáveis globais
+      log('Verificando variáveis globais...');
+      
+      const ativosB3Status = typeof ativosB3 !== 'undefined' ? '✅ Existe' : '❌ Não existe';
+      const logosStatus = typeof logos !== 'undefined' ? '✅ Existe' : '❌ Não existe';
+      const funcaoDolarStatus = typeof $ === 'function' ? '✅ Existe' : '❌ Não existe';
+      
+      document.getElementById('statusAtivosB3').innerHTML = `ativosB3: <span>${ativosB3Status}</span>`;
+      document.getElementById('statusLogos').innerHTML = `logos: <span>${logosStatus}</span>`;
+      document.getElementById('statusFuncaoDolar').innerHTML = `Função $: <span>${funcaoDolarStatus}</span>`;
+      
+      log(`ativosB3: ${ativosB3Status}`);
+      log(`logos: ${logosStatus}`);
+      log(`função $: ${funcaoDolarStatus}`);
+      
+      if (typeof ativosB3 !== 'undefined') {
+        log(`Ativos disponíveis: ${Object.keys(ativosB3).join(', ')}`);
+      }
+      
+      // 2. Testar funções
+      log('Testando funções...');
+      
+      const buildCarouselStatus = typeof buildCarousel === 'function' ? '✅ Existe' : '❌ Não existe';
+      const montarTickerStatus = typeof montarTicker === 'function' ? '✅ Existe' : '❌ Não existe';
+      const buildStoriesStatus = typeof buildStories === 'function' ? '✅ Existe' : '❌ Não existe';
+      
+      document.getElementById('testeBuildCarousel').innerHTML = `buildCarousel(): <span>${buildCarouselStatus}</span>`;
+      document.getElementById('testeMontarTicker').innerHTML = `montarTicker(): <span>${montarTickerStatus}</span>`;
+      document.getElementById('testeBuildStories').innerHTML = `buildStories(): <span>${buildStoriesStatus}</span>`;
+      
+      log(`buildCarousel: ${buildCarouselStatus}`);
+      log(`montarTicker: ${montarTickerStatus}`);
+      log(`buildStories: ${buildStoriesStatus}`);
+      
+      // 3. Verificar elementos (simulando página inicial)
+      log('Verificando elementos HTML...');
+      
+      // Criar elementos temporários para teste
+      const elementosTeste = {
+        'canvasHero': document.createElement('canvas'),
+        'ativosCarousel': document.createElement('div'),
+        'storiesWrap': document.createElement('div'),
+        'ticker-stats': document.createElement('div'),
+        'topGainers': document.createElement('div'),
+        'newsFeed': document.createElement('div'),
+        'rankingSetores': document.createElement('div')
+      };
+      
+      // Adicionar IDs e classes
+      elementosTeste.canvasHero.id = 'canvasHero';
+      elementosTeste.ativosCarousel.id = 'ativosCarousel';
+      elementosTeste.storiesWrap.id = 'storiesWrap';
+      elementosTeste['ticker-stats'].className = 'ticker-stats';
+      elementosTeste.topGainers.id = 'topGainers';
+      elementosTeste.newsFeed.id = 'newsFeed';
+      elementosTeste.rankingSetores.id = 'rankingSetores';
+      
+      // Adicionar ao DOM temporariamente
+      const container = document.createElement('div');
+      container.style.display = 'none';
+      Object.values(elementosTeste).forEach(el => container.appendChild(el));
+      document.body.appendChild(container);
+      
+      // Testar funções com elementos
+      try {
+        if (typeof buildCarousel === 'function') {
+          buildCarousel();
+          log('✅ buildCarousel executada sem erro');
+        }
+        
+        if (typeof montarTicker === 'function') {
+          montarTicker();
+          log('✅ montarTicker executada sem erro');
+        }
+        
+        if (typeof buildStories === 'function') {
+          buildStories();
+          log('✅ buildStories executada sem erro');
+        }
+      } catch (error) {
+        log(`❌ Erro ao executar função: ${error.message}`);
+      }
+      
+      // Verificar se elementos foram encontrados
+      const statusElementos = {
+        'canvasHero': document.getElementById('canvasHero') ? '✅ Encontrado' : '❌ Não encontrado',
+        'ativosCarousel': document.getElementById('ativosCarousel') ? '✅ Encontrado' : '❌ Não encontrado',
+        'storiesWrap': document.getElementById('storiesWrap') ? '✅ Encontrado' : '❌ Não encontrado',
+        'ticker-stats': document.querySelector('.ticker-stats') ? '✅ Encontrado' : '❌ Não encontrado',
+        'topGainers': document.getElementById('topGainers') ? '✅ Encontrado' : '❌ Não encontrado',
+        'newsFeed': document.getElementById('newsFeed') ? '✅ Encontrado' : '❌ Não encontrado',
+        'rankingSetores': document.getElementById('rankingSetores') ? '✅ Encontrado' : '❌ Não encontrado'
+      };
+      
+      Object.entries(statusElementos).forEach(([id, status]) => {
+        document.getElementById(`status${id.charAt(0).toUpperCase() + id.slice(1)}`).innerHTML = `${id}: <span>${status}</span>`;
+        log(`${id}: ${status}`);
+      });
+      
+      // Limpar elementos temporários
+      document.body.removeChild(container);
+      
+      log('=== DEBUG CONCLUÍDO ===');
+    });
+  </script>
+</body>
+</html>

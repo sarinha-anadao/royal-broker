@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Teste Simples - Royal Broker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body class="home">
+  <div class="container">
+    <h1>Teste Simples - Royal Broker</h1>
+    
+    <div id="status" style="background: #0f1821; padding: 20px; border-radius: 10px; margin: 20px 0;">
+      <h3>Status do JavaScript:</h3>
+      <div id="resultado"></div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+      <!-- Teste do Gráfico -->
+      <div style="background: #0f1821; padding: 20px; border-radius: 10px;">
+        <h3>Teste do Gráfico</h3>
+        <canvas id="canvasHero" width="300" height="150"></canvas>
+        <div id="graficoStatus" style="margin-top: 10px; color: #7aa6c2;"></div>
+      </div>
+      
+      <!-- Teste do Carrossel -->
+      <div style="background: #0f1821; padding: 20px; border-radius: 10px;">
+        <h3>Teste do Carrossel</h3>
+        <div id="ativosCarousel" style="height: 100px; background: #1a2f3d; border-radius: 5px; display: flex; align-items: center; justify-content: center; color: #7aa6c2;">
+          Carrossel será inserido aqui
+        </div>
+        <div id="carrosselStatus" style="margin-top: 10px; color: #7aa6c2;"></div>
+      </div>
+      
+      <!-- Teste das Histórias -->
+      <div style="background: #0f1821; padding: 20px; border-radius: 10px;">
+        <h3>Teste das Histórias</h3>
+        <div id="storiesWrap" style="height: 100px; background: #1a2f3d; border-radius: 5px; display: flex; align-items: center; justify-content: center; color: #7aa6c2;">
+          Histórias serão inseridas aqui
+        </div>
+        <div id="historiasStatus" style="margin-top: 10px; color: #7aa6c2;"></div>
+      </div>
+      
+      <!-- Teste do Ranking -->
+      <div style="background: #0f1821; padding: 20px; border-radius: 10px;">
+        <h3>Teste do Ranking</h3>
+        <div id="topGainers" style="height: 100px; background: #1a2f3d; border-radius: 5px; display: flex; align-items: center; justify-content: center; color: #7aa6c2;">
+          Ranking será inserido aqui
+        </div>
+        <div id="rankingStatus" style="margin-top: 10px; color: #7aa6c2;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Teste básico antes de carregar o script principal
+    console.log('Teste básico iniciado');
+    
+    // Verificar se o DOM está carregado
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', iniciarTeste);
+    } else {
+      iniciarTeste();
+    }
+    
+    function iniciarTeste() {
+      console.log('DOM carregado, iniciando teste...');
+      
+      const resultado = document.getElementById('resultado');
+      resultado.innerHTML = '<div style="color: #39d98a;">✅ DOM carregado com sucesso</div>';
+      
+      // Carregar o script principal
+      const script = document.createElement('script');
+      script.src = 'script.js';
+      script.onload = function() {
+        console.log('Script carregado com sucesso');
+        resultado.innerHTML += '<div style="color: #39d98a;">✅ Script carregado com sucesso</div>';
+        
+        // Aguardar um pouco e testar as funções
+        setTimeout(testarFuncoes, 1000);
+      };
+      script.onerror = function() {
+        console.error('Erro ao carregar script');
+        resultado.innerHTML += '<div style="color: #ff6b6b;">❌ Erro ao carregar script</div>';
+      };
+      document.head.appendChild(script);
+    }
+    
+    function testarFuncoes() {
+      console.log('Testando funções...');
+      
+      const resultado = document.getElementById('resultado');
+      
+      // Testar cada função individualmente
+      const funcoes = [
+        { nome: 'montarTicker', elemento: 'graficoStatus' },
+        { nome: 'buildCarousel', elemento: 'carrosselStatus' },
+        { nome: 'buildStories', elemento: 'historiasStatus' },
+        { nome: 'atualizarRanking', elemento: 'rankingStatus' }
+      ];
+      
+      funcoes.forEach(funcao => {
+        if (typeof window[funcao.nome] === 'function') {
+          console.log(`Função ${funcao.nome} existe, executando...`);
+          try {
+            window[funcao.nome]();
+            const elemento = document.getElementById(funcao.elemento);
+            if (elemento) {
+              elemento.innerHTML = `<span style="color: #39d98a;">✅ ${funcao.nome} executada com sucesso</span>`;
+            }
+            resultado.innerHTML += `<div style="color: #39d98a;">✅ ${funcao.nome} funcionando</div>`;
+          } catch (error) {
+            console.error(`Erro ao executar ${funcao.nome}:`, error);
+            const elemento = document.getElementById(funcao.elemento);
+            if (elemento) {
+              elemento.innerHTML = `<span style="color: #ff6b6b;">❌ Erro: ${error.message}</span>`;
+            }
+            resultado.innerHTML += `<div style="color: #ff6b6b;">❌ ${funcao.nome} com erro: ${error.message}</div>`;
+          }
+        } else {
+          console.log(`Função ${funcao.nome} não existe`);
+          resultado.innerHTML += `<div style="color: #ff6b6b;">❌ ${funcao.nome} não encontrada</div>`;
+        }
+      });
+    }
+  </script>
+</body>
+</html>
+
