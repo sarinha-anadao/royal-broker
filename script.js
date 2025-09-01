@@ -2984,6 +2984,17 @@ function editarCampo(campoId){
   campo.addEventListener('input', function() {
     validarCampoMinhaConta(campoId, this.value);
   });
+  
+  // Aplica máscara específica para telefone
+  if (campoId === 'mcZap') {
+    campo.addEventListener('input', function() {
+      // Formata o telefone em tempo real
+      const valor = this.value.replace(/\D/g, '');
+      if (valor.length > 0) {
+        this.value = formatarTelefone(valor);
+      }
+    });
+  }
 }
 
 // Função para validar campo específico

@@ -433,7 +433,8 @@
       <form class="rb-form lefted single-col" onsubmit="event.preventDefault(); salvarMinhaConta();" autocomplete="on">
         <label>Nome completo
           <div class="field-with-edit">
-            <input type="text" id="mcNome" class="rb-input input-royal-focus" placeholder="Seu nome" autocomplete="name" readonly>
+            <input type="text" id="mcNome" class="rb-input input-royal-focus" placeholder="Seu nome" autocomplete="name" readonly 
+                   onkeypress="bloquearCaracteresNome(event)" onpaste="validarColagemNome(event)" ondrop="validarColagemNome(event)">
             <button type="button" class="edit-btn" onclick="editarCampo('mcNome')" title="Editar nome">✏️</button>
           </div>
           <div id="mcNomeError" class="error" style="display: none;"></div>
@@ -449,7 +450,8 @@
 
         <label>WhatsApp
           <div class="field-with-edit">
-            <input type="text" id="mcZap" class="rb-input input-royal-focus" placeholder="Seu celular (DDD)" autocomplete="tel" inputmode="tel" readonly>
+            <input type="text" id="mcZap" class="rb-input input-royal-focus" placeholder="Seu celular (DDD)" autocomplete="tel" inputmode="tel" readonly 
+                   onkeypress="bloquearCaracteresTelefone(event)" onpaste="validarColagemTelefone(event)" ondrop="validarColagemTelefone(event)">
             <button type="button" class="edit-btn" onclick="editarCampo('mcZap')" title="Editar WhatsApp">✏️</button>
           </div>
           <div id="mcZapError" class="error" style="display: none;"></div>
@@ -504,6 +506,113 @@
 
   <script src="script.js"></script>
   <script>
+    // ========= FUNÇÕES DE BLOQUEIO PARA MINHA CONTA =========
+    
+    // Função para bloquear caracteres inválidos no campo nome
+    function bloquearCaracteresNome(event) {
+      const charCode = event.which ? event.which : event.keyCode;
+      
+      // Bloqueia números (0-9)
+      if (charCode >= 48 && charCode <= 57) {
+        event.preventDefault();
+        return false;
+      }
+      
+      // Bloqueia caracteres especiais (exceto espaço e acentos)
+      if (charCode >= 33 && charCode <= 47) { // !"#$%&'()*+,-./
+        event.preventDefault();
+        return false;
+      }
+      
+      if (charCode >= 58 && charCode <= 64) { // :;<=>?@
+        event.preventDefault();
+        return false;
+      }
+      
+      if (charCode >= 91 && charCode <= 96) { // [\]^_`
+        event.preventDefault();
+        return false;
+      }
+      
+      if (charCode >= 123 && charCode <= 126) { // {|}~
+        event.preventDefault();
+        return false;
+      }
+      
+      // Permite apenas letras (a-z, A-Z), espaços (32) e acentos
+      return true;
+    }
+    
+    // Função para validar colagem no campo nome
+    function validarColagemNome(event) {
+      event.preventDefault();
+      
+      let texto = '';
+      if (event.type === 'paste') {
+        texto = (event.clipboardData || window.clipboardData).getData('text');
+      } else if (event.type === 'drop') {
+        texto = event.dataTransfer.getData('text');
+      }
+      
+      // Remove números e caracteres especiais, mantendo apenas letras, espaços e acentos
+      const textoLimpo = texto.replace(/[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, '');
+      
+      // Aplica o texto limpo
+      setTimeout(() => {
+        const campo = event.target;
+        campo.value = textoLimpo;
+        validarCampoMinhaConta('mcNome', textoLimpo);
+      }, 10);
+      
+      return false;
+    }
+    
+    // Função para bloquear caracteres inválidos no campo telefone
+    function bloquearCaracteresTelefone(event) {
+      const charCode = event.which ? event.which : event.keyCode;
+      
+      // Permite apenas números (0-9), backspace, delete, tab, enter, setas
+      if (charCode === 8 || charCode === 9 || charCode === 13 || 
+          charCode === 37 || charCode === 38 || charCode === 39 || charCode === 40) {
+        return true;
+      }
+      
+      // Bloqueia tudo que não for número
+      if (charCode < 48 || charCode > 57) {
+        event.preventDefault();
+        return false;
+      }
+      
+      return true;
+    }
+    
+    // Função para validar colagem no campo telefone
+    function validarColagemTelefone(event) {
+      event.preventDefault();
+      
+      let texto = '';
+      if (event.type === 'paste') {
+        texto = (event.clipboardData || window.clipboardData).getData('text');
+      } else if (event.type === 'drop') {
+        texto = event.dataTransfer.getData('text');
+      }
+      
+      // Remove tudo que não for número
+      const textoLimpo = texto.replace(/\D/g, '');
+      
+      // Limita a 11 dígitos
+      const textoLimitado = textoLimpo.substring(0, 11);
+      
+      // Aplica o texto limpo
+      setTimeout(() => {
+        const campo = event.target;
+        campo.value = textoLimitado;
+        validarCampoMinhaConta('mcZap', textoLimitado);
+      }, 10);
+      
+      return false;
+    }
+    
     // Validação em tempo real para senha no modal
     function validarCampoSenhaModal(campo) {
       const senha = campo.value;

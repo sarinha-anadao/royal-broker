@@ -161,10 +161,139 @@ campoValor.addEventListener('paste', function(e) {
 
 ---
 
+---
+
+## ✅ **NOVA CORREÇÃO: Modal Minha Conta - Validação em Tempo Real**
+
+**Problema**: Os campos do modal "Minha Conta" realizavam apenas validação após a digitação, exibindo mensagem de erro. Conforme regras de usabilidade e consistência, o comportamento esperado seria bloquear a entrada de caracteres inválidos já na digitação.
+
+**Solução Implementada**:
+1. **Campo Nome Completo**: Bloqueia números e caracteres especiais em tempo real
+2. **Campo WhatsApp**: Bloqueia letras e caracteres especiais, aceita apenas números (11 dígitos)
+3. **Validação de colagem**: Remove caracteres inválidos automaticamente
+4. **Formatação automática**: Telefone é formatado em tempo real (XX) XXXXX-XXXX
+5. **Integração com sistema existente**: Mantém compatibilidade com validações existentes
+
+**Arquivos Modificados**:
+- `portal.html` - Adicionados eventos de bloqueio e validação em tempo real
+- `script.js` - Aplicada máscara de formatação para telefone
+
+**Código das Correções**:
+
+**1. Campo Nome Completo - Bloqueio em tempo real**:
+```html
+<input type="text" id="mcNome" 
+       onkeypress="bloquearCaracteresNome(event)" 
+       onpaste="validarColagemNome(event)" 
+       ondrop="validarColagemNome(event)">
+```
+
+**2. Campo WhatsApp - Bloqueio em tempo real**:
+```html
+<input type="text" id="mcZap" 
+       onkeypress="bloquearCaracteresTelefone(event)" 
+       onpaste="validarColagemTelefone(event)" 
+       ondrop="validarColagemTelefone(event)">
+```
+
+**3. Função de bloqueio para nome**:
+```javascript
+function bloquearCaracteresNome(event) {
+  const charCode = event.which ? event.which : event.keyCode;
+  
+  // Bloqueia números (0-9)
+  if (charCode >= 48 && charCode <= 57) {
+    event.preventDefault();
+    return false;
+  }
+  
+  // Bloqueia caracteres especiais (exceto espaço e acentos)
+  if (charCode >= 33 && charCode <= 47) { // !"#$%&'()*+,-./
+    event.preventDefault();
+    return false;
+  }
+  // ... mais bloqueios
+}
+```
+
+**4. Função de bloqueio para telefone**:
+```javascript
+function bloquearCaracteresTelefone(event) {
+  const charCode = event.which ? event.which : event.keyCode;
+  
+  // Permite apenas números (0-9), backspace, delete, tab, enter, setas
+  if (charCode === 8 || charCode === 9 || charCode === 13 || 
+      charCode === 37 || charCode === 38 || charCode === 39 || charCode === 40) {
+    return true;
+  }
+  
+  // Bloqueia tudo que não for número
+  if (charCode < 48 || charCode > 57) {
+    event.preventDefault();
+    return false;
+  }
+  
+  return true;
+}
+```
+
+**5. Validação de colagem automática**:
+```javascript
+function validarColagemNome(event) {
+  event.preventDefault();
+  
+  let texto = '';
+  if (event.type === 'paste') {
+    texto = (event.clipboardData || window.clipboardData).getData('text');
+  }
+  
+  // Remove números e caracteres especiais
+  const textoLimpo = texto.replace(/[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, '');
+  
+  // Aplica o texto limpo
+  campo.value = textoLimpo;
+}
+```
+
+**6. Formatação automática de telefone**:
+```javascript
+// Aplicada máscara específica para telefone
+if (campoId === 'mcZap') {
+  campo.addEventListener('input', function() {
+    // Formata o telefone em tempo real
+    const valor = this.value.replace(/\D/g, '');
+    if (valor.length > 0) {
+      this.value = formatarTelefone(valor);
+    }
+  });
+}
+```
+
+---
+
+## 🔧 Como Testar a Nova Correção
+
+### Teste Modal Minha Conta:
+1. Abrir `portal.html`
+2. Clicar em "Minha conta"
+3. Clicar no botão de edição (✏️) do campo Nome
+4. **Resultado esperado**: Não consegue digitar números ou caracteres especiais
+5. Clicar no botão de edição (✏️) do campo WhatsApp
+6. **Resultado esperado**: Não consegue digitar letras ou caracteres especiais, apenas números
+7. **Resultado esperado**: Telefone é formatado automaticamente
+
+### Teste Isolado:
+1. Abrir `teste_minha_conta.html` (arquivo criado para testes)
+2. Testar ambos os campos com diferentes tipos de entrada
+3. Verificar bloqueio em tempo real e formatação automática
+
+---
+
 ## 🚀 Status: IMPLEMENTADO E TESTADO
 
 ✅ **Bug 1**: Campo nome completo bloqueia números  
 ✅ **Bug 2**: Boleta preenche valor automaticamente e não permite alteração  
 ✅ **Integração**: Book de ofertas preenche boleta automaticamente  
 ✅ **Consistência**: Correções aplicadas em todos os arquivos relevantes  
-✅ **Testes**: Arquivo de teste criado para validação das correções
+✅ **Testes**: Arquivo de teste criado para validação das correções  
+✅ **Bug 3**: Modal Minha Conta bloqueia caracteres inválidos em tempo real

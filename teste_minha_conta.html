@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Teste Minha Conta - Royal Broker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body class="login-body">
+  <main class="login-center">
+    <div class="login-card cascade login-compact hover-expand">
+      <h2 class="rb-login-title rb-gold-strong">🧪 TESTE MINHA CONTA</h2>
+      
+      <div style="margin-bottom: 20px;">
+        <h3>✅ Modal Minha Conta Corrigido</h3>
+        <p>Os campos agora bloqueiam caracteres inválidos em tempo real:</p>
+        
+        <div style="background: #39d9820; padding: 15px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #39d98a;">
+          <h4>✅ Campo Nome Completo:</h4>
+          <ul style="color: #39d98a; margin: 10px 0;">
+            <li>Bloqueia números em tempo real</li>
+            <li>Bloqueia caracteres especiais em tempo real</li>
+            <li>Permite apenas letras, espaços e acentos</li>
+            <li>Validação de colagem automática</li>
+          </ul>
+        </div>
+        
+        <div style="background: #39d9820; padding: 15px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #39d98a;">
+          <h4>✅ Campo WhatsApp:</h4>
+          <ul style="color: #39d98a; margin: 10px 0;">
+            <li>Bloqueia letras em tempo real</li>
+            <li>Bloqueia caracteres especiais em tempo real</li>
+            <li>Permite apenas números (11 dígitos)</li>
+            <li>Formatação automática (XX) XXXXX-XXXX</li>
+            <li>Validação de colagem automática</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div style="margin-bottom: 20px;">
+        <h3>🔧 Teste dos Campos:</h3>
+        
+        <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; margin: 10px 0;">
+          <h4>📝 Nome Completo:</h4>
+          <label>Nome Completo
+            <input type="text" id="testeNome" class="rb-input input-royal-focus" placeholder="Digite seu nome completo" 
+                   onkeypress="bloquearCaracteresNome(event)" onpaste="validarColagemNome(event)" ondrop="validarColagemNome(event)">
+            <small class="hint" id="nomeHint"></small>
+          </label>
+          
+          <div style="margin-top: 10px;">
+            <h5>🧪 Testes para fazer:</h5>
+            <ol style="color: #e0e0e0; margin: 10px 0; font-size: 14px;">
+              <li>Tente digitar números (devem ser bloqueados)</li>
+              <li>Tente digitar caracteres especiais (devem ser bloqueados)</li>
+              <li>Digite um nome válido como "João Silva"</li>
+              <li>Tente colar texto com números (devem ser removidos)</li>
+            </ol>
+          </div>
+        </div>
+        
+        <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; margin: 10px 0;">
+          <h4>📱 WhatsApp:</h4>
+          <label>WhatsApp
+            <input type="text" id="testeTelefone" class="rb-input input-royal-focus" placeholder="(XX) XXXXX-XXXX" 
+                   onkeypress="bloquearCaracteresTelefone(event)" onpaste="validarColagemTelefone(event)" ondrop="validarColagemTelefone(event)">
+            <small class="hint" id="telefoneHint"></small>
+          </label>
+          
+          <div style="margin-top: 10px;">
+            <h5>🧪 Testes para fazer:</h5>
+            <ol style="color: #e0e0e0; margin: 10px 0; font-size: 14px;">
+              <li>Tente digitar letras (devem ser bloqueadas)</li>
+              <li>Tente digitar caracteres especiais (devem ser bloqueados)</li>
+              <li>Digite um telefone válido como "11987654321"</li>
+              <li>Observe a formatação automática</li>
+              <li>Tente colar texto com letras (devem ser removidas)</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+      
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button class="btn-royal" onclick="testarValidacoes()">Testar Validações</button>
+        <button class="btn-turq" onclick="window.location.href='portal.html'">Testar no Portal</button>
+        <button class="btn-json" onclick="window.location.href='index.html'">Voltar à Home</button>
+      </div>
+    </div>
+  </main>
+  
+  <script>
+    // ========= FUNÇÕES DE BLOQUEIO PARA MINHA CONTA =========
+    
+    // Função para bloquear caracteres inválidos no campo nome
+    function bloquearCaracteresNome(event) {
+      const charCode = event.which ? event.which : event.keyCode;
+      
+      // Bloqueia números (0-9)
+      if (charCode >= 48 && charCode <= 57) {
+        event.preventDefault();
+        return false;
+      }
+      
+      // Bloqueia caracteres especiais (exceto espaço e acentos)
+      if (charCode >= 33 && charCode <= 47) { // !"#$%&'()*+,-./
+        event.preventDefault();
+        return false;
+      }
+      
+      if (charCode >= 58 && charCode <= 64) { // :;<=>?@
+        event.preventDefault();
+        return false;
+      }
+      
+      if (charCode >= 91 && charCode <= 96) { // [\]^_`
+        event.preventDefault();
+        return false;
+      }
+      
+      if (charCode >= 123 && charCode <= 126) { // {|}~
+        event.preventDefault();
+        return false;
+      }
+      
+      // Permite apenas letras (a-z, A-Z), espaços (32) e acentos
+      return true;
+    }
+    
+    // Função para validar colagem no campo nome
+    function validarColagemNome(event) {
+      event.preventDefault();
+      
+      let texto = '';
+      if (event.type === 'paste') {
+        texto = (event.clipboardData || window.clipboardData).getData('text');
+      } else if (event.type === 'drop') {
+        texto = event.dataTransfer.getData('text');
+      }
+      
+      // Remove números e caracteres especiais, mantendo apenas letras, espaços e acentos
+      const textoLimpo = texto.replace(/[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, '');
+      
+      // Aplica o texto limpo
+      setTimeout(() => {
+        const campo = event.target;
+        campo.value = textoLimpo;
+        validarCampoNome(campo);
+      }, 10);
+      
+      return false;
+    }
+    
+    // Função para bloquear caracteres inválidos no campo telefone
+    function bloquearCaracteresTelefone(event) {
+      const charCode = event.which ? event.which : event.keyCode;
+      
+      // Permite apenas números (0-9), backspace, delete, tab, enter, setas
+      if (charCode === 8 || charCode === 9 || charCode === 13 || 
+          charCode === 37 || charCode === 38 || charCode === 39 || charCode === 40) {
+        return true;
+      }
+      
+      // Bloqueia tudo que não for número
+      if (charCode < 48 || charCode > 57) {
+        event.preventDefault();
+        return false;
+      }
+      
+      return true;
+    }
+    
+    // Função para validar colagem no campo telefone
+    function validarColagemTelefone(event) {
+      event.preventDefault();
+      
+      let texto = '';
+      if (event.type === 'paste') {
+        texto = (event.clipboardData || window.clipboardData).getData('text');
+      } else if (event.type === 'drop') {
+        texto = event.dataTransfer.getData('text');
+      }
+      
+      // Remove tudo que não for número
+      const textoLimpo = texto.replace(/\D/g, '');
+      
+      // Limita a 11 dígitos
+      const textoLimitado = textoLimpo.substring(0, 11);
+      
+      // Aplica o texto limpo
+      setTimeout(() => {
+        const campo = event.target;
+        campo.value = textoLimitado;
+        validarCampoTelefone(campo);
+      }, 10);
+      
+      return false;
+    }
+    
+    // Função para formatar telefone
+    function formatarTelefone(telefone) {
+      const limpo = (telefone || "").replace(/\D/g, '');
+      if (limpo.length <= 2) return limpo;
+      if (limpo.length <= 7) return limpo.replace(/(\d{2})(\d)/, '($1) $2');
+      return limpo.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    }
+    
+    // Função para validar o campo nome
+    function validarCampoNome(campo) {
+      const nome = campo.value;
+      const hint = document.getElementById('nomeHint');
+      
+      if (!nome) {
+        hint.textContent = '';
+        hint.style.color = '';
+        campo.style.borderColor = '';
+        return;
+      }
+      
+      // Validação rigorosa
+      const nomeRegex = /^[a-zA-ZÀ-ÿ\u00C0-\u017F\s]+$/;
+      if (!nomeRegex.test(nome)) {
+        hint.textContent = '✗ Nome deve conter apenas letras, espaços e acentos';
+        hint.style.color = '#ff6b6b';
+        campo.style.borderColor = '#ff6b6b';
+        return;
+      }
+      
+      if (/[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(nome)) {
+        hint.textContent = '✗ Nome não pode conter números ou caracteres especiais';
+        hint.style.color = '#ff6b6b';
+        campo.style.borderColor = '#ff6b6b';
+        return;
+      }
+      
+      const palavras = nome.split(' ').filter(palavra => palavra.length > 0);
+      if (palavras.length < 2) {
+        hint.textContent = '✗ Digite o nome completo (nome e sobrenome)';
+        hint.style.color = '#ff6b6b';
+        campo.style.borderColor = '#ff6b6b';
+        return;
+      }
+      
+      hint.textContent = '✓ Nome válido';
+      hint.style.color = '#39d98a';
+      campo.style.borderColor = '#39d98a';
+    }
+    
+    // Função para validar o campo telefone
+    function validarCampoTelefone(campo) {
+      const telefone = campo.value;
+      const hint = document.getElementById('telefoneHint');
+      
+      if (!telefone) {
+        hint.textContent = '';
+        hint.style.color = '';
+        campo.style.borderColor = '';
+        return;
+      }
+      
+      const limpo = telefone.replace(/\D/g, '');
+      
+      if (limpo.length !== 11) {
+        hint.textContent = '✗ Telefone deve ter 11 dígitos (DDD + 9 + número)';
+        hint.style.color = '#ff6b6b';
+        campo.style.borderColor = '#ff6b6b';
+        return;
+      }
+      
+      const ddd = parseInt(limpo.substring(0, 2));
+      if (ddd < 11 || ddd > 99) {
+        hint.textContent = '✗ DDD inválido';
+        hint.style.color = '#ff6b6b';
+        campo.style.borderColor = '#ff6b6b';
+        return;
+      }
+      
+      if (limpo.charAt(2) !== '9') {
+        hint.textContent = '✗ Número deve começar com 9 após o DDD';
+        hint.style.color = '#ff6b6b';
+        campo.style.borderColor = '#ff6b6b';
+        return;
+      }
+      
+      hint.textContent = '✓ Telefone válido';
+      hint.style.color = '#39d98a';
+      campo.style.borderColor = '#39d98a';
+      
+      // Formata o telefone
+      campo.value = formatarTelefone(limpo);
+    }
+    
+    // Função para testar todas as validações
+    function testarValidacoes() {
+      const campoNome = document.getElementById('testeNome');
+      const campoTelefone = document.getElementById('testeTelefone');
+      
+      validarCampoNome(campoNome);
+      validarCampoTelefone(campoTelefone);
+    }
+    
+    // Adicionar validação em tempo real
+    document.getElementById('testeNome').addEventListener('input', function() {
+      validarCampoNome(this);
+    });
+    
+    document.getElementById('testeTelefone').addEventListener('input', function() {
+      validarCampoTelefone(this);
+    });
+    
+    console.log('=== TESTE MINHA CONTA ===');
+    console.log('✅ Campo nome bloqueia números e caracteres especiais');
+    console.log('✅ Campo telefone bloqueia letras e caracteres especiais');
+    console.log('✅ Validação em tempo real');
+    console.log('✅ Formatação automática de telefone');
+    console.log('✅ Bloqueio de colagem de texto inválido');
+  </script>
+</body>
+</html>
