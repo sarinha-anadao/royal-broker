@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Teste Campo Nome - Royal Broker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body class="login-body">
+  <main class="login-center">
+    <div class="login-card cascade login-compact hover-expand">
+      <h2 class="rb-login-title rb-gold-strong">🧪 TESTE CAMPO NOME COMPLETO</h2>
+      
+      <div style="margin-bottom: 20px;">
+        <h3>✅ Campo Nome Corrigido</h3>
+        <p>O campo agora aceita apenas letras, espaços e acentos:</p>
+        
+        <div style="background: #39d9820; padding: 15px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #39d98a;">
+          <h4>✅ O que é permitido:</h4>
+          <ul style="color: #39d98a; margin: 10px 0;">
+            <li>Letras maiúsculas e minúsculas (A-Z, a-z)</li>
+            <li>Espaços entre nomes</li>
+            <li>Acentos (á, é, ã, ç, etc.)</li>
+            <li>Nomes compostos</li>
+          </ul>
+        </div>
+        
+        <div style="background: #ff6b6b20; padding: 15px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #ff6b6b;">
+          <h4>🚫 O que é bloqueado:</h4>
+          <ul style="color: #ff6b6b; margin: 10px 0;">
+            <li>Números (0-9)</li>
+            <li>Caracteres especiais (!@#$%^&*)</li>
+            <li>Símbolos matemáticos (+-*/=)</li>
+            <li>Pontuação (.,;:?)</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div style="margin-bottom: 20px;">
+        <h3>🔧 Teste do Campo:</h3>
+        <label>Nome Completo
+          <input type="text" id="testeNome" class="rb-input input-royal-focus" placeholder="Digite seu nome completo" 
+                 onkeypress="bloquearNumeros(event)" onpaste="validarColagem(event)" ondrop="validarColagem(event)">
+          <small class="hint" id="nomeHint"></small>
+        </label>
+        
+        <div style="margin-top: 10px;">
+          <h4>🧪 Testes para fazer:</h4>
+          <ol style="color: #e0e0e0; margin: 10px 0;">
+            <li>Tente digitar números (devem ser bloqueados)</li>
+            <li>Tente digitar caracteres especiais (devem ser bloqueados)</li>
+            <li>Digite um nome válido como "João Silva"</li>
+            <li>Tente colar texto com números (devem ser removidos)</li>
+          </ol>
+        </div>
+      </div>
+      
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button class="btn-royal" onclick="testarValidacao()">Testar Validação</button>
+        <button class="btn-turq" onclick="window.location.href='cadastro.html'">Testar no Cadastro</button>
+        <button class="btn-json" onclick="window.location.href='index.html'">Voltar à Home</button>
+      </div>
+    </div>
+  </main>
+  
+  <script>
+    // Função para bloquear números e caracteres especiais no campo nome
+    function bloquearNumeros(event) {
+      const charCode = event.which ? event.which : event.keyCode;
+      
+      // Bloqueia números (0-9)
+      if (charCode >= 48 && charCode <= 57) {
+        event.preventDefault();
+        return false;
+      }
+      
+      // Bloqueia caracteres especiais (exceto espaço e acentos)
+      if (charCode >= 33 && charCode <= 47) { // !"#$%&'()*+,-./
+        event.preventDefault();
+        return false;
+      }
+      
+      if (charCode >= 58 && charCode <= 64) { // :;<=>?@
+        event.preventDefault();
+        return false;
+      }
+      
+      if (charCode >= 91 && charCode <= 96) { // [\]^_`
+        event.preventDefault();
+        return false;
+      }
+      
+      if (charCode >= 123 && charCode <= 126) { // {|}~
+        event.preventDefault();
+        return false;
+      }
+      
+      // Permite apenas letras (a-z, A-Z), espaços (32) e acentos
+      return true;
+    }
+    
+    // Função para validar colagem e arrastar/soltar
+    function validarColagem(event) {
+      event.preventDefault();
+      
+      let texto = '';
+      if (event.type === 'paste') {
+        texto = (event.clipboardData || window.clipboardData).getData('text');
+      } else if (event.type === 'drop') {
+        texto = event.dataTransfer.getData('text');
+      }
+      
+      // Remove números e caracteres especiais, mantendo apenas letras, espaços e acentos
+      const textoLimpo = texto.replace(/[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, '');
+      
+      // Aplica o texto limpo
+      setTimeout(() => {
+        const campo = event.target;
+        campo.value = textoLimpo;
+        validarCampoNome(campo);
+      }, 10);
+      
+      return false;
+    }
+    
+    // Função para validar o campo nome
+    function validarCampoNome(campo) {
+      const nome = campo.value;
+      const hint = document.getElementById('nomeHint');
+      
+      if (!nome) {
+        hint.textContent = '';
+        hint.style.color = '';
+        campo.style.borderColor = '';
+        return;
+      }
+      
+      // Validação rigorosa
+      const nomeRegex = /^[a-zA-ZÀ-ÿ\u00C0-\u017F\s]+$/;
+      if (!nomeRegex.test(nome)) {
+        hint.textContent = '✗ Nome deve conter apenas letras, espaços e acentos';
+        hint.style.color = '#ff6b6b';
+        campo.style.borderColor = '#ff6b6b';
+        return;
+      }
+      
+      if (/[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(nome)) {
+        hint.textContent = '✗ Nome não pode conter números ou caracteres especiais';
+        hint.style.color = '#ff6b6b';
+        campo.style.borderColor = '#ff6b6b';
+        return;
+      }
+      
+      const palavras = nome.split(' ').filter(palavra => palavra.length > 0);
+      if (palavras.length < 2) {
+        hint.textContent = '✗ Digite o nome completo (nome e sobrenome)';
+        hint.style.color = '#ff6b6b';
+        campo.style.borderColor = '#ff6b6b';
+        return;
+      }
+      
+      hint.textContent = '✓ Nome válido';
+      hint.style.color = '#39d98a';
+      campo.style.borderColor = '#39d98a';
+    }
+    
+    // Função para testar a validação
+    function testarValidacao() {
+      const campo = document.getElementById('testeNome');
+      validarCampoNome(campo);
+    }
+    
+    // Adicionar validação em tempo real
+    document.getElementById('testeNome').addEventListener('input', function() {
+      validarCampoNome(this);
+    });
+    
+    console.log('=== TESTE CAMPO NOME ===');
+    console.log('✅ Bloqueia números e caracteres especiais');
+    console.log('✅ Aceita apenas letras, espaços e acentos');
+    console.log('✅ Validação em tempo real');
+    console.log('✅ Bloqueia colagem de texto inválido');
+  </script>
+</body>
+</html>

@@ -28,10 +28,15 @@ function validarNomeCompleto(nome) {
     return { valido: false, mensagem: "Digite o nome completo." };
   }
   
-  // Verifica se contém apenas letras, espaços e acentos
-  const nomeRegex = /^[a-zA-ZÀ-ÿ\s]+$/;
+  // Verifica se contém apenas letras, espaços e acentos (mais rigoroso)
+  const nomeRegex = /^[a-zA-ZÀ-ÿ\u00C0-\u017F\s]+$/;
   if (!nomeRegex.test(nomeLimpo)) {
-    return { valido: false, mensagem: "Nome deve conter apenas letras." };
+    return { valido: false, mensagem: "Nome deve conter apenas letras, espaços e acentos." };
+  }
+  
+  // Verifica se não contém números ou caracteres especiais
+  if (/[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(nomeLimpo)) {
+    return { valido: false, mensagem: "Nome não pode conter números ou caracteres especiais." };
   }
   
   // Verifica se tem pelo menos 2 palavras (nome e sobrenome)

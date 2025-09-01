@@ -32,7 +32,7 @@
 
       <form onsubmit="event.preventDefault(); salvarCadastro();" class="rb-form lefted single-col" autocomplete="on">
         <label>Nome Completo
-          <input type="text" id="cadNome" class="rb-input input-royal-focus" placeholder="Digite seu nome completo" autocomplete="name" autocapitalize="words" required oninput="validarCampoNome(this)" onblur="validarCampoNome(this)" onkeypress="bloquearNumeros(event)">
+          <input type="text" id="cadNome" class="rb-input input-royal-focus" placeholder="Digite seu nome completo" autocomplete="name" autocapitalize="words" required oninput="validarCampoNome(this)" onblur="validarCampoNome(this)" onkeypress="bloquearNumeros(event)" onpaste="validarColagem(event)" ondrop="validarColagem(event)">
           <small class="hint" id="nomeHint"></small>
         </label>
         <label>WhatsApp
@@ -223,14 +223,63 @@
       }
     }
     
-    // Função para bloquear números no campo nome
+    // Função para bloquear números e caracteres especiais no campo nome
     function bloquearNumeros(event) {
       const charCode = event.which ? event.which : event.keyCode;
-      if (charCode >= 48 && charCode <= 57) { // Códigos ASCII para números 0-9
+      
+      // Bloqueia números (0-9)
+      if (charCode >= 48 && charCode <= 57) {
         event.preventDefault();
         return false;
       }
+      
+      // Bloqueia caracteres especiais (exceto espaço e acentos)
+      if (charCode >= 33 && charCode <= 47) { // !"#$%&'()*+,-./
+        event.preventDefault();
+        return false;
+      }
+      
+      if (charCode >= 58 && charCode <= 64) { // :;<=>?@
+        event.preventDefault();
+        return false;
+      }
+      
+      if (charCode >= 91 && charCode <= 96) { // [\]^_`
+        event.preventDefault();
+        return false;
+      }
+      
+      if (charCode >= 123 && charCode <= 126) { // {|}~
+        event.preventDefault();
+        return false;
+      }
+      
+      // Permite apenas letras (a-z, A-Z), espaços (32) e acentos
       return true;
+    }
+    
+    // Função para validar colagem e arrastar/soltar
+    function validarColagem(event) {
+      event.preventDefault();
+      
+      let texto = '';
+      if (event.type === 'paste') {
+        texto = (event.clipboardData || window.clipboardData).getData('text');
+      } else if (event.type === 'drop') {
+        texto = event.dataTransfer.getData('text');
+      }
+      
+      // Remove números e caracteres especiais, mantendo apenas letras, espaços e acentos
+      const textoLimpo = texto.replace(/[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, '');
+      
+      // Aplica o texto limpo
+      setTimeout(() => {
+        const campo = event.target;
+        campo.value = textoLimpo;
+        validarCampoNome(campo);
+      }, 10);
+      
+      return false;
     }
   </script>
 </body>
