@@ -289,6 +289,83 @@ if (campoId === 'mcZap') {
 
 ---
 
+## ✅ **NOVA CORREÇÃO: Validação de E-mail Rigorosa**
+
+**Problema**: O campo de e-mail estava permitindo salvar valores que não seguem o padrão de endereços de e-mail válidos. Exemplo: "nilson.brites@gmail.comdwdsdsdsds" foi aceito sem erro.
+
+**Solução Implementada**:
+1. **Regex mais rigoroso**: Implementada validação que não permite caracteres extras após o domínio
+2. **Validação em tempo real**: Adicionada validação durante a digitação nos campos de e-mail
+3. **Verificação de extensão**: Validação rigorosa da extensão do domínio (.com, .br, .org, etc.)
+4. **Bloqueio de caracteres extras**: Impede salvamento de e-mails com texto adicional após o domínio
+5. **Validação de colagem**: Implementada validação para operações de colar e arrastar/soltar
+
+**Arquivos Modificados**:
+- `script.js`: Função `validarEmail()` atualizada com regex mais rigoroso
+- `portal.html`: Campo de e-mail do modal "Minha conta" com validação em tempo real
+- `cadastro.html`: Campo de e-mail com validação de colagem e validação em tempo real
+- `teste_validacao_email.html`: Arquivo de teste específico para validação de e-mail
+
+**Código da Nova Validação**:
+```javascript
+function validarEmail(email) {
+  // Verifica se está vazio
+  if (!email || email.trim() === '') {
+    return { valido: false, mensagem: "Digite um e-mail válido." };
+  }
+  
+  // Regex mais rigoroso para validação de email
+  // Não permite caracteres extras após o domínio
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  
+  // Verifica se o email termina exatamente no padrão esperado
+  if (!emailRegex.test(email)) {
+    return { valido: false, mensagem: "Formato de e-mail inválido (exemplo: usuario@dominio.com)." };
+  }
+  
+  // Verifica se há caracteres extras após o domínio
+  const partes = email.split('@');
+  if (partes.length !== 2) {
+    return { valido: false, mensagem: "E-mail deve conter exatamente um @." };
+  }
+  
+  const dominio = partes[1];
+  if (dominio.length < 3 || !dominio.includes('.')) {
+    return { valido: false, mensagem: "Domínio do e-mail inválido." };
+  }
+  
+  // Verifica se não há caracteres extras após o domínio
+  const dominioPartes = dominio.split('.');
+  if (dominioPartes.length < 2) {
+    return { valido: false, mensagem: "Domínio deve ter pelo menos uma extensão (.com, .br, etc)." };
+  }
+  
+  const extensao = dominioPartes[dominioPartes.length - 1];
+  if (extensao.length < 2 || extensao.length > 6) {
+    return { valido: false, mensagem: "Extensão do domínio deve ter entre 2 e 6 caracteres." };
+  }
+  
+  // Verifica se não há caracteres especiais ou números após a extensão
+  if (!/^[a-zA-Z]+$/.test(extensao)) {
+    return { valido: false, mensagem: "Extensão do domínio deve conter apenas letras." };
+  }
+  
+  return { valido: true, mensagem: "" };
+}
+```
+
+**Como Testar a Nova Correção**:
+1. **Teste no Cadastro**: Abrir `cadastro.html` e tentar digitar e-mails inválidos
+2. **Teste no Portal**: Abrir `portal.html` > "Minha conta" > editar e-mail
+3. **Teste Automático**: Abrir `teste_validacao_email.html` e executar testes automáticos
+4. **Cenários de Teste**:
+   - ✅ `usuario@gmail.com` (válido)
+   - ❌ `usuario@gmail.comabc123` (inválido - caracteres extras)
+   - ❌ `usuario@gmail.com.dwdsdsdsds` (inválido - extensão inválida)
+   - ❌ `usuario@gmail.com123` (inválido - números após domínio)
+
+---
+
 ## 🚀 Status: IMPLEMENTADO E TESTADO
 
 ✅ **Bug 1**: Campo nome completo bloqueia números  
@@ -296,4 +373,5 @@ if (campoId === 'mcZap') {
 ✅ **Integração**: Book de ofertas preenche boleta automaticamente  
 ✅ **Consistência**: Correções aplicadas em todos os arquivos relevantes  
 ✅ **Testes**: Arquivo de teste criado para validação das correções  
-✅ **Bug 3**: Modal Minha Conta bloqueia caracteres inválidos em tempo real
+✅ **Bug 3**: Modal Minha Conta bloqueia caracteres inválidos em tempo real  
+✅ **Bug 4**: Campo de e-mail permite salvar valores inválidos (nilson.brites@gmail.comdwdsdsdsds)

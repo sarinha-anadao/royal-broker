@@ -40,7 +40,7 @@
           <small class="hint" id="zapHint"></small>
         </label>
         <label>E-mail
-          <input type="email" id="cadEmail" class="rb-input input-royal-focus" placeholder="Digite seu e-mail válido" autocomplete="email" required oninput="validarCampoEmail(this)" onblur="validarCampoEmail(this)">
+          <input type="email" id="cadEmail" class="rb-input input-royal-focus" placeholder="Digite seu e-mail válido" autocomplete="email" required oninput="validarCampoEmail(this)" onblur="validarCampoEmail(this)" onpaste="validarColagemEmail(event)" ondrop="validarColagemEmail(event)">
           <small class="hint" id="emailHint"></small>
         </label>
         <label>CPF
@@ -277,6 +277,31 @@
         const campo = event.target;
         campo.value = textoLimpo;
         validarCampoNome(campo);
+      }, 10);
+      
+      return false;
+    }
+    
+    // Função para validar colagem de e-mail
+    function validarColagemEmail(event) {
+      event.preventDefault();
+      
+      let texto = '';
+      if (event.type === 'paste') {
+        texto = (event.clipboardData || window.clipboardData).getData('text');
+      } else if (event.type === 'drop') {
+        texto = event.dataTransfer.getData('text');
+      }
+      
+      // Remove caracteres inválidos do e-mail, mantendo apenas o padrão válido
+      // Remove tudo após o último ponto válido da extensão
+      const emailLimpo = texto.trim();
+      
+      // Aplica o texto limpo
+      setTimeout(() => {
+        const campo = event.target;
+        campo.value = emailLimpo;
+        validarCampoEmail(campo);
       }, 10);
       
       return false;

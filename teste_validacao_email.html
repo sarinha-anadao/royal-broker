@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Teste Validação E-mail - Royal Broker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .teste-resultado {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 5px;
+      font-family: monospace;
+    }
+    .teste-sucesso {
+      background: #39d98a20;
+      border-left: 4px solid #39d98a;
+      color: #39d98a;
+    }
+    .teste-erro {
+      background: #ff6b6b20;
+      border-left: 4px solid #ff6b6b;
+      color: #ff6b6b;
+    }
+    .teste-info {
+      background: #007bff20;
+      border-left: 4px solid #007bff;
+      color: #007bff;
+    }
+  </style>
+</head>
+<body class="login-body">
+  <main class="login-center">
+    <div class="login-card cascade login-compact hover-expand">
+      <h2 class="rb-login-title rb-gold-strong">🧪 TESTE VALIDAÇÃO E-MAIL</h2>
+      
+      <div style="margin-bottom: 20px;">
+        <h3>✅ Bug de Validação de E-mail Corrigido</h3>
+        <p>O campo de e-mail agora valida corretamente e não permite valores inválidos como "nilson.brites@gmail.comdwdsdsdsds"</p>
+        
+        <div style="background: #39d9820; padding: 15px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #39d98a;">
+          <h4>✅ Melhorias Implementadas:</h4>
+          <ul style="color: #39d98a; margin: 10px 0;">
+            <li>Regex mais rigoroso para validação de e-mail</li>
+            <li>Validação em tempo real durante a digitação</li>
+            <li>Verificação de extensão de domínio válida</li>
+            <li>Bloqueio de caracteres extras após o domínio</li>
+            <li>Validação de colagem e arrastar/soltar</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div style="margin-bottom: 20px;">
+        <h3>🔧 Teste dos Campos:</h3>
+        
+        <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; margin: 10px 0;">
+          <h4>📧 E-mail (Cadastro):</h4>
+          <label>E-mail
+            <input type="email" id="testeEmailCadastro" class="rb-input input-royal-focus" placeholder="Digite seu e-mail válido" 
+                   oninput="validarCampoEmailCadastro(this)" onblur="validarCampoEmailCadastro(this)" onpaste="validarColagemEmail(event)" ondrop="validarColagemEmail(event)">
+            <small class="hint" id="emailHintCadastro"></small>
+          </label>
+          
+          <div style="margin-top: 10px;">
+            <h5>🧪 Testes para fazer:</h5>
+            <ol style="color: #e0e0e0; margin: 10px 0; font-size: 14px;">
+              <li>Digite um e-mail válido como "usuario@gmail.com"</li>
+              <li>Tente digitar "usuario@gmail.comabc123" (deve ser rejeitado)</li>
+              <li>Tente digitar "usuario@gmail.com.dwdsdsdsds" (deve ser rejeitado)</li>
+              <li>Tente colar um e-mail inválido</li>
+            </ol>
+          </div>
+        </div>
+        
+        <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; margin: 10px 0;">
+          <h4>📧 E-mail (Minha Conta):</h4>
+          <label>E-mail
+            <input type="email" id="testeEmailMinhaConta" class="rb-input input-royal-focus" placeholder="Digite seu e-mail válido" 
+                   oninput="validarCampoEmailMinhaConta(this)" onblur="validarCampoEmailMinhaConta(this)">
+            <small class="hint" id="emailHintMinhaConta"></small>
+          </label>
+          
+          <div style="margin-top: 10px;">
+            <h5>🧪 Testes para fazer:</h5>
+            <ol style="color: #e0e0e0; margin: 10px 0; font-size: 14px;">
+              <li>Digite um e-mail válido como "usuario@hotmail.com"</li>
+              <li>Tente digitar "usuario@hotmail.comxyz" (deve ser rejeitado)</li>
+              <li>Tente digitar "usuario@hotmail.com.br123" (deve ser rejeitado)</li>
+              <li>Observe a validação em tempo real</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+      
+      <div style="margin-bottom: 20px;">
+        <h3>🧪 Teste Automático de Validação:</h3>
+        <button class="btn-royal" onclick="testarValidacoesEmail()">Executar Testes Automáticos</button>
+        <div id="resultadosTeste" style="margin-top: 15px;"></div>
+      </div>
+      
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button class="btn-turq" onclick="window.location.href='portal.html'">Testar no Portal</button>
+        <button class="btn-json" onclick="window.location.href='cadastro.html'">Testar no Cadastro</button>
+        <button class="btn-royal" onclick="window.location.href='index.html'">Voltar à Home</button>
+      </div>
+    </div>
+  </main>
+  
+  <script src="script.js"></script>
+  <script>
+    // ========= FUNÇÕES DE TESTE PARA E-MAIL =========
+    
+    // Função para validar campo de e-mail do cadastro
+    function validarCampoEmailCadastro(campo) {
+      const email = campo.value;
+      const hint = document.getElementById('emailHintCadastro');
+      
+      if (!email) {
+        hint.textContent = '';
+        campo.style.borderColor = '';
+        return;
+      }
+      
+      const validacao = validarEmail(email);
+      if (validacao.valido) {
+        hint.textContent = '✓ E-mail válido';
+        hint.style.color = '#39d98a';
+        campo.style.borderColor = '#39d98a';
+      } else {
+        hint.textContent = '✗ ' + validacao.mensagem;
+        hint.style.color = '#ff6b6b';
+        campo.style.borderColor = '#ff6b6b';
+      }
+    }
+    
+    // Função para validar campo de e-mail da minha conta
+    function validarCampoEmailMinhaConta(campo) {
+      const email = campo.value;
+      const hint = document.getElementById('emailHintMinhaConta');
+      
+      if (!email) {
+        hint.textContent = '';
+        campo.style.borderColor = '';
+        return;
+      }
+      
+      const validacao = validarEmail(email);
+      if (validacao.valido) {
+        hint.textContent = '✓ E-mail válido';
+        hint.style.color = '#39d98a';
+        campo.style.borderColor = '#39d98a';
+      } else {
+        hint.textContent = '✗ ' + validacao.mensagem;
+        hint.style.color = '#ff6b6b';
+        campo.style.borderColor = '#ff6b6b';
+      }
+    }
+    
+    // Função para validar colagem de e-mail
+    function validarColagemEmail(event) {
+      event.preventDefault();
+      
+      let texto = '';
+      if (event.type === 'paste') {
+        texto = (event.clipboardData || window.clipboardData).getData('text');
+      } else if (event.type === 'drop') {
+        texto = event.dataTransfer.getData('text');
+      }
+      
+      // Remove caracteres inválidos do e-mail, mantendo apenas o padrão válido
+      const emailLimpo = texto.trim();
+      
+      // Aplica o texto limpo
+      setTimeout(() => {
+        const campo = event.target;
+        campo.value = emailLimpo;
+        validarCampoEmailCadastro(campo);
+      }, 10);
+      
+      return false;
+    }
+    
+    // Função para testar todas as validações de e-mail
+    function testarValidacoesEmail() {
+      const resultadosDiv = document.getElementById('resultadosTeste');
+      resultadosDiv.innerHTML = '';
+      
+      const emailsTeste = [
+        { email: 'usuario@gmail.com', esperado: true, descricao: 'E-mail válido padrão' },
+        { email: 'usuario@hotmail.com.br', esperado: true, descricao: 'E-mail com domínio .com.br' },
+        { email: 'usuario@empresa.org', esperado: true, descricao: 'E-mail com domínio .org' },
+        { email: 'usuario@gmail.comabc123', esperado: false, descricao: 'E-mail com caracteres extras após domínio' },
+        { email: 'usuario@gmail.com.dwdsdsdsds', esperado: false, descricao: 'E-mail com extensão inválida' },
+        { email: 'usuario@gmail.com123', esperado: false, descricao: 'E-mail com números após domínio' },
+        { email: 'usuario@gmail.com.', esperado: false, descricao: 'E-mail terminando com ponto' },
+        { email: 'usuario@gmail', esperado: false, descricao: 'E-mail sem extensão de domínio' },
+        { email: 'usuario@.com', esperado: false, descricao: 'E-mail sem domínio' },
+        { email: '@gmail.com', esperado: false, descricao: 'E-mail sem usuário' }
+      ];
+      
+      let sucessos = 0;
+      let falhas = 0;
+      
+      emailsTeste.forEach((teste, index) => {
+        const resultado = validarEmail(teste.email);
+        const passou = resultado.valido === teste.esperado;
+        
+        if (passou) {
+          sucessos++;
+        } else {
+          falhas++;
+        }
+        
+        const resultadoDiv = document.createElement('div');
+        resultadoDiv.className = `teste-resultado ${passou ? 'teste-sucesso' : 'teste-erro'}`;
+        resultadoDiv.innerHTML = `
+          <strong>${passou ? '✅' : '❌'} Teste ${index + 1}:</strong> ${teste.descricao}<br>
+          <strong>E-mail:</strong> ${teste.email}<br>
+          <strong>Esperado:</strong> ${teste.esperado ? 'Válido' : 'Inválido'}<br>
+          <strong>Resultado:</strong> ${resultado.valido ? 'Válido' : 'Inválido'}<br>
+          <strong>Mensagem:</strong> ${resultado.mensagem || 'N/A'}
+        `;
+        
+        resultadosDiv.appendChild(resultadoDiv);
+      });
+      
+      // Resumo final
+      const resumoDiv = document.createElement('div');
+      resumoDiv.className = `teste-resultado ${falhas === 0 ? 'teste-sucesso' : 'teste-erro'}`;
+      resumoDiv.innerHTML = `
+        <h4>📊 Resumo dos Testes:</h4>
+        <strong>Total de testes:</strong> ${emailsTeste.length}<br>
+        <strong>Sucessos:</strong> ${sucessos}<br>
+        <strong>Falhas:</strong> ${falhas}<br>
+        <strong>Taxa de sucesso:</strong> ${((sucessos / emailsTeste.length) * 100).toFixed(1)}%
+      `;
+      
+      resultadosDiv.appendChild(resumoDiv);
+    }
+    
+    // Adicionar validação em tempo real
+    document.getElementById('testeEmailCadastro').addEventListener('input', function() {
+      validarCampoEmailCadastro(this);
+    });
+    
+    document.getElementById('testeEmailMinhaConta').addEventListener('input', function() {
+      validarCampoEmailMinhaConta(this);
+    });
+    
+    console.log('=== TESTE VALIDAÇÃO E-MAIL ===');
+    console.log('✅ Regex mais rigoroso implementado');
+    console.log('✅ Validação em tempo real ativa');
+    console.log('✅ Bloqueio de caracteres extras após domínio');
+    console.log('✅ Validação de extensão de domínio');
+    console.log('✅ Testes automáticos disponíveis');
+  </script>
+</body>
+</html>

@@ -442,7 +442,8 @@
 
         <label>E-mail
           <div class="field-with-edit">
-            <input type="email" id="mcEmail" class="rb-input input-royal-focus" placeholder="Seu e-mail" autocomplete="email" readonly>
+            <input type="email" id="mcEmail" class="rb-input input-royal-focus" placeholder="Seu e-mail" autocomplete="email" readonly 
+                   oninput="validarCampoMinhaConta('mcEmail', this.value)" onblur="validarCampoMinhaConta('mcEmail', this.value)">
             <button type="button" class="edit-btn" onclick="editarCampo('mcEmail')" title="Editar e-mail">✏️</button>
           </div>
           <div id="mcEmailError" class="error" style="display: none;"></div>

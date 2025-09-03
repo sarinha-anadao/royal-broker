@@ -132,20 +132,39 @@ function validarEmail(email) {
   }
   
   // Regex mais rigoroso para validação de email
+  // Não permite caracteres extras após o domínio
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  
+  // Verifica se o email termina exatamente no padrão esperado
   if (!emailRegex.test(email)) {
     return { valido: false, mensagem: "Formato de e-mail inválido (exemplo: usuario@dominio.com)." };
   }
   
-  // Verifica se o domínio tem pelo menos 2 caracteres
+  // Verifica se há caracteres extras após o domínio
   const partes = email.split('@');
   if (partes.length !== 2) {
-    return { valido: false, mensagem: "E-mail deve conter um @." };
+    return { valido: false, mensagem: "E-mail deve conter exatamente um @." };
   }
   
   const dominio = partes[1];
   if (dominio.length < 3 || !dominio.includes('.')) {
     return { valido: false, mensagem: "Domínio do e-mail inválido." };
+  }
+  
+  // Verifica se não há caracteres extras após o domínio
+  const dominioPartes = dominio.split('.');
+  if (dominioPartes.length < 2) {
+    return { valido: false, mensagem: "Domínio deve ter pelo menos uma extensão (.com, .br, etc)." };
+  }
+  
+  const extensao = dominioPartes[dominioPartes.length - 1];
+  if (extensao.length < 2 || extensao.length > 6) {
+    return { valido: false, mensagem: "Extensão do domínio deve ter entre 2 e 6 caracteres." };
+  }
+  
+  // Verifica se não há caracteres especiais ou números após a extensão
+  if (!/^[a-zA-Z]+$/.test(extensao)) {
+    return { valido: false, mensagem: "Extensão do domínio deve conter apenas letras." };
   }
   
   return { valido: true, mensagem: "" };
@@ -2993,6 +3012,19 @@ function editarCampo(campoId){
       if (valor.length > 0) {
         this.value = formatarTelefone(valor);
       }
+    });
+  }
+  
+  // Aplica validação específica para e-mail
+  if (campoId === 'mcEmail') {
+    campo.addEventListener('input', function() {
+      // Valida o e-mail em tempo real
+      validarCampoMinhaConta('mcEmail', this.value);
+    });
+    
+    campo.addEventListener('blur', function() {
+      // Valida o e-mail quando o campo perde o foco
+      validarCampoMinhaConta('mcEmail', this.value);
     });
   }
 }
